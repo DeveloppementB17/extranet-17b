@@ -18,3 +18,19 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> project/private-storage ###
+/storage/
+/var/uploads/
+###< project/private-storage ###
+
+###> ide/editor ###
+.idea/
+.vscode/
+.cursor/
+###< ide/editor ###
+
+###> os ###
+.DS_Store
+Thumbs.db
+###< os ###
