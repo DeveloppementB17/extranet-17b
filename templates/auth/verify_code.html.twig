@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Saisir le code{% endblock %}
+
+{% block body %}
+    <div class="mx-auto max-w-md">
+        <h1 class="text-2xl font-semibold">Saisir le code</h1>
+        <p class="mt-2 text-sm text-slate-700">
+            Saisis le code à 6 chiffres reçu par email.
+        </p>
+
+        {% if app.environment == 'dev' %}
+            <div class="mt-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <div class="font-semibold">Mode dev</div>
+                <div class="mt-1">
+                    Tu peux récupérer le code dans Mailhog/Mailpit :
+                    <a class="font-medium underline" href="http://127.0.0.1:8025" target="_blank" rel="noopener noreferrer">ouvrir l’interface email</a>.
+                </div>
+            </div>
+        {% endif %}
+
+        {% for message in app.flashes('error') %}
+            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('success') %}
+            <div class="mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+        {% endfor %}
+
+        <form class="mt-6 space-y-4" action="{{ path('auth_code_verify') }}" method="post">
+            <div>
+                <label class="block text-sm font-medium" for="email">Email</label>
+                <input class="mt-1 w-full rounded border border-slate-300 px-3 py-2" type="email" id="email" name="email" value="{{ email }}" autocomplete="email" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium" for="code">Code</label>
+                <input class="mt-1 w-full rounded border border-slate-300 px-3 py-2 tracking-widest" type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+            <button class="w-full rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white" type="submit">
+                Valider le code
+            </button>
+        </form>
+
+        <div class="mt-6 text-sm text-slate-700">
+            <a class="font-medium text-slate-900 underline" href="{{ path('auth_code') }}">Renvoyer un code</a>
+        </div>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <div class="space-y-4">
+        <h1 class="text-2xl font-semibold">Extranet 17b</h1>
+        <p class="text-slate-700">
+            Connecté en tant que <span class="font-medium">{{ app.user.userIdentifier }}</span>.
+        </p>
+        <p>
+            <a class="text-slate-900 underline" href="{{ path('app_logout') }}">Se déconnecter</a>
+        </p>
+    </div>
+{% endblock %}
+
