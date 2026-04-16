@@ -20,26 +20,30 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body class="min-h-screen bg-white text-slate-900">
-        <header class="border-b border-slate-200">
-            <div class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
-                <div class="text-lg font-semibold">
-                    Logo 17b
+    <body class="min-h-screen bg-brand text-slate-900">
+        {% block header %}
+            <header class="border-b border-white/20 bg-brand">
+                <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+                    <div class="px-2 py-1.5">
+                        <img src="{{ asset('images/logo-17b.png') }}" alt="Logo 17b" class="h-12 w-auto">
+                    </div>
                 </div>
-            </div>
-        </header>
+            </header>
+        {% endblock %}
 
         {% block breadcrumb %}
         {% endblock %}
 
-        <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <main class="mx-auto max-w-6xl px-6 py-10">
             {% block body %}{% endblock %}
         </main>
 
-        <footer class="mt-auto border-t border-slate-200">
-            <div class="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-600 sm:px-6 lg:px-8">
-                © 17b Communication
-            </div>
-        </footer>
+        {% block footer %}
+            <footer class="mt-auto border-t border-white/20 bg-brand">
+                <div class="mx-auto max-w-6xl px-6 py-6 text-sm text-white/80">
+                    © 17b Communication
+                </div>
+            </footer>
+        {% endblock %}
     </body>
 </html>

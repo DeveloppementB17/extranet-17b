@@ -38,6 +38,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $loginCodeRequestedAt = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $passwordResetTokenHash = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $passwordResetExpiresAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $passwordResetRequestedAt = null;
+
     #[ORM\ManyToOne(targetEntity: Entreprise::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     private ?Entreprise $entreprise = null;
@@ -143,6 +152,51 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->loginCodeHash = null;
         $this->loginCodeExpiresAt = null;
         $this->loginCodeRequestedAt = null;
+
+        return $this;
+    }
+
+    public function getPasswordResetTokenHash(): ?string
+    {
+        return $this->passwordResetTokenHash;
+    }
+
+    public function setPasswordResetTokenHash(?string $passwordResetTokenHash): self
+    {
+        $this->passwordResetTokenHash = $passwordResetTokenHash;
+
+        return $this;
+    }
+
+    public function getPasswordResetExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->passwordResetExpiresAt;
+    }
+
+    public function setPasswordResetExpiresAt(?\DateTimeImmutable $passwordResetExpiresAt): self
+    {
+        $this->passwordResetExpiresAt = $passwordResetExpiresAt;
+
+        return $this;
+    }
+
+    public function getPasswordResetRequestedAt(): ?\DateTimeImmutable
+    {
+        return $this->passwordResetRequestedAt;
+    }
+
+    public function setPasswordResetRequestedAt(?\DateTimeImmutable $passwordResetRequestedAt): self
+    {
+        $this->passwordResetRequestedAt = $passwordResetRequestedAt;
+
+        return $this;
+    }
+
+    public function clearPasswordReset(): self
+    {
+        $this->passwordResetTokenHash = null;
+        $this->passwordResetExpiresAt = null;
+        $this->passwordResetRequestedAt = null;
 
         return $this;
     }

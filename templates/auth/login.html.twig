@@ -1,42 +1,41 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth/_layout.html.twig' %}
 
 {% block title %}Connexion{% endblock %}
 
-{% block body %}
-    <div class="mx-auto max-w-md">
-        <h1 class="text-2xl font-semibold">Connexion</h1>
+{% block auth_body %}
+        <h1 class="text-center text-2xl font-semibold text-brand">Connexion</h1>
 
         {% for message in app.flashes('error') %}
-            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+            <div class="mt-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
         {% if error %}
-            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div class="mt-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 {{ error.messageKey|trans(error.messageData, 'security') }}
             </div>
         {% endif %}
 
-        <form class="mt-6 space-y-4" action="{{ path('app_login') }}" method="post">
+        <form class="mt-8 space-y-6" action="{{ path('app_login') }}" method="post">
             <div>
-                <label class="block text-sm font-medium" for="username">Email</label>
-                <input class="mt-1 w-full rounded border border-slate-300 px-3 py-2" type="email" id="username" name="_username" value="{{ last_username }}" autocomplete="email" required>
+                <label class="block text-sm font-semibold text-slate-600" for="username">Identifiant</label>
+                <input class="mt-2 w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary" type="email" id="username" name="_username" value="{{ last_username }}" autocomplete="email" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium" for="password">Mot de passe</label>
-                <input class="mt-1 w-full rounded border border-slate-300 px-3 py-2" type="password" id="password" name="_password" autocomplete="current-password" required>
+                <label class="block text-sm font-semibold text-slate-600" for="password">Mot de passe</label>
+                <input class="mt-2 w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary" type="password" id="password" name="_password" autocomplete="current-password" required>
             </div>
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-            <button class="w-full rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white" type="submit">
-                Se connecter
+            <button class="w-full rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover" type="submit">
+                Connexion
             </button>
         </form>
 
-        <div class="mt-6 text-sm text-slate-700">
-            Ou bien
-            <a class="font-medium text-slate-900 underline" href="{{ path('auth_code') }}">recevoir un code unique par email</a>.
+        <div class="mt-6 flex items-center justify-between text-sm text-slate-600">
+            <a class="font-medium text-brand underline" href="{{ path('auth_code') }}">Code unique par email</a>
+            <a class="font-medium text-brand underline" href="{{ path('auth_forgot_password') }}">Mot de passe oublié ?</a>
         </div>
 
         {% if app.environment == 'dev' %}
@@ -53,6 +52,5 @@
                 </div>
             </div>
         {% endif %}
-    </div>
 {% endblock %}
 

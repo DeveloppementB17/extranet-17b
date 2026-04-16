@@ -3,14 +3,16 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
-    <div class="space-y-4">
-        <h1 class="text-2xl font-semibold">Extranet 17b</h1>
-        <p class="text-slate-700">
-            Connecté en tant que <span class="font-medium">{{ app.user.userIdentifier }}</span>.
-        </p>
-        <p>
-            <a class="text-slate-900 underline" href="{{ path('app_logout') }}">Se déconnecter</a>
-        </p>
+    <div class="mx-auto max-w-xl rounded-sm bg-white px-10 py-10 shadow-[0_30px_60px_rgba(0,0,0,0.10)]">
+        <div class="space-y-4">
+            <h1 class="text-2xl font-semibold text-brand">Extranet 17b</h1>
+            <p class="text-slate-700">
+                Connecté en tant que <span class="font-medium">{{ app.user.userIdentifier }}</span>.
+            </p>
+            <p>
+                <a class="font-medium text-brand underline" href="{{ path('app_logout') }}">Se déconnecter</a>
+            </p>
+        </div>
     </div>
 {% endblock %}
 
