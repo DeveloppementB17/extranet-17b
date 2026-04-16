@@ -1,0 +1,18 @@
+## OVH mutualisé: document root = racine du projet
+## Objectif: servir les fichiers statiques depuis /public et router le reste vers /public/index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Ne pas boucler si l'URL commence déjà par /public
+    RewriteRule ^public/ - [L]
+
+    # Si la ressource existe sous /public, la servir directement
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+    RewriteRule ^ public%{REQUEST_URI} [L]
+
+    # Sinon: front controller Symfony
+    RewriteRule ^ public/index.php [L]
+</IfModule>
+
