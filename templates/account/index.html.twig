@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon compte{% endblock %}
+
+{% block body %}
+    <div class="panel mx-auto max-w-lg px-8 py-8">
+        <h1 class="text-xl font-semibold text-brand">Mon compte</h1>
+        <p class="mt-2 text-sm text-slate-600">Informations liées à ta session sur l’extranet.</p>
+
+        <dl class="mt-8 space-y-6 text-sm">
+            <div>
+                <dt class="font-semibold text-slate-600">Email</dt>
+                <dd class="mt-1 text-slate-900">{{ user.email }}</dd>
+            </div>
+            <div>
+                <dt class="font-semibold text-slate-600">Entreprise</dt>
+                <dd class="mt-1 text-slate-900">
+                    {{ user.entreprise.name }}
+                    <span class="text-slate-500">({{ user.entreprise.slug }})</span>
+                </dd>
+            </div>
+            <div>
+                <dt class="font-semibold text-slate-600">Rôles</dt>
+                <dd class="mt-2">
+                    <ul class="list-inside list-disc space-y-1 text-slate-900">
+                        {% for role in display_roles %}
+                            <li><span class="font-mono text-xs text-slate-500">{{ role }}</span> — {{ role|role_label }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p class="mt-3 text-xs text-slate-500">Les libellés correspondent aux droits dans l’application (Symfony Security).</p>
+                </dd>
+            </div>
+        </dl>
+
+        <p class="mt-8 text-sm">
+            <a class="font-medium text-brand underline" href="{{ path('app_home') }}">← Retour à l’accueil</a>
+        </p>
+    </div>
+{% endblock %}

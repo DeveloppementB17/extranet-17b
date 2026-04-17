@@ -12,6 +12,7 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+/bin/.phpunit.result.cache
 ###< phpunit/phpunit ###
 
 ###> symfony/asset-mapper ###
@@ -28,6 +29,7 @@
 .idea/
 .vscode/
 .cursor/
+.user.ini
 ###< ide/editor ###
 
 ###> os ###

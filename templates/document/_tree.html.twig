@@ -1,0 +1,100 @@
+{# Arborescence catégories + documents (repliable via <details>). #}
+{% macro category_branch(category, documentsByCategory, showClient, depth) %}
+    {% set docs = documentsByCategory[category.id] ?? [] %}
+    {% set childList = category.children %}
+    {% set childBlocks %}
+        {% for child in childList %}
+            {{ _self.category_branch(child, documentsByCategory, showClient, depth + 1) }}
+        {% endfor %}
+    {% endset %}
+    {% set hasContent = (docs|length > 0) or (childBlocks|trim != '') %}
+    {% if hasContent %}
+        <details class="document-tree__folder mt-2" {% if depth < 1 %}open{% endif %}>
+            <summary class="document-tree__summary cursor-pointer select-none py-1.5 pl-1 text-sm font-semibold text-brand outline-none marker:text-brand">
+                {{ category.name }}
+                {% if docs|length > 0 %}
+                    <span class="ml-2 font-normal text-slate-600">({{ docs|length }})</span>
+                {% endif %}
+            </summary>
+            <div class="document-tree__body ml-3 border-l border-white/25 pl-3">
+                {% if docs|length > 0 %}
+                    <ul class="mt-2 space-y-2 text-sm">
+                        {% for doc in docs %}
+                            <li class="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/15 pb-2 last:border-0">
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-medium text-slate-900">{{ doc.title }}</div>
+                                    <div class="mt-0.5 text-xs text-slate-600">
+                                        {% if showClient %}
+                                            <span>{{ doc.client.email }}</span>
+                                            <span class="text-slate-400"> · </span>
+                                        {% endif %}
+                                        <span>{{ doc.createdAt|date('d/m/Y H:i') }}</span>
+                                        <span class="text-slate-400"> · </span>
+                                        {% if doc.externalUrl %}
+                                            <span>Lien externe</span>
+                                        {% else %}
+                                            <span>{{ doc.originalName ?? '—' }}</span>
+                                            {% if doc.size is not null %}
+                                                <span class="text-slate-400"> · </span>
+                                                <span>{{ (doc.size / 1024 / 1024)|number_format(2, ',', ' ') }} Mo</span>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if showClient %}
+                                            <span class="text-slate-400"> · </span>
+                                            <span>{{ doc.uploadedBy.email }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="shrink-0">
+                                    {% if doc.externalUrl %}
+                                        <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+                                    {% else %}
+                                        <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}">Télécharger</a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {{ childBlocks|raw }}
+            </div>
+        </details>
+    {% endif %}
+{% endmacro %}
+
+{% macro uncategorized(documentsByCategory, showClient) %}
+    {% set docs = documentsByCategory['uncategorized'] ?? [] %}
+    {% if docs|length > 0 %}
+        <details class="document-tree__folder mt-4" open>
+            <summary class="document-tree__summary cursor-pointer select-none py-1.5 pl-1 text-sm font-semibold text-brand outline-none marker:text-brand">
+                Sans catégorie
+                <span class="ml-2 font-normal text-slate-600">({{ docs|length }})</span>
+            </summary>
+            <div class="document-tree__body ml-3 border-l border-white/25 pl-3">
+                <ul class="mt-2 space-y-2 text-sm">
+                    {% for doc in docs %}
+                        <li class="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/15 pb-2 last:border-0">
+                            <div class="min-w-0 flex-1">
+                                <div class="font-medium text-slate-900">{{ doc.title }}</div>
+                                <div class="mt-0.5 text-xs text-slate-600">
+                                    {% if showClient %}
+                                        <span>{{ doc.client.email }}</span>
+                                        <span class="text-slate-400"> · </span>
+                                    {% endif %}
+                                    <span>{{ doc.createdAt|date('d/m/Y H:i') }}</span>
+                                </div>
+                            </div>
+                            <div class="shrink-0">
+                                {% if doc.externalUrl %}
+                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+                                {% else %}
+                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}">Télécharger</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </details>
+    {% endif %}
+{% endmacro %}

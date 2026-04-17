@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Entreprises{% endblock %}
+
+{% block body %}
+    <div class="panel px-8 py-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-xl font-semibold text-brand">Entreprises</h1>
+            <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_entreprise_new') }}">Nouvelle entreprise</a>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        {% endfor %}
+
+        <div class="mt-6 overflow-hidden rounded ring-1 ring-slate-200">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Nom</th>
+                        <th class="px-4 py-3 font-semibold">Slug</th>
+                        <th class="px-4 py-3 font-semibold">Type</th>
+                        <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for e in entreprises %}
+                        <tr>
+                            <td class="px-4 py-3 font-medium text-slate-900">{{ e.name }}</td>
+                            <td class="px-4 py-3 text-slate-700"><code class="text-xs">{{ e.slug }}</code></td>
+                            <td class="px-4 py-3 text-slate-700">{{ e.agency ? 'Agence' : 'Cliente' }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <a class="font-medium text-brand underline" href="{{ path('admin_entreprise_edit', { id: e.id }) }}">Modifier</a>
+                                <form class="mt-2 inline sm:mt-0 sm:ml-3" method="post" action="{{ path('admin_entreprise_delete', { id: e.id }) }}" onsubmit="return confirm('Supprimer cette entreprise ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_entreprise' ~ e.id) }}">
+                                    <button type="submit" class="font-medium text-red-700 underline">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-4 py-6 text-slate-600">Aucune entreprise.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-6 text-sm">
+            <a class="font-medium text-brand underline" href="{{ path('admin_dashboard') }}">← Retour à l’administration</a>
+        </p>
+    </div>
+{% endblock %}

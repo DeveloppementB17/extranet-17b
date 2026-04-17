@@ -2,30 +2,25 @@
 
 namespace App\Security\Voter;
 
+use App\Entity\Document;
 use App\Entity\User;
-use App\Tenant\EntrepriseOwnedInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
- * Accès aux entités rattachées à une entreprise cliente (documents, catégories, etc.).
+ * Lecture / téléchargement des documents (périmètre entreprise cliente + rôles).
  */
-final class EntrepriseOwnedVoter extends Voter
+final class DocumentVoter extends Voter
 {
-    public const VIEW = 'ENTREPRISE_OWNED_VIEW';
+    public const VIEW = 'DOCUMENT_VIEW';
 
-    public const EDIT = 'ENTREPRISE_OWNED_EDIT';
-
-    public const DELETE = 'ENTREPRISE_OWNED_DELETE';
+    public const DOWNLOAD = 'DOCUMENT_DOWNLOAD';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!\in_array($attribute, [self::VIEW, self::EDIT, self::DELETE], true)) {
-            return false;
-        }
-
-        return $subject instanceof EntrepriseOwnedInterface;
+        return $subject instanceof Document
+            && \in_array($attribute, [self::VIEW, self::DOWNLOAD], true);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -35,13 +30,11 @@ final class EntrepriseOwnedVoter extends Voter
             return false;
         }
 
-        /** @var EntrepriseOwnedInterface $subject */
-        $subjectEntreprise = $subject->getEntreprise();
-        if ($subjectEntreprise === null || $subjectEntreprise->getId() === null) {
-            return false;
-        }
+        /** @var Document $document */
+        $document = $subject;
+        $docEntreprise = $document->getEntreprise();
 
-        if ($subjectEntreprise->isAgency()) {
+        if ($docEntreprise === null || $docEntreprise->getId() === null || $docEntreprise->isAgency()) {
             return false;
         }
 
@@ -50,7 +43,7 @@ final class EntrepriseOwnedVoter extends Voter
         }
 
         if ($user->is17bUser()) {
-            return $user->managesEntreprise($subjectEntreprise);
+            return $user->managesEntreprise($docEntreprise);
         }
 
         if ($user->isCustomerActor()) {
@@ -58,7 +51,7 @@ final class EntrepriseOwnedVoter extends Voter
 
             return $entreprise !== null
                 && !$entreprise->isAgency()
-                && $entreprise->getId() === $subjectEntreprise->getId();
+                && $entreprise->getId() === $docEntreprise->getId();
         }
 
         return false;

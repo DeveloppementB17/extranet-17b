@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Utilisateurs{% endblock %}
+
+{% block body %}
+    <div class="panel px-8 py-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-xl font-semibold text-brand">Utilisateurs</h1>
+            <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_user_new') }}">Nouvel utilisateur</a>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        {% endfor %}
+
+        <div class="mt-6 overflow-x-auto overflow-hidden rounded ring-1 ring-slate-200">
+            <table class="w-full min-w-[720px] text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Email</th>
+                        <th class="px-4 py-3 font-semibold">Rôle</th>
+                        <th class="px-4 py-3 font-semibold">Entreprise</th>
+                        <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for u in users %}
+                        <tr>
+                            <td class="px-4 py-3 font-medium text-slate-900">{{ u.email }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ u.primaryStoredRole|role_label }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ u.entreprise.name }}{% if u.entreprise.agency %} <span class="text-slate-500">(agence)</span>{% endif %}</td>
+                            <td class="px-4 py-3 text-right">
+                                <a class="font-medium text-brand underline" href="{{ path('admin_user_edit', { id: u.id }) }}">Modifier</a>
+                                {% if app.user and app.user.id != u.id %}
+                                    <form class="mt-2 inline sm:mt-0 sm:ml-3" method="post" action="{{ path('admin_user_delete', { id: u.id }) }}" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_user' ~ u.id) }}">
+                                        <button type="submit" class="font-medium text-red-700 underline">Supprimer</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-4 py-6 text-slate-600">Aucun utilisateur.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-6 text-sm">
+            <a class="font-medium text-brand underline" href="{{ path('admin_dashboard') }}">← Retour à l’administration</a>
+        </p>
+    </div>
+{% endblock %}

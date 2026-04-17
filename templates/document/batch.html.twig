@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter des documents{% endblock %}
+
+{% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="mx-auto max-w-xl">
+        <div class="panel px-8 py-8">
+            <h1 class="text-xl font-semibold text-brand">Ajouter des documents</h1>
+            <p class="mt-2 text-sm text-slate-600">
+                Un ou plusieurs fichiers (20 Mo max chacun). Renseigne le titre, le client destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+            </p>
+
+            {% if not has_clients %}
+                <div class="mt-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Aucun compte client disponible : crée d’abord des utilisateurs <code class="rounded bg-amber-100 px-1">CUSTOMER_ADMIN</code> ou <code class="rounded bg-amber-100 px-1">CUSTOMER_USER</code> sur une entreprise cliente (hors agence 17b).
+                </div>
+            {% endif %}
+
+            <p class="mt-4 text-sm">
+                <a class="font-medium text-brand underline" href="{{ path('document_index') }}">← Retour à la liste</a>
+            </p>
+
+            {{ form_start(form, { attr: { class: 'mt-6 space-y-5' } }) }}
+                {% if form.vars.errors|length %}
+                    <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                        {% for error in form.vars.errors %}
+                            <div>{{ error.message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div>
+                    {{ form_label(form.title, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.title, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {{ form_help(form.title) }}
+                    {% if form.title.vars.errors|length %}
+                        <div class="mt-2 text-sm text-red-700">
+                            {% for error in form.title.vars.errors %}
+                                <div>{{ error.message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form_label(form.client, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.client, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {% if form.client.vars.errors|length %}
+                        <div class="mt-2 text-sm text-red-700">
+                            {% for error in form.client.vars.errors %}
+                                <div>{{ error.message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form_label(form.category, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.category, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {% if form.category.vars.errors|length %}
+                        <div class="mt-2 text-sm text-red-700">
+                            {% for error in form.category.vars.errors %}
+                                <div>{{ error.message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form_label(form.files, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.files, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {{ form_help(form.files) }}
+                    {% if form.files.vars.errors|length %}
+                        <div class="mt-2 text-sm text-red-700">
+                            {% for error in form.files.vars.errors %}
+                                <div>{{ error.message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button class="w-full rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover" type="submit" {% if not has_clients %}disabled{% endif %}>
+                    Enregistrer
+                </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

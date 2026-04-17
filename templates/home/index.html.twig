@@ -3,13 +3,20 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
-    <div class="mx-auto max-w-xl rounded-sm bg-white px-10 py-10 shadow-[0_30px_60px_rgba(0,0,0,0.10)]">
+    <div class="panel mx-auto max-w-xl px-10 py-10">
         <div class="space-y-4">
             <h1 class="text-2xl font-semibold text-brand">Extranet 17b</h1>
             <p class="text-slate-700">
                 Connecté en tant que <span class="font-medium">{{ app.user.userIdentifier }}</span>.
             </p>
-            <p>
+            <p class="flex flex-wrap gap-x-4 gap-y-2">
+                {% if is_granted('ROLE_17B_ADMIN') %}
+                    <a class="font-medium text-brand underline" href="{{ path('admin_dashboard') }}">Administration</a>
+                {% endif %}
+                {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                    <a class="font-medium text-brand underline" href="{{ path('document_batch_upload') }}">Ajouter des documents</a>
+                {% endif %}
+                <a class="font-medium text-brand underline" href="{{ path('document_index') }}">Documents</a>
                 <a class="font-medium text-brand underline" href="{{ path('app_logout') }}">Se déconnecter</a>
             </p>
         </div>

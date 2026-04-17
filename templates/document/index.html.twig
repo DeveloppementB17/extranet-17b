@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+{% import 'document/_tree.html.twig' as doc_tree %}
+
+{% block title %}Documents{% endblock %}
+
+{% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="panel px-8 py-8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <h1 class="text-xl font-semibold text-brand">
+                    {% if is_granted('ROLE_CUSTOMER') %}Mes documents{% else %}Documents{% endif %}
+                </h1>
+                <p class="mt-1 text-sm text-slate-600">
+                    {% if can_upload %}
+                        Les clients voient uniquement cette arborescence. Pour déposer des fichiers, utilise le bouton ci-contre ou l’action sur l’accueil.
+                    {% else %}
+                        Déplie les dossiers pour accéder aux pièces. Téléchargement selon tes droits.
+                    {% endif %}
+                </p>
+            </div>
+            {% if can_upload %}
+                <a class="shrink-0 rounded-sm bg-brand-primary px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_batch_upload') }}">
+                    Ajouter des documents
+                </a>
+            {% endif %}
+        </div>
+
+        {% if documents is empty %}
+            <p class="mt-6 text-sm text-slate-600">Aucun document pour le moment.</p>
+        {% else %}
+            <div class="document-tree mt-8 text-slate-800">
+                {% for root in category_roots %}
+                    {{ doc_tree.category_branch(root, documents_by_category, show_client_in_tree, 0) }}
+                {% endfor %}
+                {{ doc_tree.uncategorized(documents_by_category, show_client_in_tree) }}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -2,7 +2,9 @@
 
 namespace App\Doctrine\Filter;
 
+use App\Entity\User;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\JoinColumnMapping;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 
 /**
@@ -17,6 +19,10 @@ final class EntrepriseFilter extends SQLFilter
 
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): string
     {
+        if ($targetEntity->getName() === User::class) {
+            return '';
+        }
+
         if (!$targetEntity->hasAssociation('entreprise')) {
             return '';
         }
@@ -34,7 +40,13 @@ final class EntrepriseFilter extends SQLFilter
             return '';
         }
 
-        $column = $mapping['joinColumns'][0]['name'] ?? 'entreprise_id';
+        $joinColumns = $mapping['joinColumns'] ?? [];
+        $firstJoinColumn = $joinColumns[0] ?? null;
+        $column = match (true) {
+            $firstJoinColumn instanceof JoinColumnMapping => $firstJoinColumn->name,
+            \is_array($firstJoinColumn) => $firstJoinColumn['name'] ?? 'entreprise_id',
+            default => 'entreprise_id',
+        };
 
         return sprintf('%s.%s = %s', $targetTableAlias, $column, $entrepriseId);
     }

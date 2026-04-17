@@ -23,10 +23,27 @@
     <body class="min-h-screen bg-brand text-slate-900">
         {% block header %}
             <header class="border-b border-white/20 bg-brand">
-                <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                    <div class="px-2 py-1.5">
-                        <img src="{{ asset('images/logo-17b.png') }}" alt="Logo 17b" class="h-12 w-auto">
-                    </div>
+                <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+                    <a href="{{ path('app_home') }}" class="header-logo-link shrink-0" title="Tableau de bord">
+                        <img src="{{ asset('images/logo-17b.png') }}" alt="17b — accueil" class="block h-12 w-auto">
+                    </a>
+                    <nav class="flex max-w-full flex-1 flex-wrap items-center justify-end gap-2 sm:gap-2.5">
+                        <a class="header-nav-btn" href="{{ path('document_index') }}">Documents</a>
+                        {% if is_granted('ROLE_17B_ADMIN') %}
+                            <a class="header-nav-btn" href="{{ path('admin_dashboard') }}">Administration</a>
+                        {% endif %}
+                        {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                            <a class="header-nav-btn" href="{{ path('document_category_index') }}">Dossiers</a>
+                        {% endif %}
+                        {% if app.user %}
+                            <a class="header-nav-btn max-w-[min(100%,14rem)] truncate sm:max-w-[18rem]" href="{{ path('app_account') }}" title="Mon compte">{{ app.user.userIdentifier }}</a>
+                            <a class="header-nav-btn header-nav-btn--icon" href="{{ path('app_logout') }}" title="Se déconnecter" aria-label="Se déconnecter">
+                                <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                    </nav>
                 </div>
             </header>
         {% endblock %}

@@ -31,4 +31,81 @@
     .bg-brand-card {
         background-color: var(--brand-card);
     }
+
+    /* Panneaux d'information sur fond bleu : plats, sans carte blanche */
+    .panel {
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .panel-muted {
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .document-tree details > summary {
+        list-style: none;
+    }
+    .document-tree details > summary::-webkit-details-marker {
+        display: none;
+    }
+    .document-tree .document-tree__summary::before {
+        content: "";
+        display: inline-block;
+        width: 0.35rem;
+        height: 0.35rem;
+        margin-right: 0.5rem;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(-45deg);
+        vertical-align: 0.15em;
+        transition: transform 0.15s ease;
+    }
+    .document-tree details[open] > .document-tree__summary::before {
+        transform: rotate(45deg);
+    }
+
+    /* Header : boutons sur fond marque */
+    .header-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.125rem;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background-color: rgba(255, 255, 255, 0.12);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        font-weight: 600;
+        color: #ffffff;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background-color 0.15s ease;
+    }
+    .header-nav-btn:hover {
+        background-color: rgba(255, 255, 255, 0.22);
+    }
+    .header-nav-btn:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 2px;
+    }
+    .header-nav-btn--icon {
+        padding: 0.5rem;
+    }
+
+    .header-logo-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem;
+        border-radius: 0.125rem;
+        text-decoration: none;
+        color: inherit;
+        transition: background-color 0.15s ease;
+    }
+    .header-logo-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .header-logo-link:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 2px;
+    }
 }

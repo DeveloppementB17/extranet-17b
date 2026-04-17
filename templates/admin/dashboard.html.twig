@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration{% endblock %}
+
+{% block body %}
+    <div class="panel px-8 py-8">
+        <h1 class="text-xl font-semibold text-brand">Administration 17b</h1>
+        <p class="mt-2 max-w-3xl text-sm text-slate-600">
+            Tableau de bord réservé aux super administrateurs 17b : accès rapide à la gestion des organisations, du contenu documentaire et aux évolutions prévues.
+        </p>
+
+        <div class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <article class="panel-muted flex flex-col rounded-sm p-6">
+                <h2 class="text-base font-semibold text-brand">Entreprises &amp; utilisateurs</h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Créer et maintenir les sociétés (agence ou clientes) et les comptes pour tous les rôles.
+                </p>
+                <div class="mt-6 flex flex-col gap-3">
+                    <a class="inline-flex w-fit items-center rounded-sm bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_entreprise_index') }}">
+                        Gérer les entreprises
+                    </a>
+                    <a class="inline-flex w-fit items-center rounded-sm border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('admin_user_index') }}">
+                        Gérer les utilisateurs
+                    </a>
+                </div>
+            </article>
+
+            <article class="panel-muted flex flex-col rounded-sm p-6">
+                <h2 class="text-base font-semibold text-brand">Dossiers &amp; documents</h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Arborescence des dossiers, bibliothèque de fichiers et dépôt groupé pour le staff 17b.
+                </p>
+                <div class="mt-6 flex flex-col gap-3">
+                    <a class="inline-flex w-fit items-center rounded-sm bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_category_index') }}">
+                        Gérer les dossiers
+                    </a>
+                    <a class="inline-flex w-fit items-center rounded-sm border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('document_index') }}">
+                        Voir les documents
+                    </a>
+                    <a class="inline-flex w-fit items-center rounded-sm border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('document_batch_upload') }}">
+                        Ajouter des documents
+                    </a>
+                </div>
+            </article>
+
+            <article class="panel-muted relative flex flex-col rounded-sm p-6">
+                <span class="absolute right-4 top-4 rounded-sm border border-white/30 bg-white/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white">
+                    Bientôt
+                </span>
+                <h2 class="text-base font-semibold text-brand pr-16">Crédits temps</h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Évolution à venir : suivi et gestion des crédits temps au sein de l’extranet (consultation, affectation, reporting).
+                </p>
+                <p class="mt-4 text-sm italic text-slate-500">
+                    Cette fonctionnalité n’est pas encore disponible. Elle sera proposée dans une prochaine version.
+                </p>
+            </article>
+        </div>
+    </div>
+{% endblock %}

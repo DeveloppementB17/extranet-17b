@@ -3,8 +3,10 @@
 namespace App\EventSubscriber;
 
 use App\Doctrine\Filter\EntrepriseFilter;
+use App\Entity\User;
 use App\Tenant\EntrepriseContext;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -14,6 +16,7 @@ final class EntrepriseFilterSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly EntrepriseContext $entrepriseContext,
+        private readonly Security $security,
     ) {
     }
 
@@ -32,6 +35,15 @@ final class EntrepriseFilterSubscriber implements EventSubscriberInterface
 
         $filters = $this->entityManager->getFilters();
         if (!$filters->has('entreprise')) {
+            return;
+        }
+
+        $user = $this->security->getUser();
+        if ($user instanceof User && $user->is17bStaff()) {
+            if ($filters->isEnabled('entreprise')) {
+                $filters->disable('entreprise');
+            }
+
             return;
         }
 

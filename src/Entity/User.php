@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -51,6 +53,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     private ?Entreprise $entreprise = null;
 
+    /**
+     * Entreprises clientes gérées par un ROLE_17B_USER (pas utilisé pour ROLE_17B_ADMIN).
+     *
+     * @var Collection<int, Entreprise>
+     */
+    #[ORM\ManyToMany(targetEntity: Entreprise::class)]
+    #[ORM\JoinTable(name: 'user_managed_entreprise')]
+    private Collection $managedEntreprises;
+
+    public function __construct()
+    {
+        $this->managedEntreprises = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -92,6 +108,113 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = $roles;
 
         return $this;
+    }
+
+    /**
+     * Rôles qu’un administrateur 17b peut attribuer (un seul à la fois en base).
+     *
+     * @return list<string>
+     */
+    public static function assignableRoleValues(): array
+    {
+        return ['ROLE_17B_ADMIN', 'ROLE_17B_USER', 'ROLE_CUSTOMER_ADMIN', 'ROLE_CUSTOMER_USER'];
+    }
+
+    /**
+     * Premier rôle métier présent en base (sans ROLE_USER implicite).
+     */
+    public function getPrimaryStoredRole(): string
+    {
+        foreach (self::assignableRoleValues() as $role) {
+            if (\in_array($role, $this->roles, true)) {
+                return $role;
+            }
+        }
+
+        return 'ROLE_CUSTOMER_USER';
+    }
+
+    public function is17bAdmin(): bool
+    {
+        return \in_array('ROLE_17B_ADMIN', $this->roles, true);
+    }
+
+    public function is17bUser(): bool
+    {
+        return \in_array('ROLE_17B_USER', $this->roles, true);
+    }
+
+    public function is17bStaff(): bool
+    {
+        return $this->is17bAdmin() || $this->is17bUser();
+    }
+
+    public function isCustomerAdmin(): bool
+    {
+        return \in_array('ROLE_CUSTOMER_ADMIN', $this->roles, true);
+    }
+
+    public function isCustomerUser(): bool
+    {
+        return \in_array('ROLE_CUSTOMER_USER', $this->roles, true);
+    }
+
+    /**
+     * Compte rattaché à une entreprise cliente (consultation, pas équipe 17b).
+     */
+    public function isCustomerActor(): bool
+    {
+        return $this->isCustomerAdmin() || $this->isCustomerUser();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getManagedEntrepriseIds(): array
+    {
+        $ids = [];
+        foreach ($this->managedEntreprises as $entreprise) {
+            $id = $entreprise->getId();
+            if ($id !== null) {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @return Collection<int, Entreprise>
+     */
+    public function getManagedEntreprises(): Collection
+    {
+        return $this->managedEntreprises;
+    }
+
+    public function addManagedEntreprise(Entreprise $entreprise): self
+    {
+        if (!$this->managedEntreprises->contains($entreprise)) {
+            $this->managedEntreprises->add($entreprise);
+        }
+
+        return $this;
+    }
+
+    public function removeManagedEntreprise(Entreprise $entreprise): self
+    {
+        $this->managedEntreprises->removeElement($entreprise);
+
+        return $this;
+    }
+
+    public function managesEntreprise(Entreprise $entreprise): bool
+    {
+        $id = $entreprise->getId();
+        if ($id === null) {
+            return false;
+        }
+
+        return \in_array($id, $this->getManagedEntrepriseIds(), true);
     }
 
     public function getPassword(): string
@@ -209,6 +332,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEntreprise(?Entreprise $entreprise): self
     {
         $this->entreprise = $entreprise;
+
+        return $this;
+    }
+
+    public function clearManagedEntreprises(): self
+    {
+        $this->managedEntreprises->clear();
 
         return $this;
     }

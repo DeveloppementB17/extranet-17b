@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel mx-auto max-w-lg px-8 py-8">
+        <h1 class="text-xl font-semibold text-brand">{{ title }}</h1>
+
+        {{ form_start(form, { attr: { class: 'mt-6 space-y-5' } }) }}
+            <div>
+                {{ form_label(form.name, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.name) }}
+                {{ form_errors(form.name) }}
+            </div>
+            <div>
+                {{ form_label(form.slug, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.slug) }}
+                {{ form_help(form.slug) }}
+                {{ form_errors(form.slug) }}
+            </div>
+            <div class="flex items-start gap-3">
+                {{ form_widget(form.agency, { attr: { class: 'mt-1' } }) }}
+                <div>
+                    {{ form_label(form.agency, null, { label_attr: { class: 'text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_errors(form.agency) }}
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button type="submit" class="rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover">Enregistrer</button>
+                <a class="rounded-sm border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('admin_entreprise_index') }}">Annuler</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

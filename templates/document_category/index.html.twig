@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Arborescence des dossiers{% endblock %}
+
+{% block body %}
+    <div class="panel px-8 py-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-xl font-semibold text-brand">Arborescence des dossiers</h1>
+            <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_category_new') }}">
+                Nouveau dossier
+            </a>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        {% endfor %}
+
+        <div class="mt-6 overflow-hidden rounded ring-1 ring-slate-200">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Entreprise</th>
+                        <th class="px-4 py-3 font-semibold">Nom</th>
+                        <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for row in rows %}
+                        {% set c = row.category %}
+                        <tr>
+                            <td class="px-4 py-3 text-slate-700">{{ c.entreprise.name }}</td>
+                            <td class="px-4 py-3 text-slate-900" style="padding-left: {{ 16 + row.depth * 20 }}px">
+                                {% if row.depth > 0 %}<span class="text-slate-400">↳</span>{% endif %}
+                                {{ c.name }}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <a class="font-medium text-brand underline" href="{{ path('document_category_edit', { id: c.id }) }}">Modifier</a>
+                                <form class="inline" method="post" action="{{ path('document_category_delete', { id: c.id }) }}" onsubmit="return confirm('Supprimer ce dossier ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_category' ~ c.id) }}">
+                                    <button type="submit" class="ml-3 font-medium text-red-700 underline">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="px-4 py-6 text-slate-600">Aucun dossier pour le moment.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-6 text-sm text-slate-600">
+            <a class="font-medium text-brand underline" href="{{ path('document_index') }}">← Retour aux documents</a>
+        </p>
+    </div>
+{% endblock %}

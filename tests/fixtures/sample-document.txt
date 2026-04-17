@@ -1,0 +1,2 @@
+Document d'exemple (fixtures / tests PHPUnit).
+Contenu minimal pour valider stockage hors public et téléchargement.

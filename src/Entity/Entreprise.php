@@ -21,13 +21,20 @@ class Entreprise
     #[ORM\Column(length: 64)]
     private string $slug;
 
+    /**
+     * Si vrai : agence 17b (pas une entreprise cliente). Les comptes clients ont toujours agency = false.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $agency = false;
+
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $name = '', string $slug = '')
+    public function __construct(string $name = '', string $slug = '', bool $agency = false)
     {
         $this->name = $name;
         $this->slug = $slug;
+        $this->agency = $agency;
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -60,9 +67,26 @@ class Entreprise
         return $this;
     }
 
+    public function isAgency(): bool
+    {
+        return $this->agency;
+    }
+
+    public function setAgency(bool $agency): self
+    {
+        $this->agency = $agency;
+
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name !== '' ? $this->name : $this->slug;
     }
 }
 
