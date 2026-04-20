@@ -57,7 +57,7 @@ final class AdminUserType extends AbstractType
             'required' => false,
             'data' => $options['managed_entreprises_data'],
             'label' => 'Entreprises clientes gérées',
-            'help' => 'Pour un ROLE_17B_USER : cocher les entreprises clientes autorisées.',
+            'help' => 'Pour les rôles 17b (admin ou user) : cocher les entreprises clientes attribuées.',
             'choice_attr' => static fn () => ['class' => 'h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary'],
         ]);
 

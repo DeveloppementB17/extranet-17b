@@ -32,9 +32,9 @@ final class DocumentController extends AbstractController
         }
 
         $forcedEntreprise = null;
-        if ($user->is17bUser()) {
+        if ($user->is17bStaff()) {
             $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($user);
-            if (!$forcedEntreprise instanceof Entreprise) {
+            if ($user->is17bUser() && !$forcedEntreprise instanceof Entreprise) {
                 $this->addFlash('error', 'Sélectionne d’abord un client depuis le tableau de bord.');
 
                 return $this->redirectToRoute('app_home');

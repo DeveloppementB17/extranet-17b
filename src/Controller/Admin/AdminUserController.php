@@ -232,7 +232,7 @@ final class AdminUserController extends AbstractController
             }
         }
 
-        if ($primaryRole === 'ROLE_17B_USER') {
+        if ($primaryRole === 'ROLE_17B_ADMIN' || $primaryRole === 'ROLE_17B_USER') {
             foreach ($managed as $e) {
                 if ($e->isAgency()) {
                     return 'Les entreprises gérées doivent être des entreprises clientes.';
@@ -250,7 +250,7 @@ final class AdminUserController extends AbstractController
     {
         $user->setRoles([$primaryRole]);
         $user->clearManagedEntreprises();
-        if ($primaryRole === 'ROLE_17B_USER') {
+        if ($primaryRole === 'ROLE_17B_ADMIN' || $primaryRole === 'ROLE_17B_USER') {
             foreach ($managed as $entreprise) {
                 $user->addManagedEntreprise($entreprise);
             }

@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\EntrepriseRepository;
 use App\Tenant\ManagedClientContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,7 +24,7 @@ final class HomeController extends AbstractController
         $user = $this->getUser();
         $managedClients = [];
         $selectedClient = null;
-        if ($user instanceof User && $user->is17bUser()) {
+        if ($user instanceof User && $user->is17bStaff()) {
             $managedClients = $entrepriseRepository->findNonAgencyByIdsOrdered($user->getManagedEntrepriseIds());
             $selectedClient = $managedClientContext->getSelectedManagedEntreprise($user);
         }
@@ -35,7 +36,7 @@ final class HomeController extends AbstractController
     }
 
     #[Route('/staff/client/{id}/select', name: 'staff_client_select', methods: ['POST'])]
-    #[IsGranted('ROLE_17B_USER')]
+    #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
     public function selectClient(
         Entreprise $entreprise,
         Request $request,

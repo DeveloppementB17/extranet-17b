@@ -19,7 +19,7 @@ final class ManagedClientContext
 
     public function getSelectedManagedEntreprise(User $actor): ?Entreprise
     {
-        if (!$actor->is17bUser()) {
+        if (!$actor->is17bStaff()) {
             return null;
         }
 
@@ -47,7 +47,7 @@ final class ManagedClientContext
 
     public function setSelectedManagedEntreprise(User $actor, Entreprise $entreprise): void
     {
-        if (!$actor->is17bUser() || !$actor->managesEntreprise($entreprise) || $entreprise->isAgency()) {
+        if (!$actor->is17bStaff() || !$actor->managesEntreprise($entreprise) || $entreprise->isAgency()) {
             throw new \InvalidArgumentException('Entreprise non autorisée pour cet utilisateur 17b.');
         }
 
