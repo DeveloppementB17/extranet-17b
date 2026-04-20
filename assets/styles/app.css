@@ -1,5 +1,8 @@
 @import "tailwindcss";
-
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite";
+@import "flowbite/src/themes/default";
+@import "./app.custom.css";
 :root {
     --brand-bg: #a9bcff;
     --brand-primary: #3f63e0;
@@ -32,7 +35,7 @@
         background-color: var(--brand-card);
     }
 
-    /* Panneaux d'information sur fond bleu : plats, sans carte blanche */
+
     .panel {
         background-color: transparent;
         border: 1px solid rgba(255, 255, 255, 0.25);
@@ -64,7 +67,7 @@
         transform: rotate(45deg);
     }
 
-    /* Header : boutons sur fond marque */
+
     .header-nav-btn {
         display: inline-flex;
         align-items: center;

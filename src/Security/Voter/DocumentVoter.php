@@ -4,6 +4,7 @@ namespace App\Security\Voter;
 
 use App\Entity\Document;
 use App\Entity\User;
+use App\Tenant\ManagedClientContext;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -16,6 +17,11 @@ final class DocumentVoter extends Voter
     public const VIEW = 'DOCUMENT_VIEW';
 
     public const DOWNLOAD = 'DOCUMENT_DOWNLOAD';
+
+    public function __construct(
+        private readonly ManagedClientContext $managedClientContext,
+    ) {
+    }
 
     protected function supports(string $attribute, mixed $subject): bool
     {
@@ -43,7 +49,10 @@ final class DocumentVoter extends Voter
         }
 
         if ($user->is17bUser()) {
-            return $user->managesEntreprise($docEntreprise);
+            $selectedEntreprise = $this->managedClientContext->getSelectedManagedEntreprise($user);
+
+            return $selectedEntreprise !== null
+                && $selectedEntreprise->getId() === $docEntreprise->getId();
         }
 
         if ($user->isCustomerActor()) {

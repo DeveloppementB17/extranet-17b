@@ -22,30 +22,85 @@
     </head>
     <body class="min-h-screen bg-brand text-slate-900">
         {% block header %}
-            <header class="border-b border-white/20 bg-brand">
-                <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-                    <a href="{{ path('app_home') }}" class="header-logo-link shrink-0" title="Tableau de bord">
-                        <img src="{{ asset('images/logo-17b.png') }}" alt="17b — accueil" class="block h-12 w-auto">
+            {% set currentRoute = app.request.attributes.get('_route') %}
+            <nav class=" border-b border-default">
+                <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                    {# Logo #}
+                    <a href="{{ path('app_home') }}" class="flex items-center space-x-3 rtl:space-x-reverse" title="Tableau de bord">
+                        <img src="{{ asset('images/logo-17b.png') }}" class="h-12 w-auto" alt="17b">
+                        <span class="self-center text-xl text-heading font-semibold whitespace-nowrap sr-only">Extranet 17b</span>
                     </a>
-                    <nav class="flex max-w-full flex-1 flex-wrap items-center justify-end gap-2 sm:gap-2.5">
-                        <a class="header-nav-btn" href="{{ path('document_index') }}">Documents</a>
-                        {% if is_granted('ROLE_17B_ADMIN') %}
-                            <a class="header-nav-btn" href="{{ path('admin_dashboard') }}">Administration</a>
-                        {% endif %}
-                        {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
-                            <a class="header-nav-btn" href="{{ path('document_category_index') }}">Dossiers</a>
-                        {% endif %}
+
+                    {# Bloc droit : Admin + Déconnexion + burger (md:order-2) #}
+                    <div class="flex items-center md:order-2 space-x-2 rtl:space-x-reverse">
                         {% if app.user %}
-                            <a class="header-nav-btn max-w-[min(100%,14rem)] truncate sm:max-w-[18rem]" href="{{ path('app_account') }}" title="Mon compte">{{ app.user.userIdentifier }}</a>
-                            <a class="header-nav-btn header-nav-btn--icon" href="{{ path('app_logout') }}" title="Se déconnecter" aria-label="Se déconnecter">
-                                <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                            {% if is_granted('ROLE_17B_ADMIN') %}
+                                <a href="{{ path('admin_dashboard') }}"
+                                   class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-heading rounded-base hover:bg-neutral-secondary-soft focus:outline-none focus:ring-2 focus:ring-neutral-tertiary"
+                                   title="Administration">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 10a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"/>
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.837 1.213C8.97.47 9.53 0 10 0s1.03.47 1.163 1.213l.083.462a1.87 1.87 0 0 0 2.726 1.132l.433-.23c.659-.356 1.418-.223 1.75.11.333.333.466 1.092.11 1.75l-.23.433a1.87 1.87 0 0 0 1.132 2.726l.462.083C18.53 7.81 19 8.37 19 9s-.47 1.19-1.213 1.322l-.462.083a1.87 1.87 0 0 0-1.132 2.726l.23.433c.356.659.223 1.418-.11 1.75-.332.333-1.091.466-1.75.11l-.433-.23a1.87 1.87 0 0 0-2.726 1.132l-.083.462C11.03 17.53 10.47 18 10 18s-1.03-.47-1.163-1.213l-.083-.462a1.87 1.87 0 0 0-2.726-1.132l-.433.23c-.659.356-1.418.223-1.75-.11-.333-.332-.466-1.091-.11-1.75l.23-.433a1.87 1.87 0 0 0-1.132-2.726l-.462-.083C1.47 10.19 1 9.63 1 9s.47-1.19 1.213-1.322l.462-.083a1.87 1.87 0 0 0 1.132-2.726l-.23-.433c-.356-.659-.223-1.418.11-1.75.332-.333 1.091-.466 1.75-.11l.433.23a1.87 1.87 0 0 0 2.726-1.132l.083-.462Z"/>
+                                    </svg>
+                                    <span class="hidden sm:inline">Admin</span>
+                                </a>
+                            {% endif %}
+                            <a href="{{ path('app_account') }}"
+                               class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-heading rounded-base hover:bg-neutral-secondary-soft focus:outline-none focus:ring-2 focus:ring-neutral-tertiary"
+                               title="Mon compte">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75a17.933 17.933 0 0 1-7.5-1.632Z"/>
                                 </svg>
+                                <span class="hidden sm:inline">Mon compte</span>
+                            </a>
+                            <a href="{{ path('app_logout') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-base focus:outline-none focus:ring-2 focus:ring-fg-brand"
+                               title="Se déconnecter">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h11m0 0L8 4m4 4-4 4m4-11h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
+                                </svg>
+                                <span class="hidden sm:inline">Déconnexion</span>
                             </a>
                         {% endif %}
-                    </nav>
+
+                        <button data-collapse-toggle="navbar-default" type="button"
+                                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-body rounded-base md:hidden hover:bg-neutral-secondary-soft hover:text-heading focus:outline-none focus:ring-2 focus:ring-neutral-tertiary"
+                                aria-controls="navbar-default" aria-expanded="false">
+                            <span class="sr-only">Ouvrir le menu principal</span>
+                            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h14"/></svg>
+                        </button>
+                    </div>
+
+                    {# Menu principal (md:order-1) #}
+                    <div class="hidden w-full md:flex md:w-auto md:order-1" id="navbar-default">
+                        <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-default md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
+                            <li>
+                                <a href="{{ path('app_home') }}"
+                                   class="block py-2 px-3 rounded md:p-0 {{ currentRoute == 'app_home' ? 'text-white bg-brand md:bg-transparent md:text-fg-brand' : 'text-heading hover:bg-neutral-tertiary md:hover:bg-transparent md:hover:text-fg-brand' }}"
+                                   {% if currentRoute == 'app_home' %}aria-current="page"{% endif %}>
+                                    Tableau de bord
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ path('document_index') }}"
+                                   class="block py-2 px-3 rounded md:p-0 {{ currentRoute starts with 'document_' ? 'text-white bg-brand md:bg-transparent md:text-fg-brand' : 'text-heading hover:bg-neutral-tertiary md:hover:bg-transparent md:hover:text-fg-brand' }}"
+                                   {% if currentRoute starts with 'document_' %}aria-current="page"{% endif %}>
+                                    Documents
+                                </a>
+                            </li>
+                            {% if is_granted('ROLE_CUSTOMER_ADMIN') %}
+                                <li>
+                                    <a href="{{ path('customer_user_index') }}"
+                                       class="block py-2 px-3 rounded md:p-0 {{ currentRoute starts with 'customer_user_' ? 'text-white bg-brand md:bg-transparent md:text-fg-brand' : 'text-heading hover:bg-neutral-tertiary md:hover:bg-transparent md:hover:text-fg-brand' }}"
+                                       {% if currentRoute starts with 'customer_user_' %}aria-current="page"{% endif %}>
+                                        Utilisateurs
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
-            </header>
+            </nav>
         {% endblock %}
 
         {% block breadcrumb %}

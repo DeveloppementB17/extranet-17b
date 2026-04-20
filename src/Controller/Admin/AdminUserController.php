@@ -41,13 +41,17 @@ final class AdminUserController extends AbstractController
             'require_password' => true,
             'entreprise_choices' => $entrepriseRepository->findAllOrdered(),
             'client_entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(),
+            'primary_role_data' => 'ROLE_CUSTOMER_USER',
+            'managed_entreprises_data' => [],
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $primaryRole = (string) $form->get('primaryRole')->getData();
+            /** @var iterable<Entreprise>|null $managedRaw */
+            $managedRaw = $form->get('managedEntreprises')->getData();
             /** @var list<Entreprise> $managed */
-            $managed = $form->get('managedEntreprises')->getData() ?? [];
+            $managed = $managedRaw === null ? [] : array_values(iterator_to_array($managedRaw));
 
             $err = $this->validateRoleEntreprise($user, $primaryRole, $managed);
             if ($err !== null) {
@@ -107,13 +111,17 @@ final class AdminUserController extends AbstractController
             'require_password' => false,
             'entreprise_choices' => $entrepriseRepository->findAllOrdered(),
             'client_entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(),
+            'primary_role_data' => $user->getPrimaryStoredRole(),
+            'managed_entreprises_data' => $user->getManagedEntreprises()->toArray(),
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $primaryRole = (string) $form->get('primaryRole')->getData();
+            /** @var iterable<Entreprise>|null $managedRaw */
+            $managedRaw = $form->get('managedEntreprises')->getData();
             /** @var list<Entreprise> $managed */
-            $managed = $form->get('managedEntreprises')->getData() ?? [];
+            $managed = $managedRaw === null ? [] : array_values(iterator_to_array($managedRaw));
 
             $err = $this->validateRoleEntreprise($user, $primaryRole, $managed);
             if ($err !== null) {

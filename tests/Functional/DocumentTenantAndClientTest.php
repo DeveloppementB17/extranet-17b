@@ -93,7 +93,7 @@ final class DocumentTenantAndClientTest extends DocumentWebTestCase
         self::assertStringContainsString('DOC-EST-001', $html);
     }
 
-    public function test17bManagedUserDoesNotSeeUnmanagedCompanyDocuments(): void
+    public function test17bManagedUserMustSelectAClientBeforeAccessingDocuments(): void
     {
         $browser = static::createClient();
 
@@ -104,6 +104,32 @@ final class DocumentTenantAndClientTest extends DocumentWebTestCase
         $browser->loginUser($manager);
         $browser->request('GET', '/documents');
 
+        self::assertResponseRedirects('/');
+    }
+
+    public function test17bManagedUserSeesOnlySelectedClientDocuments(): void
+    {
+        $browser = static::createClient();
+
+        $em = static::getContainer()->get('doctrine')->getManager();
+        $manager = $em->getRepository(User::class)->findOneBy(['email' => 'staff-partial@17b.test']);
+        $nord = $em->getRepository(Entreprise::class)->findOneBy(['slug' => 'demo-nord']);
+        self::assertNotNull($manager);
+        self::assertNotNull($nord);
+
+        $browser->loginUser($manager);
+        $crawler = $browser->request('GET', '/');
+        $token = $crawler
+            ->filter('form[action="/staff/client/'.$nord->getId().'/select"] input[name="_token"]')
+            ->attr('value');
+        self::assertNotFalse($token);
+
+        $browser->request('POST', '/staff/client/'.$nord->getId().'/select', [
+            '_token' => $token,
+        ]);
+        self::assertResponseRedirects('/');
+
+        $browser->request('GET', '/documents');
         self::assertResponseIsSuccessful();
         $html = (string) $browser->getResponse()->getContent();
         self::assertStringContainsString('NOTE-NORD-1', $html);

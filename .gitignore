@@ -20,6 +20,11 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 
+###> node ###
+/node_modules/
+/npm-debug.log
+###< node ###
+
 ###> project/private-storage ###
 /storage/
 /var/uploads/

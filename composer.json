@@ -80,8 +80,13 @@
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
-            "importmap:install": "symfony-cmd"
+            "importmap:install": "symfony-cmd",
+            "tailwind:build": "symfony-cmd"
         },
+        "assets:build": [
+            "@php bin/console tailwind:build",
+            "@php bin/console asset-map:compile"
+        ],
         "post-install-cmd": [
             "@auto-scripts"
         ],

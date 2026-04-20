@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Document;
+use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\DocumentRepository;
 use App\Security\Voter\DocumentVoter;
+use App\Tenant\ManagedClientContext;
 use App\Storage\DocumentStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -22,13 +24,24 @@ final class DocumentController extends AbstractController
     public function index(
         DocumentRepository $documentRepository,
         DocumentCategoryRepository $categoryRepository,
+        ManagedClientContext $managedClientContext,
     ): Response {
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
 
-        $documents = $documentRepository->findAccessibleForUser($user);
+        $forcedEntreprise = null;
+        if ($user->is17bUser()) {
+            $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($user);
+            if (!$forcedEntreprise instanceof Entreprise) {
+                $this->addFlash('error', 'Sélectionne d’abord un client depuis le tableau de bord.');
+
+                return $this->redirectToRoute('app_home');
+            }
+        }
+
+        $documents = $documentRepository->findAccessibleForUser($user, $forcedEntreprise);
 
         /** @var array<int|string, list<Document>> $documentsByCategory */
         $documentsByCategory = [];
@@ -41,8 +54,11 @@ final class DocumentController extends AbstractController
         return $this->render('document/index.html.twig', [
             'documents' => $documents,
             'documents_by_category' => $documentsByCategory,
-            'category_roots' => $categoryRepository->findRoots(),
-            'can_upload' => $this->isGranted('ROLE_17B_ADMIN') || $this->isGranted('ROLE_17B_USER'),
+            'category_roots' => $forcedEntreprise instanceof Entreprise
+                ? $categoryRepository->findRootsForEntreprise($forcedEntreprise)
+                : $categoryRepository->findRoots(),
+            'can_upload' => $this->isGranted('ROLE_17B_ADMIN')
+                || ($this->isGranted('ROLE_17B_USER') && $forcedEntreprise instanceof Entreprise),
             'show_client_in_tree' => !$this->isGranted('ROLE_CUSTOMER'),
         ]);
     }

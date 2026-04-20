@@ -12,14 +12,13 @@ use App\Repository\EntrepriseRepository;
 use App\Security\Voter\EntrepriseOwnedVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/documents/categories')]
-#[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
+#[IsGranted('ROLE_17B_ADMIN')]
 final class DocumentCategoryController extends AbstractController
 {
     #[Route('', name: 'document_category_index', methods: ['GET'])]

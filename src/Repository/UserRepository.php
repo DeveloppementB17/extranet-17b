@@ -63,4 +63,23 @@ class UserRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return list<User>
+     */
+    public function findCustomerUsersForEntreprise(int $entrepriseId): array
+    {
+        $users = $this->createQueryBuilder('u')
+            ->innerJoin('u.entreprise', 'e')
+            ->andWhere('e.id = :eid')
+            ->setParameter('eid', $entrepriseId)
+            ->orderBy('u.email', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_values(array_filter(
+            $users,
+            static fn (User $u): bool => $u->isCustomerUser(),
+        ));
+    }
 }

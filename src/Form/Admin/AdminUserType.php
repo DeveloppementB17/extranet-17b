@@ -11,8 +11,6 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -30,6 +28,7 @@ final class AdminUserType extends AbstractType
         $builder->add('primaryRole', ChoiceType::class, [
             'mapped' => false,
             'label' => 'Rôle',
+            'data' => $options['primary_role_data'],
             'choices' => [
                 'Administrateur 17b' => 'ROLE_17B_ADMIN',
                 'Utilisateur 17b (périmètre limité)' => 'ROLE_17B_USER',
@@ -54,11 +53,12 @@ final class AdminUserType extends AbstractType
             'class' => Entreprise::class,
             'choices' => $options['client_entreprise_choices'],
             'multiple' => true,
-            'expanded' => false,
+            'expanded' => true,
             'required' => false,
+            'data' => $options['managed_entreprises_data'],
             'label' => 'Entreprises clientes gérées',
-            'help' => 'Optionnel : pour un utilisateur 17b à périmètre limité, limite l’accès aux entreprises sélectionnées. Vide = aucun accès aux données clients tant qu’aucune entreprise n’est associée.',
-            'attr' => ['class' => 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary', 'size' => 6],
+            'help' => 'Pour un ROLE_17B_USER : cocher les entreprises clientes autorisées.',
+            'choice_attr' => static fn () => ['class' => 'h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary'],
         ]);
 
         $pwdConstraintsFirst = $options['require_password']
@@ -90,15 +90,6 @@ final class AdminUserType extends AbstractType
         }
         $builder->add('plainPassword', RepeatedType::class, $pwdOpts);
 
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
-            $user = $event->getData();
-            if (!$user instanceof User || null === $user->getId()) {
-                return;
-            }
-            $form = $event->getForm();
-            $form->get('primaryRole')->setData($user->getPrimaryStoredRole());
-            $form->get('managedEntreprises')->setData($user->getManagedEntreprises()->toArray());
-        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -108,8 +99,12 @@ final class AdminUserType extends AbstractType
             'require_password' => true,
             'entreprise_choices' => [],
             'client_entreprise_choices' => [],
+            'primary_role_data' => 'ROLE_CUSTOMER_USER',
+            'managed_entreprises_data' => [],
         ]);
         $resolver->setAllowedTypes('entreprise_choices', 'array');
         $resolver->setAllowedTypes('client_entreprise_choices', 'array');
+        $resolver->setAllowedTypes('primary_role_data', 'string');
+        $resolver->setAllowedTypes('managed_entreprises_data', 'array');
     }
 }

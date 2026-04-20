@@ -25,4 +25,7 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    'flowbite' => [
+        'path' => 'flowbite.turbo.min.js',
+    ],
 ];

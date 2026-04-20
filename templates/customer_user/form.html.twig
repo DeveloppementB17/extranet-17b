@@ -20,25 +20,6 @@
                 {{ form_errors(form.email) }}
             </div>
             <div>
-                {{ form_label(form.primaryRole, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                {{ form_widget(form.primaryRole, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
-                {{ form_errors(form.primaryRole) }}
-            </div>
-            <div>
-                {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                {{ form_widget(form.entreprise, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
-                {{ form_help(form.entreprise) }}
-                {{ form_errors(form.entreprise) }}
-            </div>
-            <div>
-                {{ form_label(form.managedEntreprises, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                <div class="mt-2 space-y-2 rounded bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
-                    {{ form_widget(form.managedEntreprises) }}
-                </div>
-                {{ form_help(form.managedEntreprises) }}
-                {{ form_errors(form.managedEntreprises) }}
-            </div>
-            <div>
                 {{ form_label(form.plainPassword.first, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
                 {{ form_widget(form.plainPassword.first, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
                 {{ form_help(form.plainPassword.first) }}
@@ -51,7 +32,7 @@
             </div>
             <div class="flex flex-wrap gap-3">
                 <button type="submit" class="rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover">Enregistrer</button>
-                <a class="rounded-sm border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('admin_user_index') }}">Annuler</a>
+                <a class="rounded-sm border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('customer_user_index') }}">Annuler</a>
             </div>
         {{ form_end(form) }}
     </div>

@@ -1,0 +1,13 @@
+{
+    "name": "17b-extranet",
+    "private": true,
+    "description": "Dépendances front (Tailwind plugins et Flowbite) pour l'extranet 17b.",
+    "scripts": {
+        "scss:build": "sass --no-source-map assets/styles/app.custom.scss:assets/styles/app.custom.css",
+        "scss:watch": "sass --watch --no-source-map assets/styles/app.custom.scss:assets/styles/app.custom.css"
+    },
+    "devDependencies": {
+        "flowbite": "^4.0.1",
+        "sass": "^1.93.2"
+    }
+}

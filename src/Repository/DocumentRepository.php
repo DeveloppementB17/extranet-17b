@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Document;
 use App\Entity\DocumentCategory;
+use App\Entity\Entreprise;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,7 +22,7 @@ class DocumentRepository extends ServiceEntityRepository
     /**
      * @return list<Document>
      */
-    public function findAccessibleForUser(User $user): array
+    public function findAccessibleForUser(User $user, ?Entreprise $forcedEntreprise = null): array
     {
         $qb = $this->createQueryBuilder('d')
             ->orderBy('d.createdAt', 'DESC');
@@ -35,6 +36,17 @@ class DocumentRepository extends ServiceEntityRepository
         }
 
         if ($user->is17bUser()) {
+            if ($forcedEntreprise instanceof Entreprise) {
+                if (!$user->managesEntreprise($forcedEntreprise)) {
+                    return [];
+                }
+
+                $qb->andWhere('d.entreprise = :forcedEntreprise')
+                    ->setParameter('forcedEntreprise', $forcedEntreprise);
+
+                return $qb->getQuery()->getResult();
+            }
+
             $ids = $user->getManagedEntrepriseIds();
             if ($ids === []) {
                 return [];

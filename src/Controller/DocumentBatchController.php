@@ -10,6 +10,7 @@ use App\Form\DocumentBatchUploadType;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\EntrepriseRepository;
 use App\Repository\UserRepository;
+use App\Tenant\ManagedClientContext;
 use App\Storage\DocumentStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,6 +31,7 @@ final class DocumentBatchController extends AbstractController
         UserRepository $userRepository,
         DocumentCategoryRepository $categoryRepository,
         EntrepriseRepository $entrepriseRepository,
+        ManagedClientContext $managedClientContext,
         DocumentStorage $storage,
         EntityManagerInterface $entityManager,
     ): Response {
@@ -38,11 +40,28 @@ final class DocumentBatchController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        $forcedEntreprise = null;
+        if ($user->is17bUser()) {
+            $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($user);
+            if (!$forcedEntreprise instanceof Entreprise) {
+                $this->addFlash('error', 'Sélectionne d’abord un client depuis le tableau de bord.');
+
+                return $this->redirectToRoute('app_home');
+            }
+        }
+
         $clients = $userRepository->findCustomerAccountsForStaffUpload($user);
+        if ($forcedEntreprise instanceof Entreprise) {
+            $forcedId = $forcedEntreprise->getId();
+            $clients = array_values(array_filter(
+                $clients,
+                static fn (User $candidate): bool => $candidate->getEntreprise()?->getId() === $forcedId,
+            ));
+        }
         $hasClients = $clients !== [];
 
         $form = $this->createForm(DocumentBatchUploadType::class, options: [
-            'category_choices' => $this->buildCategoryChoices($categoryRepository, $entrepriseRepository, $user),
+            'category_choices' => $this->buildCategoryChoices($categoryRepository, $entrepriseRepository, $user, $forcedEntreprise),
             'client_choices' => $clients,
         ]);
         $form->handleRequest($request);
@@ -142,8 +161,11 @@ final class DocumentBatchController extends AbstractController
         DocumentCategoryRepository $categoryRepository,
         EntrepriseRepository $entrepriseRepository,
         User $actor,
+        ?Entreprise $forcedEntreprise = null,
     ): array {
-        $allowed = $this->allowedClientEntreprises($actor, $entrepriseRepository);
+        $allowed = $forcedEntreprise instanceof Entreprise
+            ? [$forcedEntreprise]
+            : $this->allowedClientEntreprises($actor, $entrepriseRepository);
         $choices = [];
         foreach ($allowed as $ent) {
             foreach ($categoryRepository->findRootsForEntreprise($ent) as $root) {
