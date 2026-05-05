@@ -1,1 +1,25 @@
-/* Fichier généré depuis app.custom.scss (placeholder initial). */
+@charset "UTF-8";
+/* Styles SCSS compilés vers app.custom.css, importés par assets/styles/app.css.
+ *
+ * Chaîne SymfonyCasts Tailwind : la page charge app.css, mais le bundle sert en
+ * réalité var/tailwind/app.built.css. Après une modif SCSS :
+ *   1) npm run scss:build   (ou scss:watch)
+ *   2) php bin/console tailwind:build
+ * En dev tu peux laisser tourner : npm run scss:watch
+ *   et dans un autre terminal : php bin/console tailwind:build --watch
+ *
+ * Rappel sélecteurs : .foo = classe HTML class="foo", pas la balise <foo>.
+ */
+.button:hover {
+  cursor: pointer;
+}
+
+.dashboard-card-action,
+.dashboard-logout-link {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.dashboard-card-action:hover,
+.dashboard-logout-link:hover {
+  opacity: 0.82;
+}

@@ -1,0 +1,24 @@
+{% if managed_clients is not empty %}
+    <form method="post" action="{{ path('staff_client_select_switcher') }}" class="w-full sm:w-72">
+        <input type="hidden" name="_token" value="{{ csrf_token('select_client_switcher') }}">
+        <input type="hidden" name="return_to" value="{{ return_to }}">
+        <label class="sr-only" for="staff-client-switcher">Entreprise active</label>
+        <select
+            id="staff-client-switcher"
+            name="client_id"
+            class="w-full rounded-base border border-default bg-white px-3 py-2 text-sm text-slate-900"
+            data-staff-client-switcher
+        >
+            <option value="" {{ selected_client ? '' : 'selected' }}>— Aucun client —</option>
+            {% for client in managed_clients %}
+                <option value="{{ client.id }}" {{ selected_client and selected_client.id == client.id ? 'selected' : '' }}>
+                    {{ client.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+{% else %}
+    <span class="inline-flex items-center rounded-base border border-default bg-white px-3 py-2 text-xs text-slate-600">
+        Aucun client attribué
+    </span>
+{% endif %}

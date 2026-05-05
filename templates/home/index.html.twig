@@ -3,125 +3,186 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
-    <div class="panel mx-auto max-w-xl px-10 py-10">
         {% for message in app.flashes('success') %}
-            <div class="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+            <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
         {% endfor %}
         {% for message in app.flashes('error') %}
-            <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+            <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
-        <div class="space-y-4">
-            <h1 class="text-2xl font-semibold text-brand">Extranet 17b</h1>
-            <p class="text-slate-700">
-                Connecté en tant que <span class="font-medium">{{ app.user.userIdentifier }}</span>.
-            </p>
-            <div class="panel-muted rounded-sm p-5">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-brand">Actions disponibles</h2>
-                <ul class="mt-3 space-y-2 text-sm text-slate-700">
-                    {% if is_granted('ROLE_17B_ADMIN') %}
-                        <li>
-                            <a class="font-medium text-brand underline" href="{{ path('admin_dashboard') }}">Administration</a>
-                            <span> — gérer les entreprises et les utilisateurs.</span>
-                        </li>
-                        {% if selected_client %}
-                            <li>
-                                <span class="font-medium text-brand">Client actif : {{ selected_client.name }}</span>
-                            </li>
-                            <li>
-                                <a class="font-medium text-brand underline" href="{{ path('document_index') }}">Consulter les documents</a>
-                                <span> — accès ciblé sur l’entreprise attribuée sélectionnée.</span>
-                            </li>
-                            <li>
-                                <a class="font-medium text-brand underline" href="{{ path('document_batch_upload') }}">Ajouter des documents</a>
-                                <span> — dépôt sur le client attribué sélectionné.</span>
-                            </li>
-                        {% endif %}
-                        <li>
-                            <a class="font-medium text-brand underline" href="{{ path('document_batch_upload') }}">Ajouter des documents</a>
-                            <span> — dépôt groupé pour les clients.</span>
-                        </li>
-                        <li>
-                            <a class="font-medium text-brand underline" href="{{ path('document_category_index') }}">Gérer les dossiers</a>
-                            <span> — structurer l’arborescence documentaire.</span>
-                        </li>
-                    {% elseif is_granted('ROLE_17B_USER') %}
-                        <li class="text-slate-800">
-                            Choisis un client ci-dessous pour activer l’accès à ses documents.
-                        </li>
-                        {% if selected_client %}
-                            <li>
-                                <span class="font-medium text-brand">Client actif : {{ selected_client.name }}</span>
-                            </li>
-                            <li>
-                                <a class="font-medium text-brand underline" href="{{ path('document_index') }}">Consulter les documents</a>
-                                <span> — accès limité au client sélectionné.</span>
-                            </li>
-                            <li>
-                                <a class="font-medium text-brand underline" href="{{ path('document_batch_upload') }}">Ajouter des documents</a>
-                                <span> — dépôt sur le client sélectionné.</span>
-                            </li>
-                        {% else %}
-                            <li class="text-amber-800">
-                                Aucun client actif pour le moment.
-                            </li>
-                        {% endif %}
-                    {% elseif is_granted('ROLE_CUSTOMER_ADMIN') %}
-                        <li>
-                            <a class="font-medium text-brand underline" href="{{ path('document_index') }}">Consulter les documents</a>
-                            <span> — visualiser les documents de votre entreprise.</span>
-                        </li>
-                        <li>
-                            <a class="font-medium text-brand underline" href="{{ path('customer_user_index') }}">Gérer les utilisateurs</a>
-                            <span> — créer, modifier ou supprimer les comptes utilisateurs de votre entreprise.</span>
-                        </li>
-                    {% else %}
-                        <li>
-                            <a class="font-medium text-brand underline" href="{{ path('document_index') }}">Consulter les documents</a>
-                            <span> — accès en lecture à votre espace client.</span>
-                        </li>
-                    {% endif %}
-                    <li>
-                        <a class="font-medium text-brand underline" href="{{ path('app_account') }}">Mon compte</a>
-                        <span> — mettre à jour votre profil et mot de passe.</span>
-                    </li>
-                    <li>
-                        <a class="font-medium text-brand underline" href="{{ path('app_logout') }}">Se déconnecter</a>
-                    </li>
-                </ul>
-            </div>
+        <h1 class="mb-12 font-['Sora',sans-serif] text-[2.5rem] font-extrabold leading-tight tracking-tight text-black md:text-[47px]">
+            Tableau de bord
+        </h1>
 
-            {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
-                <div class="panel-muted rounded-sm p-5">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-brand">
-                        {% if is_granted('ROLE_17B_ADMIN') %}Entreprises attribuées{% else %}Mes clients{% endif %}
-                    </h2>
-                    {% if managed_clients is empty %}
-                        <p class="mt-3 text-sm text-slate-700">
-                            {% if is_granted('ROLE_17B_ADMIN') %}
-                                Aucune entreprise cliente attribuée à ce compte admin 17b.
-                            {% else %}
-                                Aucun client n’est actuellement associé à ton compte.
-                            {% endif %}
-                        </p>
-                    {% else %}
-                        <div class="mt-3 flex flex-wrap gap-2">
-                            {% for client in managed_clients %}
-                                <form method="post" action="{{ path('staff_client_select', { id: client.id }) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('select_client_' ~ client.id) }}">
-                                    <button
-                                        type="submit"
-                                        class="rounded-sm px-3 py-2 text-sm font-medium {{ selected_client and selected_client.id == client.id ? 'bg-brand-primary text-white' : 'bg-slate-100 text-slate-800 hover:bg-slate-200' }}"
-                                    >
-                                        {{ client.name }}
-                                    </button>
-                                </form>
+        <div class="grid gap-6 lg:grid-cols-3 lg:gap-5">
+            {# Carte Fichiers #}
+            <section class="flex min-h-[347px] flex-col border-[3px] border-black bg-white p-8" aria-labelledby="dash-card-fichiers">
+                <div class="mb-4">
+                    <svg class="h-[22px] w-[22px] stroke-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a15.995 15.995 0 0 1-3.428 1.616m-6.09 4.158a15.996 15.996 0 0 1-4.05-4.05m4.05 4.05a15.996 15.996 0 0 0 4.05-4.05"/></svg>
+                </div>
+                <h2 id="dash-card-fichiers" class="font-['Sora',sans-serif] text-2xl font-bold text-black">
+                    Fichiers
+                </h2>
+                {% if is_granted('ROLE_17B_USER') and not selected_client %}
+                    <div class="mt-6 flex flex-1 flex-col gap-3">
+                        <a href="{{ path('document_index') }}" class="rounded-sm border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                            Tous les fichiers
+                        </a>
+                        <a href="{{ path('document_batch_upload') }}" class="rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            Ajouter un fichier
+                        </a>
+                    </div>
+                {% else %}
+                    <ul class="mt-6 flex flex-1 flex-col gap-3 text-base text-black">
+                        {% if selected_client and selected_client_document_folders is not empty %}
+                            {% for folder in selected_client_document_folders %}
+                                <li class="flex items-start gap-2">
+                                    <svg class="mt-0.5 h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                                    <a href="{{ path('document_index', { entreprise: selected_client.id, category: folder.id }) }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">
+                                        {{ folder.name }} ({{ folder.documentsCount }})
+                                    </a>
+                                </li>
                             {% endfor %}
+                        {% elseif selected_client %}
+                            <li class="text-sm text-slate-600">Aucun dossier contenant des fichiers pour cette entreprise.</li>
+                        {% else %}
+                            <li class="flex items-start gap-2">
+                                <svg class="mt-0.5 h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                                <a href="{{ path('document_index') }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">Tous les fichiers</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <div class="mt-auto pt-8">
+                        {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                            <a href="{{ path('document_batch_upload') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Ajouter un fichier</a>
+                        {% else %}
+                            <a href="{{ path('document_index') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Consulter les fichiers</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </section>
+
+            {# Carte Stratégie #}
+            <section id="carte-strategie" class="relative flex min-h-[347px] flex-col overflow-hidden border-[3px] border-black bg-white p-8 {{ (is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER')) ? 'cursor-not-allowed opacity-60' : '' }}" aria-labelledby="dash-card-strategie">
+                <div class="pointer-events-none absolute inset-0 opacity-[0.07]" aria-hidden="true">
+                    <div class="absolute -right-4 -top-4 h-40 w-40 rounded-full bg-violet-600"></div>
+                    <div class="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-amber-400"></div>
+                </div>
+                <div class="relative">
+                    <div class="mb-4">
+                        <svg class="h-[22px] w-[22px] stroke-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                    </div>
+                    <h2 id="dash-card-strategie" class="font-['Sora',sans-serif] text-2xl font-bold text-black">
+                        Stratégie
+                    </h2>
+                    <ul class="mt-6 flex flex-1 flex-col gap-3 text-base text-black">
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                            {% if is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER') %}
+                                <span class="font-['Proxima_Nova','Inter',sans-serif] text-slate-500">Stratégie</span>
+                            {% else %}
+                                <a href="{{ path('document_index') }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">Stratégie</a>
+                            {% endif %}
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                            {% if is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER') %}
+                                <span class="font-['Proxima_Nova','Inter',sans-serif] text-slate-500">Pilotage</span>
+                            {% else %}
+                                <a href="{{ path('document_index') }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">Pilotage</a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                    <div class="mt-auto pt-8">
+                        {% if is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER') %}
+                            <span class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-slate-500">Bientôt disponible</span>
+                        {% elseif is_granted('ROLE_17B_ADMIN') %}
+                            <a href="{{ path('document_batch_upload') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Ajouter un document</a>
+                        {% else %}
+                            <a href="{{ path('document_index') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Consulter les documents</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            {# Carte Crédit temps #}
+            <section class="flex min-h-[347px] flex-col border-[3px] border-black bg-white p-8" aria-labelledby="dash-card-credits">
+                <div class="mb-4">
+                    <svg class="h-[22px] w-[22px] stroke-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/></svg>
+                </div>
+                <h2 id="dash-card-credits" class="font-['Sora',sans-serif] text-2xl font-bold text-black">
+                    Crédits temps
+                </h2>
+                {% if is_granted('ROLE_17B_USER') and not selected_client %}
+                    <div class="mt-6 flex flex-1 flex-col gap-3">
+                        <a href="{{ path('time_credit_index') }}" class="rounded-sm border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                            Tous les crédits temps
+                        </a>
+                        <a href="{{ path('time_credit_new') }}" class="rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            Ajouter un crédit temps
+                        </a>
+                    </div>
+                {% else %}
+                    {% set active_credits = selected_client_credits|filter(c => not c.archived) %}
+                    {% set archived_credits = selected_client_credits|filter(c => c.archived) %}
+                    {% set active_categories = {} %}
+                    {% for credit in active_credits %}
+                        {% set category_key = credit.category ? credit.category.id : 'uncategorized' %}
+                        {% set category_label = credit.category ? credit.category.name : 'Sans catégorie' %}
+                        {% set current_count = active_categories[category_key].count|default(0) %}
+                        {% set active_categories = active_categories|merge({
+                            (category_key): {
+                                id: category_key,
+                                label: category_label,
+                                count: current_count + 1
+                            }
+                        }) %}
+                    {% endfor %}
+                    <div class="mt-6 flex flex-1 flex-col gap-4 text-sm text-black md:text-base">
+                        {% if selected_client %}
+                            {% for category in active_categories %}
+                                <div class="flex items-center gap-2">
+                                    <svg class="h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                                    <a href="{{ path('time_credit_index', { entreprise: selected_client.id, category: category.id, status: 'active' }) }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">
+                                        {{ category.label }} ({{ category.count }})
+                                    </a>
+                                </div>
+                            {% else %}
+                                <p class="text-sm text-slate-600">Aucun crédit temps en cours pour cette entreprise.</p>
+                            {% endfor %}
+
+                            <div class="flex items-center gap-2">
+                                <svg class="h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                                <a href="{{ path('time_credit_index', { entreprise: selected_client.id, status: 'archived' }) }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">
+                                    Archivés ({{ archived_credits|length }})
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="flex items-start gap-2">
+                                <svg class="mt-0.5 h-[15px] w-[21px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+                                <a href="{{ path('time_credit_index') }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">Tous les crédits temps</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                        <div class="mt-auto pt-8">
+                            <a href="{{ path('time_credit_new') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Nouveau crédit temps</a>
                         </div>
                     {% endif %}
-                </div>
-            {% endif %}
+                {% endif %}
+            </section>
         </div>
-    </div>
-{% endblock %}
 
+        {% if not (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and is_granted('ROLE_CUSTOMER_ADMIN') %}
+            <div class="mt-14 border-t border-neutral-200 pt-10">
+                <h2 class="sr-only">Autres accès</h2>
+                <div class="panel-muted rounded-sm p-5">
+                    <ul class="space-y-2 text-sm text-slate-700">
+                        <li>
+                            <a class="font-medium text-brand underline" href="{{ path('customer_user_index') }}">Gérer les utilisateurs</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+{% endblock %}

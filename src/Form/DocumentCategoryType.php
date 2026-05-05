@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\DocumentCategory;
-use App\Entity\Entreprise;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -16,20 +15,6 @@ final class DocumentCategoryType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $entrepriseChoices = $options['entreprise_choices'];
-        if ($entrepriseChoices !== []) {
-            $builder->add('entreprise', EntityType::class, [
-                'class' => Entreprise::class,
-                'choices' => $entrepriseChoices,
-                'label' => 'Entreprise cliente',
-                'required' => true,
-                'placeholder' => '— Choisir —',
-                'constraints' => [
-                    new NotBlank(message: 'Choisis une entreprise cliente.'),
-                ],
-            ]);
-        }
-
         $builder->add('name', TextType::class, [
             'label' => 'Nom du dossier',
             'constraints' => [
@@ -52,10 +37,8 @@ final class DocumentCategoryType extends AbstractType
         $resolver->setDefaults([
             'data_class' => DocumentCategory::class,
             'parent_choices' => [],
-            'entreprise_choices' => [],
         ]);
 
         $resolver->setAllowedTypes('parent_choices', 'array');
-        $resolver->setAllowedTypes('entreprise_choices', 'array');
     }
 }

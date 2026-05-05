@@ -11,35 +11,169 @@
         <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
     {% endfor %}
 
+    <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Fichiers</span>
+    </nav>
+
     <div class="panel px-8 py-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-                <h1 class="text-xl font-semibold text-brand">
-                    {% if is_granted('ROLE_CUSTOMER') %}Mes documents{% else %}Documents{% endif %}
-                </h1>
-                <p class="mt-1 text-sm text-slate-600">
-                    {% if can_upload %}
-                        Les clients voient uniquement cette arborescence. Pour déposer des fichiers, utilise le bouton ci-contre ou l’action sur l’accueil.
-                    {% else %}
-                        Déplie les dossiers pour accéder aux pièces. Téléchargement selon tes droits.
-                    {% endif %}
-                </p>
-            </div>
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-xl font-semibold text-brand">Fichiers</h1>
             {% if can_upload %}
-                <a class="shrink-0 rounded-sm bg-brand-primary px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_batch_upload') }}">
-                    Ajouter des documents
+                <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_batch_upload') }}">
+                    Ajouter un document
                 </a>
             {% endif %}
         </div>
 
-        {% if documents is empty %}
-            <p class="mt-6 text-sm text-slate-600">Aucun document pour le moment.</p>
+    {# Formulaire vide pour les cases à cocher (actions groupées à brancher plus tard) #}
+    <form id="doc-bulk-form" method="post" action="#" class="hidden" tabindex="-1" aria-hidden="true"></form>
+
+        {% if is_admin_list_view %}
+            <form method="get" class="mt-6 grid gap-3 md:grid-cols-5">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un fichier..." class="rounded border border-slate-300 px-3 py-2 text-sm md:col-span-2">
+                <select name="entreprise" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                    <option value="0">Toutes les entreprises</option>
+                    {% for id, name in available_entreprises %}
+                        <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="category" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                    <option value="0">Toutes les catégories</option>
+                    {% for id, name in available_categories %}
+                        <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="flex gap-2">
+                    <button type="submit" class="rounded bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                    <a href="{{ path('document_index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+                </div>
+                <input type="hidden" name="sort" value="{{ sort_field }}">
+                <input type="hidden" name="dir" value="{{ sort_direction }}">
+            </form>
+
+            <div class="mt-6 overflow-x-auto overflow-hidden rounded ring-1 ring-slate-200">
+                <table class="w-full min-w-[900px] text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            {% set nextTitleDir = sort_field == 'title' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            {% set nextCategoryDir = sort_field == 'category' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            {% set nextDateDir = sort_field == 'created_at' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            <th class="px-4 py-3 font-semibold">
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
+                                    Titre
+                                    {% if sort_field == 'title' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 font-semibold">
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">
+                                    Entreprise
+                                    {% if sort_field == 'entreprise' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 font-semibold">
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
+                                    Catégorie
+                                    {% if sort_field == 'category' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 font-semibold">
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'created_at', dir: nextDateDir })) }}">
+                                    Date
+                                    {% if sort_field == 'created_at' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white">
+                        {% for document in documents %}
+                            <tr>
+                                <td class="px-4 py-3 text-slate-900">{{ document.title }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ document.entreprise ? document.entreprise.name : '—' }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ document.category ? document.category.name : '—' }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ document.createdAt|date('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: document.id }) }}">Ouvrir</a>
+                                    {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and is_granted('DOCUMENT_MANAGE', document) %}
+                                        <a class="ml-3 font-medium text-brand underline" href="{{ path('document_edit', { id: document.id }) }}">Modifier</a>
+                                        <form class="ml-3 inline" method="post" action="{{ path('document_delete', { id: document.id }) }}" onsubmit="return confirm('Supprimer ce document ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_document' ~ document.id) }}">
+                                            <button type="submit" class="font-medium text-red-700 underline">Supprimer</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elseif documents is empty %}
+            <p class="mt-6 font-['Proxima_Nova','Inter',sans-serif] text-base text-neutral-600">Aucun document pour le moment.</p>
         {% else %}
-            <div class="document-tree mt-8 text-slate-800">
+            <div class="mt-6 document-tree-maquette max-w-none text-black">
                 {% for root in category_roots %}
-                    {{ doc_tree.category_branch(root, documents_by_category, show_client_in_tree, 0) }}
+                    {{ doc_tree.category_branch(root, documents_by_category, show_client_in_tree, 0, can_upload, loop.first) }}
                 {% endfor %}
-                {{ doc_tree.uncategorized(documents_by_category, show_client_in_tree) }}
+                {{ doc_tree.uncategorized(documents_by_category, show_client_in_tree, can_upload, category_roots is empty) }}
             </div>
         {% endif %}
     </div>

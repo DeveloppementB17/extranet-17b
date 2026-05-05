@@ -41,10 +41,10 @@ class Document implements EntrepriseOwnedInterface
     private ?DocumentCategory $category = null;
 
     /**
-     * Utilisateur « client » auquel le document est destiné (espace documentaire du client).
+     * Ancien destinataire utilisateur (désormais optionnel, le rattachement principal se fait via entreprise).
      */
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $client = null;
 
     /**

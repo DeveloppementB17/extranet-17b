@@ -16,13 +16,37 @@
             <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
+        <form method="get" class="mt-6 grid gap-3 md:grid-cols-4">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher une entreprise..." class="rounded border border-slate-300 px-3 py-2 text-sm md:col-span-2">
+            <select name="type" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                <option value="all" {{ filter_type == 'all' ? 'selected' : '' }}>Tous les types</option>
+                <option value="agency" {{ filter_type == 'agency' ? 'selected' : '' }}>Agence</option>
+                <option value="client" {{ filter_type == 'client' ? 'selected' : '' }}>Cliente</option>
+            </select>
+            <div class="flex gap-2">
+                <button type="submit" class="rounded bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                <a href="{{ path('admin_entreprise_index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort_field }}">
+            <input type="hidden" name="dir" value="{{ sort_direction }}">
+        </form>
+
         <div class="mt-6 overflow-hidden rounded ring-1 ring-slate-200">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-600">
                     <tr>
-                        <th class="px-4 py-3 font-semibold">Nom</th>
-                        <th class="px-4 py-3 font-semibold">Slug</th>
-                        <th class="px-4 py-3 font-semibold">Type</th>
+                        {% set nextNameDir = sort_field == 'name' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextSlugDir = sort_field == 'slug' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextTypeDir = sort_field == 'type' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        <th class="px-4 py-3 font-semibold">
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'name', dir: nextNameDir })) }}">Nom</a>
+                        </th>
+                        <th class="px-4 py-3 font-semibold">
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'slug', dir: nextSlugDir })) }}">Slug</a>
+                        </th>
+                        <th class="px-4 py-3 font-semibold">
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'type', dir: nextTypeDir })) }}">Type</a>
+                        </th>
                         <th class="px-4 py-3 font-semibold text-right">Actions</th>
                     </tr>
                 </thead>

@@ -28,4 +28,7 @@ return [
     'flowbite' => [
         'path' => 'flowbite.turbo.min.js',
     ],
+    'apexcharts' => [
+        'version' => '5.10.6',
+    ],
 ];

@@ -22,10 +22,71 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AdminUserController extends AbstractController
 {
     #[Route('', name: 'admin_user_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository): Response
+    public function index(Request $request, UserRepository $userRepository): Response
     {
+        $users = $userRepository->findAllForAdminOrdered();
+        $search = trim((string) $request->query->get('q', ''));
+        $roleFilter = (string) $request->query->get('role', 'all');
+        $entrepriseFilter = (int) $request->query->get('entreprise', 0);
+        $sort = (string) $request->query->get('sort', 'email');
+        $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $allowedSorts = ['email', 'role', 'entreprise'];
+        if (!\in_array($sort, $allowedSorts, true)) {
+            $sort = 'email';
+        }
+        if (!\in_array($roleFilter, ['all', ...User::assignableRoleValues()], true)) {
+            $roleFilter = 'all';
+        }
+
+        $availableEntreprises = [];
+        foreach ($users as $u) {
+            $e = $u->getEntreprise();
+            if ($e !== null && $e->getId() !== null) {
+                $availableEntreprises[$e->getId()] = $e->getName();
+            }
+        }
+        asort($availableEntreprises, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $users = array_values(array_filter($users, static function (User $user) use ($search, $roleFilter, $entrepriseFilter): bool {
+            if ($roleFilter !== 'all' && $user->getPrimaryStoredRole() !== $roleFilter) {
+                return false;
+            }
+            if ($entrepriseFilter > 0 && $user->getEntreprise()?->getId() !== $entrepriseFilter) {
+                return false;
+            }
+            if ($search === '') {
+                return true;
+            }
+
+            $haystack = mb_strtolower(implode(' ', array_filter([
+                $user->getEmail(),
+                $user->getEntreprise()?->getName(),
+                $user->getPrimaryStoredRole(),
+            ])));
+
+            return str_contains($haystack, mb_strtolower($search));
+        }));
+
+        usort($users, static function (User $left, User $right) use ($sort, $direction): int {
+            $result = match ($sort) {
+                'role' => strcasecmp($left->getPrimaryStoredRole(), $right->getPrimaryStoredRole()),
+                'entreprise' => strcasecmp((string) $left->getEntreprise()?->getName(), (string) $right->getEntreprise()?->getName()),
+                default => strcasecmp($left->getEmail(), $right->getEmail()),
+            };
+
+            return $direction === 'asc' ? $result : -$result;
+        });
+
         return $this->render('admin/user/index.html.twig', [
-            'users' => $userRepository->findAllForAdminOrdered(),
+            'users' => $users,
+            'search_query' => $search,
+            'filter_role' => $roleFilter,
+            'filter_entreprise' => $entrepriseFilter,
+            'sort_field' => $sort,
+            'sort_direction' => $direction,
+            'available_entreprises' => $availableEntreprises,
+            'available_roles' => User::assignableRoleValues(),
         ]);
     }
 

@@ -3,6 +3,13 @@
 {% block title %}Administration{% endblock %}
 
 {% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
     <div class="panel px-8 py-8">
         <h1 class="text-xl font-semibold text-brand">Administration 17b</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-600">
@@ -43,17 +50,19 @@
                 </div>
             </article>
 
-            <article class="panel-muted relative flex flex-col rounded-sm p-6">
-                <span class="absolute right-4 top-4 rounded-sm border border-white/30 bg-white/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white">
-                    Bientôt
-                </span>
-                <h2 class="text-base font-semibold text-brand pr-16">Crédits temps</h2>
+            <article class="panel-muted flex flex-col rounded-sm p-6">
+                <h2 class="text-base font-semibold text-brand">Crédits temps</h2>
                 <p class="mt-2 text-sm text-slate-600">
-                    Évolution à venir : suivi et gestion des crédits temps au sein de l’extranet (consultation, affectation, reporting).
+                    Suivre les enveloppes minutes par entreprise, déclarer des interventions et consulter l’historique.
                 </p>
-                <p class="mt-4 text-sm italic text-slate-500">
-                    Cette fonctionnalité n’est pas encore disponible. Elle sera proposée dans une prochaine version.
-                </p>
+                <div class="mt-6 flex flex-col gap-3">
+                    <a class="inline-flex w-fit items-center rounded-sm bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_index') }}">
+                        Gérer les crédits temps
+                    </a>
+                    <a class="inline-flex w-fit items-center rounded-sm border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('time_credit_category_index') }}">
+                        Gérer les catégories
+                    </a>
+                </div>
             </article>
         </div>
     </div>

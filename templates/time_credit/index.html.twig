@@ -1,0 +1,229 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Crédits temps{% endblock %}
+
+{% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="panel px-8 py-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-semibold text-brand">Crédits temps</h1>
+                <p class="mt-1 text-sm text-slate-600">Suivi des enveloppes minutes et des interventions associées.</p>
+            </div>
+            {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
+                    Nouveau crédit
+                </a>
+            {% endif %}
+        </div>
+
+        {% set selected_client = managed_selected_client() %}
+        {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and selected_client %}
+            <div class="mt-6">
+                {{ render(path('time_credit_intervention_widget', { return_to: app.request.requestUri })) }}
+            </div>
+        {% endif %}
+
+        {% if is_admin_list_view %}
+            <form method="get" class="mt-6 grid gap-3 md:grid-cols-6">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="rounded border border-slate-300 px-3 py-2 text-sm md:col-span-2">
+                <select name="entreprise" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                    <option value="0">Toutes les entreprises</option>
+                    {% for id, name in available_entreprises %}
+                        <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="category" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                    <option value="0">Toutes les catégories</option>
+                    {% for id, name in available_categories %}
+                        <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="status" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                    <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
+                    <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>Actifs</option>
+                    <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Archivés</option>
+                </select>
+                <div class="flex gap-2">
+                    <button type="submit" class="rounded bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                    <a href="{{ path('time_credit_index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+                </div>
+                <input type="hidden" name="sort" value="{{ sort_field }}">
+                <input type="hidden" name="dir" value="{{ sort_direction }}">
+            </form>
+        {% endif %}
+
+        <div class="mt-6 overflow-x-auto overflow-hidden rounded ring-1 ring-slate-200">
+            <table class="w-full min-w-[900px] text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        {% set nextTitleDir = sort_field == 'title' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextCategoryDir = sort_field == 'category' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextRemainingDir = sort_field == 'remaining' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        <th class="px-4 py-3 font-semibold">
+                            {% if is_admin_list_view %}
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
+                                    Titre
+                                    {% if sort_field == 'title' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            {% else %}Titre{% endif %}
+                        </th>
+                        <th class="px-4 py-3 font-semibold">
+                            {% if is_admin_list_view %}
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">
+                                    Entreprise
+                                    {% if sort_field == 'entreprise' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            {% else %}Entreprise{% endif %}
+                        </th>
+                        <th class="px-4 py-3 font-semibold">
+                            {% if is_admin_list_view %}
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
+                                    Catégorie
+                                    {% if sort_field == 'category' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            {% else %}Catégorie{% endif %}
+                        </th>
+                        <th class="px-4 py-3 font-semibold">Dossier</th>
+                        <th class="px-4 py-3 font-semibold">Total</th>
+                        <th class="px-4 py-3 font-semibold">
+                            {% if is_admin_list_view %}
+                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'remaining', dir: nextRemainingDir })) }}">
+                                    Disponible
+                                    {% if sort_field == 'remaining' %}
+                                        <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                            {% if sort_direction == 'asc' %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                            {% endif %}
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            {% else %}Disponible{% endif %}
+                        </th>
+                        <th class="px-4 py-3 font-semibold">Statut</th>
+                        <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for credit in credits %}
+                        <tr>
+                            <td class="px-4 py-3 font-medium text-slate-900">{{ credit.title }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ credit.entreprise.name }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ credit.category ? credit.category.name : '—' }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ credit.dossierNumber ?: '—' }}</td>
+                            <td class="px-4 py-3 text-slate-700">
+                                {% set total_display_in_hours = credit.totalMinutes > 180 %}
+                                <span
+                                    class="cursor-help"
+                                    data-tooltip-target="tc-index-total-{{ credit.id }}"
+                                    data-tooltip-placement="top"
+                                    tabindex="0"
+                                >
+                                    {{ total_display_in_hours ? (credit.totalMinutes / 60)|round(2) ~ ' h' : credit.totalMinutes ~ ' min' }}
+                                </span>
+                                <div id="tc-index-total-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                    {{ total_display_in_hours ? credit.totalMinutes ~ ' min' : (credit.totalMinutes / 60)|round(2) ~ ' h' }}
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                                {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
+                                <span
+                                    class="cursor-help"
+                                    data-tooltip-target="tc-index-remaining-{{ credit.id }}"
+                                    data-tooltip-placement="top"
+                                    tabindex="0"
+                                >
+                                    {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
+                                </span>
+                                <div id="tc-index-remaining-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                    {{ remaining_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if credit.archived %}
+                                    <span class="rounded-sm bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">Archivé</span>
+                                {% else %}
+                                    <span class="rounded-sm bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Actif</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <a class="font-medium text-brand underline" href="{{ path('time_credit_show', { id: credit.id }) }}">Détail</a>
+                                {% if is_granted('TIME_CREDIT_MANAGE', credit) and credit.remainingMinutes == credit.totalMinutes %}
+                                    <a class="ml-3 font-medium text-brand underline" href="{{ path('time_credit_edit', { id: credit.id }) }}">Modifier</a>
+                                {% endif %}
+                                {% if is_granted('TIME_CREDIT_INTERVENE', credit) and not credit.archived and credit.remainingMinutes > 0 %}
+                                    <a class="ml-3 font-medium text-brand underline" href="{{ path('time_credit_intervention_new', { id: credit.id }) }}">Intervention</a>
+                                {% endif %}
+                                {% if is_granted('ROLE_17B_ADMIN') and credit.remainingMinutes == credit.totalMinutes %}
+                                    <form class="ml-3 inline" method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm('Supprimer ce crédit temps ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_time_credit' ~ credit.id) }}">
+                                        <button type="submit" class="font-medium text-red-700 underline">Supprimer</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="px-4 py-6 text-slate-600">Aucun crédit temps pour le moment.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

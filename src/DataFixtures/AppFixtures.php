@@ -97,34 +97,28 @@ class AppFixtures extends Fixture
         $userEst->setPassword($this->passwordHasher->hashPassword($userEst, $password));
         $manager->persist($userEst);
 
-        $identite = (new DocumentCategory())->setEntreprise($nord)->setName('Identité visuelle');
+        $identite = (new DocumentCategory())->setName('Identité visuelle');
         $manager->persist($identite);
-        $logos = (new DocumentCategory())->setEntreprise($nord)->setName('Logos')->setParent($identite);
+        $logos = (new DocumentCategory())->setName('Logos')->setParent($identite);
         $manager->persist($logos);
-        $chartes = (new DocumentCategory())->setEntreprise($nord)->setName('Chartes')->setParent($identite);
+        $chartes = (new DocumentCategory())->setName('Chartes')->setParent($identite);
         $manager->persist($chartes);
-        $elements = (new DocumentCategory())->setEntreprise($nord)->setName('Éléments graphiques')->setParent($identite);
+        $elements = (new DocumentCategory())->setName('Éléments graphiques')->setParent($identite);
         $manager->persist($elements);
-        $strategie = (new DocumentCategory())->setEntreprise($nord)->setName('Stratégie de communication');
+        $strategie = (new DocumentCategory())->setName('Stratégie de communication');
         $manager->persist($strategie);
-        $strategieChild = (new DocumentCategory())->setEntreprise($nord)->setName('Stratégie')->setParent($strategie);
+        $strategieChild = (new DocumentCategory())->setName('Stratégie')->setParent($strategie);
         $manager->persist($strategieChild);
-        $pilotage = (new DocumentCategory())->setEntreprise($nord)->setName('Pilotage')->setParent($strategie);
+        $pilotage = (new DocumentCategory())->setName('Pilotage')->setParent($strategie);
         $manager->persist($pilotage);
-
-        $sudCat = (new DocumentCategory())->setEntreprise($sud)->setName('Livrables');
-        $manager->persist($sudCat);
-
-        $estCat = (new DocumentCategory())->setEntreprise($est)->setName('Livrables');
-        $manager->persist($estCat);
 
         $manager->flush();
 
         $this->persistDocumentFromSampleFile($manager, $nord, $adminNord, $adminTest, $logos, 'NOTE-NORD-1', 'note-nord-1.txt', 'demo-note-nord-1.txt');
         $this->persistDocumentFromSampleFile($manager, $nord, $userNord, $adminTest, $logos, 'NOTE-NORD-2', 'note-nord-2.txt', 'demo-note-nord-2.txt');
-        $this->persistDocumentFromSampleFile($manager, $sud, $adminSud, $adminTest, $sudCat, 'DOC-SUD-A-001', 'livrable-sud-a.txt', 'demo-sud-a.txt');
-        $this->persistDocumentFromSampleFile($manager, $sud, $userSud, $adminTest, $sudCat, 'DOC-SUD-B-001', 'livrable-sud-b.txt', 'demo-sud-b.txt');
-        $this->persistDocumentFromSampleFile($manager, $est, $adminEst, $adminTest, $estCat, 'DOC-EST-001', 'livrable-est.txt', 'demo-est-1.txt');
+        $this->persistDocumentFromSampleFile($manager, $sud, $adminSud, $adminTest, $identite, 'DOC-SUD-A-001', 'livrable-sud-a.txt', 'demo-sud-a.txt');
+        $this->persistDocumentFromSampleFile($manager, $sud, $userSud, $adminTest, $identite, 'DOC-SUD-B-001', 'livrable-sud-b.txt', 'demo-sud-b.txt');
+        $this->persistDocumentFromSampleFile($manager, $est, $adminEst, $adminTest, $identite, 'DOC-EST-001', 'livrable-est.txt', 'demo-est-1.txt');
 
         $manager->flush();
     }

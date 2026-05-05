@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Form\DocumentBatchUploadType;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\EntrepriseRepository;
-use App\Repository\UserRepository;
 use App\Tenant\ManagedClientContext;
 use App\Storage\DocumentStorage;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +27,6 @@ final class DocumentBatchController extends AbstractController
     #[Route('', name: 'document_batch_upload', methods: ['GET', 'POST'])]
     public function __invoke(
         Request $request,
-        UserRepository $userRepository,
         DocumentCategoryRepository $categoryRepository,
         EntrepriseRepository $entrepriseRepository,
         ManagedClientContext $managedClientContext,
@@ -43,59 +41,42 @@ final class DocumentBatchController extends AbstractController
         $forcedEntreprise = null;
         if ($user->is17bStaff()) {
             $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($user);
-            if ($user->is17bUser() && !$forcedEntreprise instanceof Entreprise) {
-                $this->addFlash('error', 'Sélectionne d’abord un client depuis le tableau de bord.');
+            if ($user->is17bUser() && !$forcedEntreprise instanceof Entreprise && $user->getManagedEntrepriseIds() === []) {
+                $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à ton compte.');
 
                 return $this->redirectToRoute('app_home');
             }
         }
 
-        $clients = $userRepository->findCustomerAccountsForStaffUpload($user);
-        if ($forcedEntreprise instanceof Entreprise) {
-            $forcedId = $forcedEntreprise->getId();
-            $clients = array_values(array_filter(
-                $clients,
-                static fn (User $candidate): bool => $candidate->getEntreprise()?->getId() === $forcedId,
-            ));
-        }
-        $hasClients = $clients !== [];
+        $allowedEntreprises = $forcedEntreprise instanceof Entreprise
+            ? [$forcedEntreprise]
+            : $this->allowedClientEntreprises($user, $entrepriseRepository);
+        $hasEntreprises = $allowedEntreprises !== [];
 
         $form = $this->createForm(DocumentBatchUploadType::class, options: [
-            'category_choices' => $this->buildCategoryChoices($categoryRepository, $entrepriseRepository, $user, $forcedEntreprise),
-            'client_choices' => $clients,
+            'category_choices' => $this->buildCategoryChoices($categoryRepository),
+            'entreprise_choices' => $allowedEntreprises,
+            'preselected_entreprise' => $forcedEntreprise,
+            'lock_entreprise' => $forcedEntreprise instanceof Entreprise,
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $titleBase = trim((string) $form->get('title')->getData());
             $category = $form->get('category')->getData();
-            /** @var User $clientUser */
-            $clientUser = $form->get('client')->getData();
-
-            if (!$clientUser->isCustomerActor()) {
-                $this->addFlash('error', 'Le destinataire doit être un compte client (CUSTOMER_ADMIN ou CUSTOMER_USER).');
-
-                return $this->redirectToRoute('document_batch_upload');
-            }
-
-            $clientEntreprise = $clientUser->getEntreprise();
-            if ($clientEntreprise === null || $clientEntreprise->isAgency()) {
-                $this->addFlash('error', 'Le destinataire doit être rattaché à une entreprise cliente.');
+            $externalUrlRaw = $form->get('externalUrl')->getData();
+            $externalUrl = \is_string($externalUrlRaw) ? trim($externalUrlRaw) : '';
+            /** @var Entreprise|null $selectedEntreprise */
+            $selectedEntreprise = $forcedEntreprise instanceof Entreprise
+                ? $forcedEntreprise
+                : $form->get('entreprise')->getData();
+            if (!$selectedEntreprise instanceof Entreprise || $selectedEntreprise->isAgency()) {
+                $this->addFlash('error', 'Choisis une entreprise cliente valide.');
 
                 return $this->redirectToRoute('document_batch_upload');
             }
-
-            if ($user->is17bUser() && !$user->managesEntreprise($clientEntreprise)) {
+            if ($user->is17bUser() && !$user->managesEntreprise($selectedEntreprise)) {
                 throw $this->createAccessDeniedException();
-            }
-
-            if ($category instanceof DocumentCategory) {
-                $catEnt = $category->getEntreprise();
-                if ($catEnt === null || $catEnt->getId() !== $clientEntreprise->getId()) {
-                    $this->addFlash('error', 'La catégorie doit appartenir à la même entreprise que le client destinataire.');
-
-                    return $this->redirectToRoute('document_batch_upload');
-                }
             }
 
             /** @var list<UploadedFile>|null $files */
@@ -111,30 +92,50 @@ final class DocumentBatchController extends AbstractController
                 }
             }
 
-            $multi = \count($validFiles) > 1;
             $count = 0;
-            foreach ($validFiles as $file) {
-                $sizeBeforeMove = $file->getSize();
-                $mimeBeforeMove = (string) ($file->getClientMimeType() ?: 'application/octet-stream');
-                $stored = $storage->storeUploadedFile($file, $user);
-
+            if ($externalUrl !== '') {
                 $doc = new Document();
-                $doc->setEntreprise($clientEntreprise);
-                $doc->setClient($clientUser);
+                $doc->setEntreprise($selectedEntreprise);
+                $doc->setClient(null);
                 $doc->setUploadedBy($user);
-                $doc->setTitle($multi ? $titleBase.' — '.$file->getClientOriginalName() : $titleBase);
+                $doc->setTitle($titleBase);
                 if ($category instanceof DocumentCategory) {
                     $doc->setCategory($category);
                 }
-                $doc->setOriginalName($file->getClientOriginalName());
-                $doc->setStorageName($stored['storageName']);
-                $doc->setStoragePath($stored['relativePath']);
-                $doc->setMimeType($mimeBeforeMove);
-                $doc->setSize((int) ($sizeBeforeMove ?: (is_file($stored['absolutePath']) ? filesize($stored['absolutePath']) : 0)));
-                $doc->setExternalUrl(null);
+                $doc->setOriginalName(null);
+                $doc->setStorageName(null);
+                $doc->setStoragePath(null);
+                $doc->setMimeType(null);
+                $doc->setSize(null);
+                $doc->setExternalUrl($externalUrl);
 
                 $entityManager->persist($doc);
                 ++$count;
+            } else {
+                $multi = \count($validFiles) > 1;
+                foreach ($validFiles as $file) {
+                    $sizeBeforeMove = $file->getSize();
+                    $mimeBeforeMove = (string) ($file->getClientMimeType() ?: 'application/octet-stream');
+                    $stored = $storage->storeUploadedFile($file, $user);
+
+                    $doc = new Document();
+                    $doc->setEntreprise($selectedEntreprise);
+                    $doc->setClient(null);
+                    $doc->setUploadedBy($user);
+                    $doc->setTitle($multi ? $titleBase.' — '.$file->getClientOriginalName() : $titleBase);
+                    if ($category instanceof DocumentCategory) {
+                        $doc->setCategory($category);
+                    }
+                    $doc->setOriginalName($file->getClientOriginalName());
+                    $doc->setStorageName($stored['storageName']);
+                    $doc->setStoragePath($stored['relativePath']);
+                    $doc->setMimeType($mimeBeforeMove);
+                    $doc->setSize((int) ($sizeBeforeMove ?: (is_file($stored['absolutePath']) ? filesize($stored['absolutePath']) : 0)));
+                    $doc->setExternalUrl(null);
+
+                    $entityManager->persist($doc);
+                    ++$count;
+                }
             }
 
             $entityManager->flush();
@@ -150,7 +151,7 @@ final class DocumentBatchController extends AbstractController
 
         return $this->render('document/batch.html.twig', [
             'form' => $form,
-            'has_clients' => $hasClients,
+            'has_entreprises' => $hasEntreprises,
         ]);
     }
 
@@ -159,18 +160,10 @@ final class DocumentBatchController extends AbstractController
      */
     private function buildCategoryChoices(
         DocumentCategoryRepository $categoryRepository,
-        EntrepriseRepository $entrepriseRepository,
-        User $actor,
-        ?Entreprise $forcedEntreprise = null,
     ): array {
-        $allowed = $forcedEntreprise instanceof Entreprise
-            ? [$forcedEntreprise]
-            : $this->allowedClientEntreprises($actor, $entrepriseRepository);
         $choices = [];
-        foreach ($allowed as $ent) {
-            foreach ($categoryRepository->findRootsForEntreprise($ent) as $root) {
-                $this->appendCategoryBranchChoices($root, $ent, '', $choices);
-            }
+        foreach ($categoryRepository->findRoots() as $root) {
+            $this->appendCategoryBranchChoices($root, '', $choices);
         }
 
         return $choices;
@@ -197,15 +190,14 @@ final class DocumentBatchController extends AbstractController
      */
     private function appendCategoryBranchChoices(
         DocumentCategory $category,
-        Entreprise $entreprise,
         string $path,
         array &$choices,
     ): void {
-        $label = $entreprise->getName().' — '.$path.$category->getName();
+        $label = $path.$category->getName();
         $choices[$label] = $category;
         $next = $path === '' ? $category->getName().' / ' : $path.$category->getName().' / ';
         foreach ($category->getChildren() as $child) {
-            $this->appendCategoryBranchChoices($child, $entreprise, $next, $choices);
+            $this->appendCategoryBranchChoices($child, $next, $choices);
         }
     }
 }

@@ -3,18 +3,14 @@
 namespace App\Entity;
 
 use App\Repository\DocumentCategoryRepository;
-use App\Tenant\EntrepriseOwnedInterface;
-use App\Tenant\EntrepriseOwnedTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DocumentCategoryRepository::class)]
 #[ORM\Table(name: 'document_category')]
-class DocumentCategory implements EntrepriseOwnedInterface
+class DocumentCategory
 {
-    use EntrepriseOwnedTrait;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

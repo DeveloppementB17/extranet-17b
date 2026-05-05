@@ -53,4 +53,13 @@ final class ManagedClientContext
 
         $this->requestStack->getSession()->set(self::SESSION_KEY, $entreprise->getId());
     }
+
+    public function clearSelectedManagedEntreprise(User $actor): void
+    {
+        if (!$actor->is17bStaff()) {
+            return;
+        }
+
+        $this->requestStack->getSession()->remove(self::SESSION_KEY);
+    }
 }

@@ -18,6 +18,8 @@ final class DocumentVoter extends Voter
 
     public const DOWNLOAD = 'DOCUMENT_DOWNLOAD';
 
+    public const MANAGE = 'DOCUMENT_MANAGE';
+
     public function __construct(
         private readonly ManagedClientContext $managedClientContext,
     ) {
@@ -26,7 +28,7 @@ final class DocumentVoter extends Voter
     protected function supports(string $attribute, mixed $subject): bool
     {
         return $subject instanceof Document
-            && \in_array($attribute, [self::VIEW, self::DOWNLOAD], true);
+            && \in_array($attribute, [self::VIEW, self::DOWNLOAD, self::MANAGE], true);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -50,9 +52,11 @@ final class DocumentVoter extends Voter
 
         if ($user->is17bUser()) {
             $selectedEntreprise = $this->managedClientContext->getSelectedManagedEntreprise($user);
+            if ($selectedEntreprise instanceof Entreprise) {
+                return $selectedEntreprise->getId() === $docEntreprise->getId();
+            }
 
-            return $selectedEntreprise !== null
-                && $selectedEntreprise->getId() === $docEntreprise->getId();
+            return $user->managesEntreprise($docEntreprise);
         }
 
         if ($user->isCustomerActor()) {

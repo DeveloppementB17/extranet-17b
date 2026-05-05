@@ -16,13 +16,44 @@
             <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
+        <form method="get" class="mt-6 grid gap-3 md:grid-cols-6">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un utilisateur..." class="rounded border border-slate-300 px-3 py-2 text-sm md:col-span-2">
+            <select name="role" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                <option value="all" {{ filter_role == 'all' ? 'selected' : '' }}>Tous les rôles</option>
+                {% for role in available_roles %}
+                    <option value="{{ role }}" {{ filter_role == role ? 'selected' : '' }}>{{ role|role_label }}</option>
+                {% endfor %}
+            </select>
+            <select name="entreprise" class="rounded border border-slate-300 px-3 py-2 text-sm">
+                <option value="0">Toutes les entreprises</option>
+                {% for id, name in available_entreprises %}
+                    <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <div class="flex gap-2 md:col-span-2">
+                <button type="submit" class="rounded bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                <a href="{{ path('admin_user_index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort_field }}">
+            <input type="hidden" name="dir" value="{{ sort_direction }}">
+        </form>
+
         <div class="mt-6 overflow-x-auto overflow-hidden rounded ring-1 ring-slate-200">
             <table class="w-full min-w-[720px] text-left text-sm">
                 <thead class="bg-slate-50 text-slate-600">
                     <tr>
-                        <th class="px-4 py-3 font-semibold">Email</th>
-                        <th class="px-4 py-3 font-semibold">Rôle</th>
-                        <th class="px-4 py-3 font-semibold">Entreprise</th>
+                        {% set nextEmailDir = sort_field == 'email' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextRoleDir = sort_field == 'role' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        <th class="px-4 py-3 font-semibold">
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_user_index', app.request.query.all|merge({ sort: 'email', dir: nextEmailDir })) }}">Email</a>
+                        </th>
+                        <th class="px-4 py-3 font-semibold">
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_user_index', app.request.query.all|merge({ sort: 'role', dir: nextRoleDir })) }}">Rôle</a>
+                        </th>
+                        <th class="px-4 py-3 font-semibold">
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_user_index', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">Entreprise</a>
+                        </th>
                         <th class="px-4 py-3 font-semibold text-right">Actions</th>
                     </tr>
                 </thead>

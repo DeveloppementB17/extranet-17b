@@ -3,13 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\DocumentCategory;
-use App\Entity\Entreprise;
-use App\Entity\User;
 use App\Form\DocumentCategoryType;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\DocumentRepository;
-use App\Repository\EntrepriseRepository;
-use App\Security\Voter\EntrepriseOwnedVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,17 +18,25 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DocumentCategoryController extends AbstractController
 {
     #[Route('', name: 'document_category_index', methods: ['GET'])]
-    public function index(DocumentCategoryRepository $categoryRepository): Response
+    public function index(
+        DocumentCategoryRepository $categoryRepository,
+        DocumentRepository $documentRepository,
+    ): Response
     {
-        $actor = $this->getUser();
-        if (!$actor instanceof User) {
-            throw $this->createAccessDeniedException();
+        $roots = $categoryRepository->findRoots();
+        $rows = $this->flattenCategories($roots);
+        $categoryIds = [];
+        foreach ($rows as $row) {
+            $id = $row['category']->getId();
+            if ($id !== null) {
+                $categoryIds[] = $id;
+            }
         }
-
-        $roots = $categoryRepository->findRootsFor17bStaff($actor);
+        $categoryDocumentCounts = $documentRepository->countByCategoryIds($categoryIds);
 
         return $this->render('document_category/index.html.twig', [
-            'rows' => $this->flattenCategories($roots),
+            'rows' => $rows,
+            'category_document_counts' => $categoryDocumentCounts,
         ]);
     }
 
@@ -41,33 +45,16 @@ final class DocumentCategoryController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         DocumentCategoryRepository $categoryRepository,
-        EntrepriseRepository $entrepriseRepository,
     ): Response {
-        $actor = $this->getUser();
-        if (!$actor instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        $allowedEntreprises = $this->allowedClientEntreprises($actor, $entrepriseRepository);
-        if ($allowedEntreprises === []) {
-            $this->addFlash('error', 'Aucune entreprise cliente n’est associée à ton compte.');
-
-            return $this->redirectToRoute('document_category_index');
-        }
-
         $category = new DocumentCategory();
         $form = $this->createForm(DocumentCategoryType::class, $category, [
-            'entreprise_choices' => $allowedEntreprises,
-            'parent_choices' => $this->buildParentChoicesForNew($allowedEntreprises, $categoryRepository),
+            'parent_choices' => $categoryRepository->findAllOrdered(),
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $parent = $category->getParent();
-            $entreprise = $category->getEntreprise();
-            if ($parent !== null && $entreprise !== null
-                && $parent->getEntreprise()->getId() !== $entreprise->getId()) {
-                $this->addFlash('error', 'Le dossier parent doit appartenir à la même entreprise cliente.');
+            if ($this->categoryNameExists($categoryRepository, $category->getName())) {
+                $this->addFlash('error', 'Un dossier avec ce nom existe déjà.');
 
                 return $this->render('document_category/form.html.twig', [
                     'form' => $form,
@@ -95,30 +82,20 @@ final class DocumentCategoryController extends AbstractController
         EntityManagerInterface $entityManager,
         DocumentCategoryRepository $categoryRepository,
     ): Response {
-        $this->denyAccessUnlessGranted(EntrepriseOwnedVoter::EDIT, $category);
-
-        $entreprise = $category->getEntreprise();
-        $eid = $entreprise?->getId();
-        $parentChoices = [];
-        if ($eid !== null) {
-            $exclude = $this->collectSubtreeIds($category);
-            $parentChoices = array_values(array_filter(
-                $categoryRepository->findAllInEntrepriseOrdered($eid),
-                static fn (DocumentCategory $c): bool => !\in_array($c->getId(), $exclude, true),
-            ));
-        }
+        $exclude = $this->collectSubtreeIds($category);
+        $parentChoices = array_values(array_filter(
+            $categoryRepository->findAllOrdered(),
+            static fn (DocumentCategory $c): bool => !\in_array($c->getId(), $exclude, true),
+        ));
 
         $form = $this->createForm(DocumentCategoryType::class, $category, [
-            'entreprise_choices' => [],
             'parent_choices' => $parentChoices,
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $parent = $category->getParent();
-            if ($parent !== null && $entreprise !== null
-                && $parent->getEntreprise()->getId() !== $entreprise->getId()) {
-                $this->addFlash('error', 'Le dossier parent doit appartenir à la même entreprise cliente.');
+            if ($this->categoryNameExists($categoryRepository, $category->getName(), $category->getId())) {
+                $this->addFlash('error', 'Un dossier avec ce nom existe déjà.');
 
                 return $this->render('document_category/form.html.twig', [
                     'form' => $form,
@@ -145,8 +122,6 @@ final class DocumentCategoryController extends AbstractController
         EntityManagerInterface $entityManager,
         DocumentRepository $documentRepository,
     ): Response {
-        $this->denyAccessUnlessGranted(EntrepriseOwnedVoter::DELETE, $category);
-
         if (!$this->isCsrfTokenValid('delete_category'.$category->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
@@ -189,56 +164,6 @@ final class DocumentCategoryController extends AbstractController
     }
 
     /**
-     * @return list<Entreprise>
-     */
-    private function allowedClientEntreprises(User $actor, EntrepriseRepository $entrepriseRepository): array
-    {
-        if ($actor->is17bAdmin()) {
-            return $entrepriseRepository->findNonAgencyOrdered();
-        }
-
-        if ($actor->is17bUser()) {
-            return $entrepriseRepository->findNonAgencyByIdsOrdered($actor->getManagedEntrepriseIds());
-        }
-
-        return [];
-    }
-
-    /**
-     * @param list<Entreprise> $allowedEntreprises
-     *
-     * @return array<string, DocumentCategory>
-     */
-    private function buildParentChoicesForNew(array $allowedEntreprises, DocumentCategoryRepository $categoryRepository): array
-    {
-        $choices = [];
-        foreach ($allowedEntreprises as $ent) {
-            foreach ($categoryRepository->findRootsForEntreprise($ent) as $root) {
-                $this->appendCategoryBranchChoices($root, $ent, '', $choices);
-            }
-        }
-
-        return $choices;
-    }
-
-    /**
-     * @param array<string, DocumentCategory> $choices
-     */
-    private function appendCategoryBranchChoices(
-        DocumentCategory $category,
-        Entreprise $entreprise,
-        string $path,
-        array &$choices,
-    ): void {
-        $label = $entreprise->getName().' — '.$path.$category->getName();
-        $choices[$label] = $category;
-        $next = $path === '' ? $category->getName().' / ' : $path.$category->getName().' / ';
-        foreach ($category->getChildren() as $child) {
-            $this->appendCategoryBranchChoices($child, $entreprise, $next, $choices);
-        }
-    }
-
-    /**
      * @return list<int|null>
      */
     private function collectSubtreeIds(DocumentCategory $root): array
@@ -249,5 +174,29 @@ final class DocumentCategoryController extends AbstractController
         }
 
         return $ids;
+    }
+
+    private function categoryNameExists(
+        DocumentCategoryRepository $categoryRepository,
+        string $name,
+        ?int $excludeId = null,
+    ): bool {
+        $normalizedName = mb_strtolower(trim($name));
+        if ($normalizedName === '') {
+            return false;
+        }
+
+        foreach ($categoryRepository->findAllOrdered() as $existing) {
+            $existingId = $existing->getId();
+            if ($excludeId !== null && $existingId === $excludeId) {
+                continue;
+            }
+
+            if (mb_strtolower(trim($existing->getName())) === $normalizedName) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -4,7 +4,8 @@
     "description": "Dépendances front (Tailwind plugins et Flowbite) pour l'extranet 17b.",
     "scripts": {
         "scss:build": "sass --no-source-map assets/styles/app.custom.scss:assets/styles/app.custom.css",
-        "scss:watch": "sass --watch --no-source-map assets/styles/app.custom.scss:assets/styles/app.custom.css"
+        "scss:watch": "sass --watch --verbose --no-source-map assets/styles/app.custom.scss:assets/styles/app.custom.css",
+        "css:build": "npm run scss:build && php bin/console tailwind:build"
     },
     "devDependencies": {
         "flowbite": "^4.0.1",

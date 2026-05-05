@@ -31,6 +31,10 @@ class DocumentRepository extends ServiceEntityRepository
             $qb->join('d.entreprise', 'e')
                 ->andWhere('e.agency = :fa')
                 ->setParameter('fa', false);
+            if ($forcedEntreprise instanceof Entreprise) {
+                $qb->andWhere('d.entreprise = :forcedEntreprise')
+                    ->setParameter('forcedEntreprise', $forcedEntreprise);
+            }
 
             return $qb->getQuery()->getResult();
         }
@@ -82,5 +86,60 @@ class DocumentRepository extends ServiceEntityRepository
             ->setParameter('c', $category)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @param list<int> $categoryIds
+     *
+     * @return array<int, int>
+     */
+    public function countByCategoryIds(array $categoryIds): array
+    {
+        if ($categoryIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('d')
+            ->select('IDENTITY(d.category) AS categoryId, COUNT(d.id) AS documentsCount')
+            ->andWhere('d.category IN (:ids)')
+            ->setParameter('ids', $categoryIds)
+            ->groupBy('d.category')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $categoryId = (int) ($row['categoryId'] ?? 0);
+            if ($categoryId > 0) {
+                $counts[$categoryId] = (int) ($row['documentsCount'] ?? 0);
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return list<array{id:int,name:string,documentsCount:int}>
+     */
+    public function findCategorySummariesByEntreprise(Entreprise $entreprise): array
+    {
+        $rows = $this->createQueryBuilder('d')
+            ->select('c.id AS id, c.name AS name, COUNT(d.id) AS documentsCount')
+            ->join('d.category', 'c')
+            ->andWhere('d.entreprise = :entreprise')
+            ->setParameter('entreprise', $entreprise)
+            ->groupBy('c.id, c.name')
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(
+            static fn (array $row): array => [
+                'id' => (int) $row['id'],
+                'name' => (string) $row['name'],
+                'documentsCount' => (int) $row['documentsCount'],
+            ],
+            $rows,
+        );
     }
 }

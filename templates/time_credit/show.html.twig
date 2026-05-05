@@ -1,0 +1,214 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ credit.title }}{% endblock %}
+
+{% block body %}
+    {% set consumed_minutes = credit.totalMinutes - credit.remainingMinutes %}
+    {% if consumed_minutes < 0 %}
+        {% set consumed_minutes = 0 %}
+    {% endif %}
+
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="panel px-8 py-8">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-semibold text-brand">{{ credit.title }}</h1>
+                <p class="mt-1 text-sm text-slate-600">
+                    {{ credit.entreprise.name }}
+                    {% if credit.dossierNumber %}
+                        — Dossier {{ credit.dossierNumber }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% if is_granted('ROLE_17B_ADMIN') and credit.remainingMinutes == credit.totalMinutes %}
+                    <a class="rounded-sm border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_edit', { id: credit.id }) }}">Modifier</a>
+                    <form method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm('Supprimer ce crédit temps ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_time_credit' ~ credit.id) }}">
+                        <button type="submit" class="rounded-sm border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Supprimer</button>
+                    </form>
+                {% endif %}
+                {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                    <a class="rounded-sm bg-brand-primary px-3 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_intervention_new', { id: credit.id }) }}">Nouvelle intervention</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-4">
+            <div class="rounded bg-slate-50 p-4 ring-1 ring-slate-200">
+                <div class="text-xs uppercase tracking-wide text-slate-500">Total</div>
+                <div class="mt-1 text-lg font-semibold text-slate-900">
+                    {% set total_display_in_hours = credit.totalMinutes > 180 %}
+                    <span
+                        class="cursor-help"
+                        data-tooltip-target="tc-show-total-tooltip"
+                        data-tooltip-placement="top"
+                        tabindex="0"
+                    >
+                        {{ total_display_in_hours ? (credit.totalMinutes / 60)|round(2) ~ ' h' : credit.totalMinutes ~ ' min' }}
+                    </span>
+                    <div id="tc-show-total-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                        {{ total_display_in_hours ? credit.totalMinutes ~ ' min' : (credit.totalMinutes / 60)|round(2) ~ ' h' }}
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                    </div>
+                </div>
+            </div>
+            <div class="rounded bg-slate-50 p-4 ring-1 ring-slate-200">
+                <div class="text-xs uppercase tracking-wide text-slate-500">Disponible</div>
+                <div class="mt-1 text-lg font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                    {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
+                    <span
+                        class="cursor-help"
+                        data-tooltip-target="tc-show-remaining-tooltip"
+                        data-tooltip-placement="top"
+                        tabindex="0"
+                    >
+                        {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
+                    </span>
+                    <div id="tc-show-remaining-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                        {{ remaining_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                    </div>
+                </div>
+            </div>
+            <div class="rounded bg-slate-50 p-4 ring-1 ring-slate-200">
+                <div class="text-xs uppercase tracking-wide text-slate-500">Catégorie</div>
+                <div class="mt-1 text-sm font-semibold text-slate-900">{{ credit.category ? credit.category.name : '—' }}</div>
+            </div>
+            <div class="rounded bg-slate-50 p-4 ring-1 ring-slate-200">
+                <div class="text-xs uppercase tracking-wide text-slate-500">Statut</div>
+                <div class="mt-1 text-sm font-semibold text-slate-900">{{ credit.archived ? 'Archivé' : 'Actif' }}</div>
+            </div>
+        </div>
+
+        <div class="mt-6 rounded bg-slate-50 p-4 ring-1 ring-slate-200 md:p-6">
+            <h2 class="text-base font-semibold text-brand">Répartition du crédit temps</h2>
+            <p class="mt-1 text-sm text-slate-600">Visualisation donut (Flowbite Charts) du temps consommé et du temps disponible.</p>
+
+            <div class="mt-4 grid gap-4 lg:grid-cols-3 lg:items-center">
+                <div class="lg:col-span-2">
+                    <div
+                        class="min-h-[320px] w-full"
+                        data-time-credit-donut-chart
+                        data-chart-height="320"
+                        data-total-minutes="{{ credit.totalMinutes }}"
+                        data-consumed-minutes="{{ consumed_minutes }}"
+                        data-remaining-minutes="{{ credit.remainingMinutes }}"
+                    ></div>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="rounded bg-white px-3 py-2 ring-1 ring-slate-200">
+                        <div class="text-slate-500">Consommé</div>
+                        <div class="mt-1 font-semibold text-red-700">
+                            {% set consumed_display_in_hours = consumed_minutes > 180 %}
+                            <span
+                                class="cursor-help"
+                                data-tooltip-target="tc-show-consumed-tooltip"
+                                data-tooltip-placement="top"
+                                tabindex="0"
+                            >
+                                {{ consumed_display_in_hours ? (consumed_minutes / 60)|round(2) ~ ' h' : consumed_minutes ~ ' min' }}
+                            </span>
+                            <div id="tc-show-consumed-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                {{ consumed_display_in_hours ? consumed_minutes ~ ' min' : (consumed_minutes / 60)|round(2) ~ ' h' }}
+                                <div class="tooltip-arrow" data-popper-arrow></div>
+                            </div>
+                            {% if credit.totalMinutes > 0 %}
+                                ({{ ((consumed_minutes / credit.totalMinutes) * 100)|round(1) }} %)
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="rounded bg-white px-3 py-2 ring-1 ring-slate-200">
+                        <div class="text-slate-500">Disponible</div>
+                        <div class="mt-1 font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                            {% set remaining_detail_display_in_hours = credit.remainingMinutes > 180 %}
+                            <span
+                                class="cursor-help"
+                                data-tooltip-target="tc-show-remaining-detail-tooltip"
+                                data-tooltip-placement="top"
+                                tabindex="0"
+                            >
+                                {{ remaining_detail_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
+                            </span>
+                            <div id="tc-show-remaining-detail-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                {{ remaining_detail_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                                <div class="tooltip-arrow" data-popper-arrow></div>
+                            </div>
+                            {% if credit.totalMinutes > 0 %}
+                                ({{ ((credit.remainingMinutes / credit.totalMinutes) * 100)|round(1) }} %)
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="mt-8 text-base font-semibold text-brand">Historique des mouvements</h2>
+        <div class="mt-4 overflow-x-auto overflow-hidden rounded ring-1 ring-slate-200">
+            <table class="w-full min-w-[880px] text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Date intervention</th>
+                        <th class="px-4 py-3 font-semibold">Type</th>
+                        <th class="px-4 py-3 font-semibold">Delta</th>
+                        <th class="px-4 py-3 font-semibold">Description</th>
+                        <th class="px-4 py-3 font-semibold">Créé par</th>
+                        <th class="px-4 py-3 font-semibold">Créé le</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for m in movements %}
+                        <tr>
+                            <td class="px-4 py-3 text-slate-700">{{ m.occurredAt|date('d/m/Y H:i') }}</td>
+                            <td class="px-4 py-3 text-slate-700">
+                                {% if m.type == 'allocation' %}
+                                    Allocation
+                                {% elseif m.type == 'intervention' %}
+                                    Intervention
+                                {% else %}
+                                    Ajustement
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 font-medium {{ m.deltaMinutes < 0 ? 'text-red-700' : 'text-green-700' }}">
+                                {% set delta_display_in_hours = m.deltaMinutes|abs > 180 %}
+                                <span
+                                    class="cursor-help"
+                                    data-tooltip-target="tc-show-delta-tooltip-{{ loop.index }}"
+                                    data-tooltip-placement="top"
+                                    tabindex="0"
+                                >
+                                    {% if delta_display_in_hours %}
+                                        {{ (m.deltaMinutes / 60)|round(2) }} h
+                                    {% else %}
+                                        {{ m.deltaMinutes > 0 ? '+' : '' }}{{ m.deltaMinutes }} min
+                                    {% endif %}
+                                </span>
+                                <div id="tc-show-delta-tooltip-{{ loop.index }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                    {{ delta_display_in_hours ? (m.deltaMinutes > 0 ? '+' : '') ~ m.deltaMinutes ~ ' min' : (m.deltaMinutes / 60)|round(2) ~ ' h' }}
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-700">{{ m.description ?: '—' }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ m.createdBy.email }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ m.createdAt|date('d/m/Y H:i') }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-6 text-slate-600">Aucun mouvement pour le moment.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-6 text-sm">
+            <a class="font-medium text-brand underline" href="{{ path('time_credit_index') }}">← Retour à la liste des crédits</a>
+        </p>
+    </div>
+{% endblock %}

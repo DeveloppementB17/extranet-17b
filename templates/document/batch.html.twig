@@ -14,12 +14,12 @@
         <div class="panel px-8 py-8">
             <h1 class="text-xl font-semibold text-brand">Ajouter des documents</h1>
             <p class="mt-2 text-sm text-slate-600">
-                Un ou plusieurs fichiers (20 Mo max chacun). Renseigne le titre, le client destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+                Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseigne le titre, l’entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
             </p>
 
-            {% if not has_clients %}
+            {% if not has_entreprises %}
                 <div class="mt-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    Aucun compte client disponible : crée d’abord des utilisateurs <code class="rounded bg-amber-100 px-1">CUSTOMER_ADMIN</code> ou <code class="rounded bg-amber-100 px-1">CUSTOMER_USER</code> sur une entreprise cliente (hors agence 17b).
+                    Aucune entreprise cliente disponible pour ce compte.
                 </div>
             {% endif %}
 
@@ -50,11 +50,11 @@
                 </div>
 
                 <div>
-                    {{ form_label(form.client, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                    {{ form_widget(form.client, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
-                    {% if form.client.vars.errors|length %}
+                    {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.entreprise, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {% if form.entreprise.vars.errors|length %}
                         <div class="mt-2 text-sm text-red-700">
-                            {% for error in form.client.vars.errors %}
+                            {% for error in form.entreprise.vars.errors %}
                                 <div>{{ error.message }}</div>
                             {% endfor %}
                         </div>
@@ -86,7 +86,19 @@
                     {% endif %}
                 </div>
 
-                <button class="w-full rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover" type="submit" {% if not has_clients %}disabled{% endif %}>
+                <div>
+                    {{ form_label(form.externalUrl, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.externalUrl, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {% if form.externalUrl.vars.errors|length %}
+                        <div class="mt-2 text-sm text-red-700">
+                            {% for error in form.externalUrl.vars.errors %}
+                                <div>{{ error.message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button class="w-full rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover" type="submit" {% if not has_entreprises %}disabled{% endif %}>
                     Enregistrer
                 </button>
             {{ form_end(form) }}

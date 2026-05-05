@@ -1,60 +1,92 @@
-{# Arborescence catégories + documents (repliable via <details>). #}
-{% macro category_branch(category, documentsByCategory, showClient, depth) %}
+{# Arborescence documents — présentation type maquette (accordéons, lignes fichier). #}
+
+{% macro icon_folder() %}
+    <svg class="doc-row-icon h-[20px] w-[20px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+{% endmacro %}
+
+{% macro icon_download() %}
+    <svg class="h-[20px] w-[20px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+{% endmacro %}
+
+{% macro icon_pencil() %}
+    <svg class="h-[20px] w-[20px] opacity-40" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.65 7.758"/></svg>
+{% endmacro %}
+
+{% macro icon_arrows() %}
+    <svg class="h-[20px] w-[20px] opacity-40" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+{% endmacro %}
+
+{% macro icon_trash() %}
+    <svg class="h-[20px] w-[20px] opacity-40" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.576 51.576 0 0 0-3.32 0c-1.18.038-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+{% endmacro %}
+
+{% macro document_row(doc, showClient) %}
+    {% set displayName = doc.originalName ?? doc.title %}
+    <div class="doc-file-row flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-300 py-3 first:border-t-0 md:flex-nowrap">
+        <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 md:gap-4">
+            <input type="checkbox" name="document_ids[]" value="{{ doc.id }}" form="doc-bulk-form" class="doc-row-checkbox h-4 w-4 shrink-0 border-2 border-black bg-white accent-black">
+            {{ _self.icon_folder }}
+            <span class="min-w-0 flex-1 font-['Proxima_Nova','Inter',sans-serif] text-base text-black">
+                {{ displayName }}
+                {% if showClient %}
+                    <span class="mt-0.5 block text-xs font-normal text-neutral-500">{{ doc.client ? doc.client.email : doc.entreprise.name }} · {{ doc.createdAt|date('d/m/Y H:i') }}</span>
+                {% endif %}
+            </span>
+        </label>
+        <div class="flex w-full shrink-0 items-center justify-end gap-4 sm:w-auto md:gap-5">
+            {% if doc.externalUrl %}
+                <a href="{{ path('document_download', { id: doc.id }) }}" target="_blank" rel="noopener noreferrer" class="text-black hover:opacity-70" title="Ouvrir le lien">{{ _self.icon_download }}</a>
+            {% else %}
+                <a href="{{ path('document_download', { id: doc.id }) }}" class="text-black hover:opacity-70" title="Télécharger">{{ _self.icon_download }}</a>
+            {% endif %}
+            <span class="inline-flex text-black" title="Modification — à venir">{{ _self.icon_pencil }}</span>
+            <span class="inline-flex text-black" title="Déplacement — à venir">{{ _self.icon_arrows }}</span>
+            <span class="inline-flex text-black" title="Suppression — à venir">{{ _self.icon_trash }}</span>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro category_branch(category, documentsByCategory, showClient, depth, canUpload, openDefault) %}
     {% set docs = documentsByCategory[category.id] ?? [] %}
     {% set childList = category.children %}
     {% set childBlocks %}
         {% for child in childList %}
-            {{ _self.category_branch(child, documentsByCategory, showClient, depth + 1) }}
+            {{ _self.category_branch(child, documentsByCategory, showClient, depth + 1, canUpload, false) }}
         {% endfor %}
     {% endset %}
     {% set hasContent = (docs|length > 0) or (childBlocks|trim != '') %}
     {% if hasContent %}
-        <details class="document-tree__folder mt-2" {% if depth < 1 %}open{% endif %}>
-            <summary class="document-tree__summary cursor-pointer select-none py-1.5 pl-1 text-sm font-semibold text-brand outline-none marker:text-brand">
-                {{ category.name }}
-                {% if docs|length > 0 %}
-                    <span class="ml-2 font-normal text-slate-600">({{ docs|length }})</span>
-                {% endif %}
+        <details class="doc-maquette-section group border-b border-neutral-300 [&[open]]:border-neutral-800" {{ openDefault ? 'open' : '' }}>
+            <summary class="doc-maquette-summary flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-['Sora',sans-serif] text-[21px] text-black outline-none [&::-webkit-details-marker]:hidden">
+                <span class="min-w-0 font-normal group-open:font-semibold">{{ category.name }}</span>
+                <span class="inline-flex h-[20px] w-[20px] shrink-0 items-center justify-center text-black" aria-hidden="true">
+                    <svg class="chevron-doc block h-full w-full -rotate-90 transition-transform duration-200 group-open:rotate-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                </span>
             </summary>
-            <div class="document-tree__body ml-3 border-l border-white/25 pl-3">
+            <div class="doc-maquette-body pb-2 pl-0 pt-0 {% if depth > 0 %}ml-4 border-l border-neutral-200 pl-4{% endif %}">
+                {% if depth == 0 %}
+                    <div class="mb-4 flex flex-wrap items-center gap-4">
+                        <label class="relative inline-flex items-center">
+                            <span class="sr-only">Action groupée</span>
+                            <select disabled class="h-[42px] cursor-not-allowed appearance-none border border-black bg-white py-2 pl-4 pr-10 font-['Sora',sans-serif] text-sm font-medium text-black opacity-90">
+                                <option>Action groupée</option>
+                            </select>
+                            <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                        </label>
+                        {% if canUpload %}
+                            <a href="{{ path('document_batch_upload') }}" class="dashboard-card-action inline-flex items-baseline gap-2 font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">
+                                Ajouter un fichier
+                                <span class="text-xl leading-none" aria-hidden="true">+</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
                 {% if docs|length > 0 %}
-                    <ul class="mt-2 space-y-2 text-sm">
+                    <div class="doc-file-rows">
                         {% for doc in docs %}
-                            <li class="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/15 pb-2 last:border-0">
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-medium text-slate-900">{{ doc.title }}</div>
-                                    <div class="mt-0.5 text-xs text-slate-600">
-                                        {% if showClient %}
-                                            <span>{{ doc.client.email }}</span>
-                                            <span class="text-slate-400"> · </span>
-                                        {% endif %}
-                                        <span>{{ doc.createdAt|date('d/m/Y H:i') }}</span>
-                                        <span class="text-slate-400"> · </span>
-                                        {% if doc.externalUrl %}
-                                            <span>Lien externe</span>
-                                        {% else %}
-                                            <span>{{ doc.originalName ?? '—' }}</span>
-                                            {% if doc.size is not null %}
-                                                <span class="text-slate-400"> · </span>
-                                                <span>{{ (doc.size / 1024 / 1024)|number_format(2, ',', ' ') }} Mo</span>
-                                            {% endif %}
-                                        {% endif %}
-                                        {% if showClient %}
-                                            <span class="text-slate-400"> · </span>
-                                            <span>{{ doc.uploadedBy.email }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="shrink-0">
-                                    {% if doc.externalUrl %}
-                                        <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-                                    {% else %}
-                                        <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}">Télécharger</a>
-                                    {% endif %}
-                                </div>
-                            </li>
+                            {{ _self.document_row(doc, showClient) }}
                         {% endfor %}
-                    </ul>
+                    </div>
                 {% endif %}
                 {{ childBlocks|raw }}
             </div>
@@ -62,38 +94,37 @@
     {% endif %}
 {% endmacro %}
 
-{% macro uncategorized(documentsByCategory, showClient) %}
+{% macro uncategorized(documentsByCategory, showClient, canUpload, openDefault) %}
     {% set docs = documentsByCategory['uncategorized'] ?? [] %}
     {% if docs|length > 0 %}
-        <details class="document-tree__folder mt-4" open>
-            <summary class="document-tree__summary cursor-pointer select-none py-1.5 pl-1 text-sm font-semibold text-brand outline-none marker:text-brand">
-                Sans catégorie
-                <span class="ml-2 font-normal text-slate-600">({{ docs|length }})</span>
+        <details class="doc-maquette-section group border-b border-neutral-300 [&[open]]:border-neutral-800" {{ openDefault ? 'open' : '' }}>
+            <summary class="doc-maquette-summary flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-['Sora',sans-serif] text-[21px] text-black outline-none [&::-webkit-details-marker]:hidden">
+                <span class="min-w-0 font-normal group-open:font-semibold">Sans catégorie</span>
+                <span class="inline-flex h-[20px] w-[20px] shrink-0 items-center justify-center text-black" aria-hidden="true">
+                    <svg class="chevron-doc block h-full w-full -rotate-90 transition-transform duration-200 group-open:rotate-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                </span>
             </summary>
-            <div class="document-tree__body ml-3 border-l border-white/25 pl-3">
-                <ul class="mt-2 space-y-2 text-sm">
+            <div class="doc-maquette-body pb-4">
+                <div class="mb-4 flex flex-wrap items-center gap-4">
+                    <label class="relative inline-flex items-center">
+                        <span class="sr-only">Action groupée</span>
+                        <select disabled class="h-[42px] cursor-not-allowed appearance-none border border-black bg-white py-2 pl-4 pr-10 font-['Sora',sans-serif] text-sm font-medium text-black opacity-90">
+                            <option>Action groupée</option>
+                        </select>
+                        <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                    </label>
+                    {% if canUpload %}
+                        <a href="{{ path('document_batch_upload') }}" class="dashboard-card-action inline-flex items-baseline gap-2 font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">
+                            Ajouter un fichier
+                            <span class="text-xl leading-none" aria-hidden="true">+</span>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="doc-file-rows">
                     {% for doc in docs %}
-                        <li class="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/15 pb-2 last:border-0">
-                            <div class="min-w-0 flex-1">
-                                <div class="font-medium text-slate-900">{{ doc.title }}</div>
-                                <div class="mt-0.5 text-xs text-slate-600">
-                                    {% if showClient %}
-                                        <span>{{ doc.client.email }}</span>
-                                        <span class="text-slate-400"> · </span>
-                                    {% endif %}
-                                    <span>{{ doc.createdAt|date('d/m/Y H:i') }}</span>
-                                </div>
-                            </div>
-                            <div class="shrink-0">
-                                {% if doc.externalUrl %}
-                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-                                {% else %}
-                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: doc.id }) }}">Télécharger</a>
-                                {% endif %}
-                            </div>
-                        </li>
+                        {{ _self.document_row(doc, showClient) }}
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </details>
     {% endif %}

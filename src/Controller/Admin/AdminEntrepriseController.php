@@ -20,10 +20,54 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AdminEntrepriseController extends AbstractController
 {
     #[Route('', name: 'admin_entreprise_index', methods: ['GET'])]
-    public function index(EntrepriseRepository $entrepriseRepository): Response
+    public function index(Request $request, EntrepriseRepository $entrepriseRepository): Response
     {
+        $entreprises = $entrepriseRepository->findAllOrdered();
+        $search = trim((string) $request->query->get('q', ''));
+        $typeFilter = (string) $request->query->get('type', 'all');
+        $sort = (string) $request->query->get('sort', 'name');
+        $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $allowedSorts = ['name', 'slug', 'type'];
+        if (!\in_array($sort, $allowedSorts, true)) {
+            $sort = 'name';
+        }
+        if (!\in_array($typeFilter, ['all', 'agency', 'client'], true)) {
+            $typeFilter = 'all';
+        }
+
+        $entreprises = array_values(array_filter($entreprises, static function (Entreprise $entreprise) use ($search, $typeFilter): bool {
+            if ($typeFilter === 'agency' && !$entreprise->isAgency()) {
+                return false;
+            }
+            if ($typeFilter === 'client' && $entreprise->isAgency()) {
+                return false;
+            }
+            if ($search === '') {
+                return true;
+            }
+
+            $haystack = mb_strtolower($entreprise->getName().' '.($entreprise->getSlug() ?? ''));
+
+            return str_contains($haystack, mb_strtolower($search));
+        }));
+
+        usort($entreprises, static function (Entreprise $left, Entreprise $right) use ($sort, $direction): int {
+            $result = match ($sort) {
+                'slug' => strcasecmp((string) $left->getSlug(), (string) $right->getSlug()),
+                'type' => ($left->isAgency() <=> $right->isAgency()) * -1,
+                default => strcasecmp($left->getName(), $right->getName()),
+            };
+
+            return $direction === 'asc' ? $result : -$result;
+        });
+
         return $this->render('admin/entreprise/index.html.twig', [
-            'entreprises' => $entrepriseRepository->findAllOrdered(),
+            'entreprises' => $entreprises,
+            'search_query' => $search,
+            'filter_type' => $typeFilter,
+            'sort_field' => $sort,
+            'sort_direction' => $direction,
         ]);
     }
 

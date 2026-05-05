@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel mx-auto max-w-xl px-8 py-8">
+        <h1 class="text-xl font-semibold text-brand">{{ title }}</h1>
+        <p class="mt-2 text-sm text-slate-600">
+            {% if edit_mode|default(false) %}
+                Le titre et le total initial restent historiques. L’archivage permet de fermer le crédit.
+            {% else %}
+                Le titre est généré automatiquement à la création (date/heure).
+            {% endif %}
+        </p>
+
+        {% for message in app.flashes('error') %}
+            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        {% endfor %}
+
+        {{ form_start(form, { attr: { class: 'mt-6 space-y-5' } }) }}
+            <div>
+                {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.entreprise, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                {{ form_errors(form.entreprise) }}
+            </div>
+            <div>
+                {{ form_label(form.category, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.category, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                {{ form_errors(form.category) }}
+            </div>
+            <div>
+                {{ form_label(form.dossierNumber, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.dossierNumber, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                {{ form_errors(form.dossierNumber) }}
+            </div>
+            <div>
+                {{ form_label(form.totalMinutes, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.totalMinutes, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                {{ form_errors(form.totalMinutes) }}
+            </div>
+            {% if form.archived is defined %}
+                <div class="rounded bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
+                    {{ form_row(form.archived) }}
+                </div>
+            {% endif %}
+
+            <div class="flex flex-wrap gap-3">
+                <button type="submit" class="rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover">Enregistrer</button>
+                <a class="rounded-sm border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_index') }}">Annuler</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

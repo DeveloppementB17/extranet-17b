@@ -93,7 +93,7 @@ final class DocumentTenantAndClientTest extends DocumentWebTestCase
         self::assertStringContainsString('DOC-EST-001', $html);
     }
 
-    public function test17bManagedUserMustSelectAClientBeforeAccessingDocuments(): void
+    public function test17bManagedUserSeesDocumentsWithoutSelectingClientInSwitcher(): void
     {
         $browser = static::createClient();
 
@@ -104,7 +104,10 @@ final class DocumentTenantAndClientTest extends DocumentWebTestCase
         $browser->loginUser($manager);
         $browser->request('GET', '/documents');
 
-        self::assertResponseRedirects('/');
+        self::assertResponseIsSuccessful();
+        $html = (string) $browser->getResponse()->getContent();
+        self::assertStringContainsString('NOTE-NORD-1', $html);
+        self::assertStringContainsString('NOTE-NORD-2', $html);
     }
 
     public function test17bManagedUserSeesOnlySelectedClientDocuments(): void
