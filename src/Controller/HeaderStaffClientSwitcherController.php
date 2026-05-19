@@ -36,9 +36,9 @@ final class HeaderStaffClientSwitcherController extends AbstractController
         ]);
     }
 
-    #[Route('/staff/client/select', name: 'staff_client_select_switcher', methods: ['POST'])]
+    #[Route('/staff/client/activate', name: 'staff_client_activate_switcher', methods: ['POST'])]
     #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
-    public function select(
+    public function activate(
         Request $request,
         EntrepriseRepository $entrepriseRepository,
         ManagedClientContext $managedClientContext,

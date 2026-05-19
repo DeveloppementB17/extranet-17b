@@ -1,5 +1,5 @@
 {% if managed_clients is not empty %}
-    <form method="post" action="{{ path('staff_client_select_switcher') }}" class="w-full sm:w-72">
+    <form method="post" action="{{ path('staff_client_activate_switcher') }}" class="w-full sm:w-72">
         <input type="hidden" name="_token" value="{{ csrf_token('select_client_switcher') }}">
         <input type="hidden" name="return_to" value="{{ return_to }}">
         <label class="sr-only" for="staff-client-switcher">Entreprise active</label>

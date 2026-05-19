@@ -59,9 +59,9 @@ final class HomeController extends AbstractController
         ]);
     }
 
-    #[Route('/staff/client/{id}/select', name: 'staff_client_select', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/staff/client/{id}/activate', name: 'staff_client_activate', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
-    public function selectClient(
+    public function activateClient(
         Entreprise $entreprise,
         Request $request,
         ManagedClientContext $managedClientContext,

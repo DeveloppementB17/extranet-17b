@@ -25,8 +25,10 @@ ssh "${REMOTE_ALIAS}" "set -euo pipefail; \
   echo '-> NPM install'; \
   npm install; \
   echo '-> Front build'; \
+  npm run scss:build; \
   '${REMOTE_PHP}' bin/console tailwind:build; \
-  '${REMOTE_PHP}' bin/console asset-map:compile; \
+  echo '-> Nettoyage assets compiles (mode dev: Asset Mapper a la volee)'; \
+  rm -f public/assets/manifest.json public/assets/importmap.json; \
   echo '-> Database migrations'; \
   '${REMOTE_PHP}' bin/console doctrine:migrations:migrate --no-interaction; \
   echo '-> Cache clear (dev)'; \
