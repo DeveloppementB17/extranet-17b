@@ -12,12 +12,14 @@
                 {{ form_widget(form.name) }}
                 {{ form_errors(form.name) }}
             </div>
-            <div>
-                {{ form_label(form.slug, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                {{ form_widget(form.slug) }}
-                {{ form_help(form.slug) }}
-                {{ form_errors(form.slug) }}
-            </div>
+            {% if form.slug is defined %}
+                <div>
+                    {{ form_label(form.slug, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                    {{ form_widget(form.slug) }}
+                    {{ form_help(form.slug) }}
+                    {{ form_errors(form.slug) }}
+                </div>
+            {% endif %}
             <div class="flex items-start gap-3">
                 {{ form_widget(form.agency, { attr: { class: 'mt-1' } }) }}
                 <div>

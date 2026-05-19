@@ -7,9 +7,11 @@ use App\Entity\Entreprise;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -43,6 +45,14 @@ final class DocumentEditType extends AbstractType
                 'required' => false,
                 'choices' => $options['category_choices'],
                 'placeholder' => '— Aucune —',
+            ])
+            ->add('replacementFile', FileType::class, [
+                'label' => 'Remplacer le fichier (optionnel, 20 Mo max)',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File(maxSize: '20M'),
+                ],
             ]);
     }
 

@@ -61,6 +61,7 @@
                             {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% set nextCategoryDir = sort_field == 'category' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% set nextDateDir = sort_field == 'created_at' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            <th class="px-4 py-3 font-semibold">Aperçu</th>
                             <th class="px-4 py-3 font-semibold">
                                 <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
                                     Titre
@@ -142,13 +143,36 @@
                     </thead>
                     <tbody class="divide-y divide-slate-200 bg-white">
                         {% for document in documents %}
+                            {% set sourceName = (document.originalName ?? document.storageName ?? document.title)|lower %}
+                            {% set extension = sourceName and ('.' in sourceName) ? sourceName|split('.')|last : '' %}
+                            {% set mime = (document.mimeType ?? '')|lower %}
+                            {% set isImage = mime starts with 'image/' or extension in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'] %}
+                            {% set isPdf = mime == 'application/pdf' or extension == 'pdf' %}
                             <tr>
-                                <td class="px-4 py-3 text-slate-900">{{ document.title }}</td>
+                                <td class="px-4 py-3">
+                                    {% if isImage %}
+                                        <img
+                                            src="{{ path('document_preview', { id: document.id }) }}"
+                                            alt="Vignette {{ document.title }}"
+                                            class="h-10 w-10 max-h-[50px] max-w-[50px] rounded border border-slate-200 object-cover"
+                                            loading="lazy"
+                                        >
+                                    {% elseif isPdf %}
+                                        <svg class="h-10 w-10 max-h-[50px] max-w-[50px] shrink-0 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-label="PDF"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.879a2.25 2.25 0 0 1 1.591.659l1.871 1.871a2.25 2.25 0 0 1 .659 1.591V18A2.25 2.25 0 0 1 16.25 20.25h-8.5A2.25 2.25 0 0 1 5.5 18V6A2.25 2.25 0 0 1 7.75 3.75Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75V7.5h3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.5 15h2.25a1.25 1.25 0 0 0 0-2.5H8.5V17.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.25 12.5v5h1.125a2.375 2.375 0 1 0 0-4.75H13.25"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 12.5h-2.75V17.5"/></svg>
+                                    {% elseif extension in ['doc', 'docx', 'odt', 'rtf'] %}
+                                        <svg class="h-10 w-10 max-h-[50px] max-w-[50px] shrink-0 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-label="Document"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.879a2.25 2.25 0 0 1 1.591.659l1.871 1.871a2.25 2.25 0 0 1 .659 1.591V18A2.25 2.25 0 0 1 16.25 20.25h-8.5A2.25 2.25 0 0 1 5.5 18V6A2.25 2.25 0 0 1 7.75 3.75Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75V7.5h3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.5 12.5h7"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.5 15.5h7"/></svg>
+                                    {% else %}
+                                        <svg class="h-10 w-10 max-h-[50px] max-w-[50px] shrink-0 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-label="Fichier"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.879a2.25 2.25 0 0 1 1.591.659l1.871 1.871a2.25 2.25 0 0 1 .659 1.591V18A2.25 2.25 0 0 1 16.25 20.25h-8.5A2.25 2.25 0 0 1 5.5 18V6A2.25 2.25 0 0 1 7.75 3.75Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75V7.5h3.75"/></svg>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-slate-900">
+                                    {{ document.title }}
+                                </td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.entreprise ? document.entreprise.name : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.category ? document.category.name : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.createdAt|date('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: document.id }) }}">Ouvrir</a>
+                                    <a class="font-medium text-brand underline" href="{{ path('document_download', { id: document.id }) }}">Télécharger</a>
                                     {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and is_granted('DOCUMENT_MANAGE', document) %}
                                         <a class="ml-3 font-medium text-brand underline" href="{{ path('document_edit', { id: document.id }) }}">Modifier</a>
                                         <form class="ml-3 inline" method="post" action="{{ path('document_delete', { id: document.id }) }}" onsubmit="return confirm('Supprimer ce document ?');">
@@ -160,7 +184,7 @@
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="5" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
+                                <td colspan="6" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

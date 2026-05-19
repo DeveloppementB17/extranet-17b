@@ -39,13 +39,61 @@
                         {% set nextSlugDir = sort_field == 'slug' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextTypeDir = sort_field == 'type' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         <th class="px-4 py-3 font-semibold">
-                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'name', dir: nextNameDir })) }}">Nom</a>
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'name', dir: nextNameDir })) }}">
+                                Nom
+                                {% if sort_field == 'name' %}
+                                    <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                        {% if sort_direction == 'asc' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                        {% else %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        {% endif %}
+                                    </svg>
+                                {% else %}
+                                    <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                    </svg>
+                                {% endif %}
+                            </a>
                         </th>
                         <th class="px-4 py-3 font-semibold">
-                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'slug', dir: nextSlugDir })) }}">Slug</a>
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'slug', dir: nextSlugDir })) }}">
+                                Slug
+                                {% if sort_field == 'slug' %}
+                                    <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                        {% if sort_direction == 'asc' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                        {% else %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        {% endif %}
+                                    </svg>
+                                {% else %}
+                                    <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                    </svg>
+                                {% endif %}
+                            </a>
                         </th>
                         <th class="px-4 py-3 font-semibold">
-                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'type', dir: nextTypeDir })) }}">Type</a>
+                            <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('admin_entreprise_index', app.request.query.all|merge({ sort: 'type', dir: nextTypeDir })) }}">
+                                Type
+                                {% if sort_field == 'type' %}
+                                    <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
+                                        {% if sort_direction == 'asc' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                        {% else %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                        {% endif %}
+                                    </svg>
+                                {% else %}
+                                    <svg class="h-3.5 w-3.5 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+                                    </svg>
+                                {% endif %}
+                            </a>
                         </th>
                         <th class="px-4 py-3 font-semibold text-right">Actions</th>
                     </tr>

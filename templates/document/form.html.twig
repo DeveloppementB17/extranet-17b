@@ -6,8 +6,24 @@
     <div class="panel mx-auto max-w-xl px-8 py-8">
         <h1 class="text-xl font-semibold text-brand">{{ title }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            Modifie les informations du document (titre, entreprise, catégorie).
+            Modifie les informations du document (titre, entreprise, catégorie) et remplace le fichier si nécessaire.
         </p>
+
+        {% set sourceName = (document.originalName ?? document.storageName ?? document.title)|lower %}
+        {% set extension = sourceName and ('.' in sourceName) ? sourceName|split('.')|last : '' %}
+        {% set mime = (document.mimeType ?? '')|lower %}
+        {% set isImage = mime starts with 'image/' or extension in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'] %}
+        {% if isImage %}
+            <div class="mt-4">
+                <p class="mb-2 text-sm font-semibold text-slate-600">Aperçu actuel</p>
+                <img
+                    src="{{ path('document_preview', { id: document.id }) }}"
+                    alt="Aperçu {{ document.title }}"
+                    class="h-auto max-h-[220px] max-w-[220px] rounded border border-slate-200 object-contain"
+                    loading="lazy"
+                >
+            </div>
+        {% endif %}
 
         {% for message in app.flashes('error') %}
             <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
@@ -28,6 +44,12 @@
                 {{ form_label(form.category, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
                 {{ form_widget(form.category, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
                 {{ form_errors(form.category) }}
+            </div>
+            <div>
+                {{ form_label(form.replacementFile, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
+                {{ form_widget(form.replacementFile, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 file:mr-4 file:rounded file:border-0 file:bg-brand-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-primary-hover' } }) }}
+                <p class="mt-1 text-xs text-slate-500">Si tu ajoutes un fichier ici, il remplacera le document actuel.</p>
+                {{ form_errors(form.replacementFile) }}
             </div>
 
             <div class="flex flex-wrap gap-3">
