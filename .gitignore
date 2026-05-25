@@ -41,3 +41,7 @@
 .DS_Store
 Thumbs.db
 ###< os ###
+
+###> github credentials (serveur) ###
+/.github-token
+###< github credentials (serveur) ###
