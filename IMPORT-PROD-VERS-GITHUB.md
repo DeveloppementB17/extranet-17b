@@ -1,4 +1,43 @@
-# Import de l'etat production vers un nouveau depot GitHub
+# Import de l'etat production vers GitHub
+
+Branche serveur : `prod/ovh-sync-2026-05-25`
+
+## Push direct depuis le serveur (recommande)
+
+Le serveur utilise la cle SSH `17b-email-server` (deploy key). Elle est en **lecture seule**.
+
+### Option A — Activer l'ecriture (2 minutes)
+
+1. Ouvrir : https://github.com/DeveloppementB17/extranet-17b/settings/keys
+2. Trouver la cle **17b-email-server**
+3. Cocher **Allow write access** puis Enregistrer
+4. Sur le serveur :
+
+```bash
+cd /var/www/vhosts/agence-b17.dev/17b-extranet
+./bin/push-to-github.sh
+```
+
+Pour un **nouveau depot** : creer `extranet-17b-prod-ovh` sur GitHub, y ajouter la meme deploy key (avec write), puis :
+
+```bash
+git remote add prod-origin git@github.com:DeveloppementB17/extranet-17b-prod-ovh.git
+GITHUB_REPO=DeveloppementB17/extranet-17b-prod-ovh ./bin/push-to-github.sh prod/ovh-sync-2026-05-25 prod-origin
+```
+
+### Option B — Token HTTPS (PAT)
+
+```bash
+mkdir -p ~/.config/17b-extranet
+echo 'ghp_VOTRE_TOKEN' > ~/.config/17b-extranet/github-token
+chmod 600 ~/.config/17b-extranet/github-token
+cd /var/www/vhosts/agence-b17.dev/17b-extranet
+./bin/push-to-github.sh
+```
+
+---
+
+## Import via bundle (si push impossible)
 
 Commit serveur : `f1e7a20` (branche `prod/ovh-sync-2026-05-25`)
 
