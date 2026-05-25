@@ -15,7 +15,6 @@ use App\Storage\DocumentStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -145,7 +144,6 @@ final class DocumentController extends AbstractController
         DocumentCategoryRepository $categoryRepository,
         EntrepriseRepository $entrepriseRepository,
         ManagedClientContext $managedClientContext,
-        DocumentStorage $storage,
         EntityManagerInterface $entityManager,
     ): Response {
         $this->denyAccessUnlessGranted(DocumentVoter::MANAGE, $document);
@@ -173,8 +171,6 @@ final class DocumentController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile|null $replacementFile */
-            $replacementFile = $form->get('replacementFile')->getData();
             $entreprise = $document->getEntreprise();
             if (!$entreprise instanceof Entreprise || $entreprise->isAgency()) {
                 $this->addFlash('error', 'Choisis une entreprise cliente valide.');
@@ -184,32 +180,6 @@ final class DocumentController extends AbstractController
 
             if ($user->is17bUser() && !$user->managesEntreprise($entreprise)) {
                 throw $this->createAccessDeniedException();
-            }
-
-            if ($replacementFile instanceof UploadedFile && $replacementFile->getError() === \UPLOAD_ERR_OK) {
-                $oldAbsolutePath = null;
-                if (!$document->isExternalLink()) {
-                    try {
-                        $oldAbsolutePath = $storage->resolveAbsolutePath($document);
-                    } catch (\InvalidArgumentException) {
-                        $oldAbsolutePath = null;
-                    }
-                }
-
-                $sizeBeforeMove = $replacementFile->getSize();
-                $mimeBeforeMove = (string) ($replacementFile->getClientMimeType() ?: 'application/octet-stream');
-                $stored = $storage->storeUploadedFile($replacementFile, $user);
-
-                $document->setOriginalName($replacementFile->getClientOriginalName());
-                $document->setStorageName($stored['storageName']);
-                $document->setStoragePath($stored['relativePath']);
-                $document->setMimeType($mimeBeforeMove);
-                $document->setSize((int) ($sizeBeforeMove ?: (is_file($stored['absolutePath']) ? filesize($stored['absolutePath']) : 0)));
-                $document->setExternalUrl(null);
-
-                if (\is_string($oldAbsolutePath) && is_file($oldAbsolutePath)) {
-                    @unlink($oldAbsolutePath);
-                }
             }
 
             $entityManager->flush();
@@ -223,6 +193,30 @@ final class DocumentController extends AbstractController
             'document' => $document,
             'title' => 'Modifier le document',
         ]);
+    }
+
+    #[Route('/{id}/preview', name: 'document_preview', methods: ['GET'])]
+    public function preview(Document $document, DocumentStorage $storage): Response
+    {
+        $this->denyAccessUnlessGranted(DocumentVoter::DOWNLOAD, $document);
+
+        $mime = $document->getMimeType() ?: '';
+        if (!str_starts_with($mime, 'image/') || $document->isExternalLink()) {
+            throw $this->createNotFoundException();
+        }
+
+        $absolutePath = $storage->resolveAbsolutePath($document);
+        if (!is_file($absolutePath)) {
+            throw $this->createNotFoundException();
+        }
+
+        $response = new BinaryFileResponse($absolutePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE);
+        $response->headers->set('Content-Type', $mime);
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('Cache-Control', 'private, max-age=3600');
+
+        return $response;
     }
 
     #[Route('/{id}/download', name: 'document_download', methods: ['GET'])]
@@ -249,39 +243,6 @@ final class DocumentController extends AbstractController
         $response = new BinaryFileResponse($absolutePath);
         $response->setContentDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $document->getOriginalName() ?: $document->getTitle()
-        );
-        $mime = $document->getMimeType() ?: 'application/octet-stream';
-        $response->headers->set('Content-Type', $mime);
-        $response->headers->set('X-Content-Type-Options', 'nosniff');
-
-        return $response;
-    }
-
-    #[Route('/{id}/preview', name: 'document_preview', methods: ['GET'])]
-    public function preview(Document $document, DocumentStorage $storage): Response
-    {
-        $this->denyAccessUnlessGranted(DocumentVoter::DOWNLOAD, $document);
-
-        if ($document->isExternalLink()) {
-            $target = (string) $document->getExternalUrl();
-            $parsed = parse_url($target);
-            $scheme = isset($parsed['scheme']) ? strtolower((string) $parsed['scheme']) : '';
-            if (!\in_array($scheme, ['http', 'https'], true)) {
-                throw $this->createNotFoundException();
-            }
-
-            return new RedirectResponse($target);
-        }
-
-        $absolutePath = $storage->resolveAbsolutePath($document);
-        if (!is_file($absolutePath)) {
-            throw $this->createNotFoundException();
-        }
-
-        $response = new BinaryFileResponse($absolutePath);
-        $response->setContentDisposition(
-            ResponseHeaderBag::DISPOSITION_INLINE,
             $document->getOriginalName() ?: $document->getTitle()
         );
         $mime = $document->getMimeType() ?: 'application/octet-stream';

@@ -28,6 +28,9 @@ services:
     # please note that last definitions always *replace* previous ones
 
 when@dev:
+    parameters:
+        web_profiler.enabled: '%env(bool:WEB_PROFILER_ENABLED)%'
+
     services:
         App\AssetMapper\IgnoreCompiledManifestAssetMapper:
             decorates: asset_mapper

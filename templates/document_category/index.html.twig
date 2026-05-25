@@ -3,10 +3,19 @@
 {% block title %}Arborescence des dossiers{% endblock %}
 
 {% block body %}
-    <div class="panel px-8 py-8">
+<nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+    <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+    <span class="text-neutral-400"> / </span>
+    <span class="font-medium" aria-current="page">Arborescence des dossiers</span>
+</nav>
+
+<p class="mt-6 text-m">
+            <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('document_index') }}">← Retour aux documents</a>
+        </p>
+    <div class="panel py-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-xl font-semibold text-brand">Arborescence des dossiers</h1>
-            <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_category_new') }}">
+            <h1 class="text-5xl font-extrabold text-brand">Arborescence des dossiers</h1>
+            <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_category_new') }}">
                 Nouveau dossier
             </a>
         </div>
@@ -18,7 +27,7 @@
             <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
-        <div class="mt-6 overflow-hidden rounded ring-1 ring-slate-200">
+        <div class="mt-6 overflow-hidden ring-1 ring-slate-200">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-600">
                     <tr>
@@ -29,7 +38,7 @@
                 <tbody class="divide-y divide-slate-200 bg-white">
                     {% for row in rows %}
                         {% set c = row.category %}
-                        <tr>
+                        <tr class="hover:bg-neutral-50">
                             <td class="px-4 py-3 text-slate-900" style="padding-left: {{ 16 + row.depth * 20 }}px">
                                 {% if row.depth > 0 %}<span class="text-slate-400">↳</span>{% endif %}
                                 {{ c.name }}
@@ -38,11 +47,17 @@
                                 </a>
                             </td>
                             <td class="px-4 py-3 text-right">
-                                <a class="font-medium text-brand underline" href="{{ path('document_category_edit', { id: c.id }) }}">Modifier</a>
-                                <form class="inline" method="post" action="{{ path('document_category_delete', { id: c.id }) }}" onsubmit="return confirm('Supprimer ce dossier ?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_category' ~ c.id) }}">
-                                    <button type="submit" class="ml-3 font-medium text-red-700 underline">Supprimer</button>
-                                </form>
+                                <div class="inline-flex items-center gap-2">
+                                    <a href="{{ path('document_category_edit', { id: c.id }) }}" title="Modifier" class="text-brand hover:text-brand-primary-hover">
+                                        <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/></svg>
+                                    </a>
+                                    <form class="inline-flex" method="post" action="{{ path('document_category_delete', { id: c.id }) }}" onsubmit="return confirm('Supprimer ce dossier ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_category' ~ c.id) }}">
+                                        <button type="submit" title="Supprimer" class="cursor-pointer text-red-700 hover:text-red-900">
+                                            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/></svg>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     {% else %}
@@ -54,8 +69,6 @@
             </table>
         </div>
 
-        <p class="mt-6 text-sm text-slate-600">
-            <a class="font-medium text-brand underline" href="{{ path('document_index') }}">← Retour aux documents</a>
-        </p>
+        
     </div>
 {% endblock %}

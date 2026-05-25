@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[Route('/admin/entreprises')]
 #[IsGranted('ROLE_17B_ADMIN')]
@@ -76,13 +75,11 @@ final class AdminEntrepriseController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $entreprise = new Entreprise();
-        $form = $this->createForm(AdminEntrepriseType::class, $entreprise, [
-            'auto_slug' => true,
-        ]);
+        $form = $this->createForm(AdminEntrepriseType::class, $entreprise);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entreprise->setSlug($this->generateUniqueSlug($entreprise->getName(), $entityManager->getRepository(Entreprise::class)));
+            $entreprise->setSlug(mb_strtolower($entreprise->getSlug()));
             $entityManager->persist($entreprise);
             $entityManager->flush();
             $this->addFlash('success', 'Entreprise créée.');
@@ -149,21 +146,5 @@ final class AdminEntrepriseController extends AbstractController
         $this->addFlash('success', 'Entreprise supprimée.');
 
         return $this->redirectToRoute('admin_entreprise_index');
-    }
-
-    private function generateUniqueSlug(string $name, EntrepriseRepository $entrepriseRepository): string
-    {
-        $slugger = new AsciiSlugger();
-        $baseSlug = mb_strtolower((string) $slugger->slug($name));
-        $baseSlug = $baseSlug !== '' ? $baseSlug : 'entreprise';
-        $candidate = $baseSlug;
-        $index = 2;
-
-        while ($entrepriseRepository->findOneBy(['slug' => $candidate]) instanceof Entreprise) {
-            $candidate = sprintf('%s-%d', $baseSlug, $index);
-            ++$index;
-        }
-
-        return $candidate;
     }
 }

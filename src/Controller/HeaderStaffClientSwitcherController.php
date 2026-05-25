@@ -38,7 +38,7 @@ final class HeaderStaffClientSwitcherController extends AbstractController
 
     #[Route('/staff/client/activate', name: 'staff_client_activate_switcher', methods: ['POST'])]
     #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
-    public function activate(
+    public function activateClient(
         Request $request,
         EntrepriseRepository $entrepriseRepository,
         ManagedClientContext $managedClientContext,
@@ -48,7 +48,7 @@ final class HeaderStaffClientSwitcherController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        if (!$this->isCsrfTokenValid('select_client_switcher', (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('activate_client_switcher', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
 

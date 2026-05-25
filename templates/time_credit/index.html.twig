@@ -4,20 +4,32 @@
 
 {% block body %}
     {% for message in app.flashes('success') %}
-        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+        <div class="mb-6 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
     {% endfor %}
     {% for message in app.flashes('error') %}
-        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        <div class="mb-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
     {% endfor %}
 
-    <div class="panel px-8 py-8">
+    <div class="mx-auto max-w-8xl ">
+    <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Crédits temps</span>
+    </nav>
+
+    <p class="mt-6 text-m">
+            <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('app_home') }}">← Retour au tableau de bord</a>
+        </p>
+
+        
+    <div class="panel py-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold text-brand">Crédits temps</h1>
-                <p class="mt-1 text-sm text-slate-600">Suivi des enveloppes minutes et des interventions associées.</p>
+                <h1 class="text-5xl font-extrabold text-brand">Crédits temps</h1>
+                <p class="mt-1 text-m text-slate-600">Suivi des enveloppes minutes et des interventions associées.</p>
             </div>
             {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
-                <a class="rounded-sm bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
+                <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
                     Nouveau crédit
                 </a>
             {% endif %}
@@ -31,45 +43,48 @@
         {% endif %}
 
         {% if is_admin_list_view %}
-            <form method="get" class="mt-6 grid gap-3 md:grid-cols-6">
-                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="rounded border border-slate-300 px-3 py-2 text-sm md:col-span-2">
-                <select name="entreprise" class="rounded border border-slate-300 px-3 py-2 text-sm">
-                    <option value="0">Toutes les entreprises</option>
-                    {% for id, name in available_entreprises %}
-                        <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="category" class="rounded border border-slate-300 px-3 py-2 text-sm">
-                    <option value="0">Toutes les catégories</option>
-                    {% for id, name in available_categories %}
-                        <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="status" class="rounded border border-slate-300 px-3 py-2 text-sm">
-                    <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
-                    <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>Actifs</option>
-                    <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Archivés</option>
-                </select>
-                <div class="flex gap-2">
-                    <button type="submit" class="rounded bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
-                    <a href="{{ path('time_credit_index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+            <form method="get" class="mt-6 space-y-3">
+                <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 2xl:grid-cols-5">
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="border border-dark px-3 py-2 text-sm">
+                    <select name="entreprise" class="border border-dark px-3 py-2 text-sm">
+                        <option value="0">Toutes les entreprises</option>
+                        {% for id, name in available_entreprises %}
+                            <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="category" class="border border-dark px-3 py-2 text-sm">
+                        <option value="0">Toutes les catégories</option>
+                        {% for id, name in available_categories %}
+                            <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="status" class="border border-dark px-3 py-2 text-sm">
+                        <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
+                        <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>Actifs</option>
+                        <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Archivés</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+
+                    <a href="{{ path('time_credit_index') }}" class="border border-dark px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
                 </div>
                 <input type="hidden" name="sort" value="{{ sort_field }}">
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
             </form>
         {% endif %}
 
-        <div class="mt-6 overflow-x-auto overflow-hidden rounded ring-1 ring-slate-200">
-            <table class="w-full min-w-[900px] text-left text-sm">
-                <thead class="bg-slate-50 text-slate-600">
+        <div class="mt-6 overflow-x-auto overflow-hidden ring-1 ring-slate-200">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-brand-card text-slate-600 h-[66px]">
                     <tr>
                         {% set nextTitleDir = sort_field == 'title' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextCategoryDir = sort_field == 'category' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextRemainingDir = sort_field == 'remaining' and sort_direction == 'asc' ? 'desc' : 'asc' %}
-                        <th class="px-4 py-3 font-semibold">
+                        <th class="px-4 py-3 font-semibold text-black">
                             {% if is_admin_list_view %}
-                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
                                     Titre
                                     {% if sort_field == 'title' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -90,7 +105,7 @@
                         </th>
                         <th class="px-4 py-3 font-semibold">
                             {% if is_admin_list_view %}
-                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">
                                     Entreprise
                                     {% if sort_field == 'entreprise' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -111,7 +126,7 @@
                         </th>
                         <th class="px-4 py-3 font-semibold">
                             {% if is_admin_list_view %}
-                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
                                     Catégorie
                                     {% if sort_field == 'category' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -130,11 +145,11 @@
                                 </a>
                             {% else %}Catégorie{% endif %}
                         </th>
-                        <th class="px-4 py-3 font-semibold">Dossier</th>
-                        <th class="px-4 py-3 font-semibold">Total</th>
-                        <th class="px-4 py-3 font-semibold">
+                        <th class="px-4 py-3 font-semibold text-black">Dossier</th>
+                        <th class="px-4 py-3 font-semibold text-black">Total</th>
+                        <th class="px-4 py-3 font-semibold text-black">
                             {% if is_admin_list_view %}
-                                <a class="inline-flex items-center gap-1 hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'remaining', dir: nextRemainingDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('time_credit_index', app.request.query.all|merge({ sort: 'remaining', dir: nextRemainingDir })) }}">
                                     Disponible
                                     {% if sort_field == 'remaining' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -153,13 +168,13 @@
                                 </a>
                             {% else %}Disponible{% endif %}
                         </th>
-                        <th class="px-4 py-3 font-semibold">Statut</th>
-                        <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                        <th class="px-4 py-3 font-semibold text-black">Statut</th>
+                        <th class="px-4 py-3 font-semibold text-black text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
                     {% for credit in credits %}
-                        <tr>
+                        <tr class="hover:bg-neutral-50">
                             <td class="px-4 py-3 font-medium text-slate-900">{{ credit.title }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.entreprise.name }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.category ? credit.category.name : '—' }}</td>
@@ -174,7 +189,7 @@
                                 >
                                     {{ total_display_in_hours ? (credit.totalMinutes / 60)|round(2) ~ ' h' : credit.totalMinutes ~ ' min' }}
                                 </span>
-                                <div id="tc-index-total-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                <div id="tc-index-total-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
                                     {{ total_display_in_hours ? credit.totalMinutes ~ ' min' : (credit.totalMinutes / 60)|round(2) ~ ' h' }}
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
@@ -189,32 +204,42 @@
                                 >
                                     {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
                                 </span>
-                                <div id="tc-index-remaining-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
+                                <div id="tc-index-remaining-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
                                     {{ remaining_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>
                             <td class="px-4 py-3">
                                 {% if credit.archived %}
-                                    <span class="rounded-sm bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">Archivé</span>
+                                    <span class="bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">Archivé</span>
                                 {% else %}
-                                    <span class="rounded-sm bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Actif</span>
+                                    <span class="bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Actif</span>
                                 {% endif %}
                             </td>
                             <td class="px-4 py-3 text-right">
-                                <a class="font-medium text-brand underline" href="{{ path('time_credit_show', { id: credit.id }) }}">Détail</a>
-                                {% if is_granted('TIME_CREDIT_MANAGE', credit) and credit.remainingMinutes == credit.totalMinutes %}
-                                    <a class="ml-3 font-medium text-brand underline" href="{{ path('time_credit_edit', { id: credit.id }) }}">Modifier</a>
-                                {% endif %}
-                                {% if is_granted('TIME_CREDIT_INTERVENE', credit) and not credit.archived and credit.remainingMinutes > 0 %}
-                                    <a class="ml-3 font-medium text-brand underline" href="{{ path('time_credit_intervention_new', { id: credit.id }) }}">Intervention</a>
-                                {% endif %}
-                                {% if is_granted('ROLE_17B_ADMIN') and credit.remainingMinutes == credit.totalMinutes %}
-                                    <form class="ml-3 inline" method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm('Supprimer ce crédit temps ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_time_credit' ~ credit.id) }}">
-                                        <button type="submit" class="font-medium text-red-700 underline">Supprimer</button>
-                                    </form>
-                                {% endif %}
+                                <div class="inline-flex items-center gap-2">
+                                    <a href="{{ path('time_credit_show', { id: credit.id }) }}" title="Détail" class="text-brand hover:text-brand-primary-hover">
+                                        <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/><path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                                    </a>
+                                    {% if is_granted('TIME_CREDIT_MANAGE', credit) and credit.remainingMinutes == credit.totalMinutes %}
+                                        <a href="{{ path('time_credit_edit', { id: credit.id }) }}" title="Modifier" class="text-brand hover:text-brand-primary-hover">
+                                            <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/></svg>
+                                        </a>
+                                    {% endif %}
+                                    {% if is_granted('TIME_CREDIT_INTERVENE', credit) and not credit.archived and credit.remainingMinutes > 0 %}
+                                        <a href="{{ path('time_credit_intervention_new', { id: credit.id }) }}" title="Intervention" class="text-brand hover:text-brand-primary-hover">
+                                            <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                        </a>
+                                    {% endif %}
+                                    {% if is_granted('ROLE_17B_ADMIN') and credit.remainingMinutes == credit.totalMinutes %}
+                                        <form class="inline-flex" method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm('Supprimer ce crédit temps ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_time_credit' ~ credit.id) }}">
+                                            <button type="submit" title="Supprimer" class="cursor-pointer text-red-700 hover:text-red-900">
+                                                <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/></svg>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                     {% else %}
@@ -225,5 +250,7 @@
                 </tbody>
             </table>
         </div>
+        
+    </div>
     </div>
 {% endblock %}

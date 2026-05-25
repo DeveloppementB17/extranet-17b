@@ -30,6 +30,7 @@ final class DocumentBatchUploadType extends AbstractType
             'mapped' => false,
             'required' => true,
             'help' => 'Pour plusieurs fichiers, le nom du fichier est ajouté après le titre pour les distinguer.',
+            'help_attr' => ['class' => 'mt-2 text-sm text-slate-600'],
             'constraints' => [
                 new NotBlank(message: 'Le titre est requis.'),
                 new Length(max: 255),
@@ -65,6 +66,7 @@ final class DocumentBatchUploadType extends AbstractType
             'required' => false,
             'multiple' => true,
             'help' => '20 Mo max par fichier. Sélectionne un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseigne une URL externe.',
+            'help_attr' => ['class' => 'mt-2 text-sm text-slate-600'],
             'constraints' => [
                 new Count(min: 0),
                 new All(constraints: [

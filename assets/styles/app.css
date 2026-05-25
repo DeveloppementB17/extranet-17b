@@ -8,13 +8,17 @@
 @source "../../node_modules/flowbite";
 @import "flowbite/src/themes/default";
 @import "./app.custom.css";
+
+@theme {
+    --breakpoint-3xl: 1400px;
+}
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap");
 :root {
     --brand-bg: #ffffff;
     --brand-primary: #111111;
     --brand-primary-hover: #000000;
     --brand-text: #111111;
-    --brand-card: #ececec;
+    --brand-card: #F9F9F9;
 }
 
 @layer base {
@@ -51,11 +55,6 @@
             color 0.2s ease,
             opacity 0.2s ease;
     }
-
-    button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
-    }
 }
 
 @layer utilities {
@@ -76,13 +75,13 @@
     }
 
 
-    .panel {
+    /* .panel {
         background-color: transparent;
         border: 1px solid rgba(15, 23, 42, 0.12);
-    }
+    } */
     .panel-muted {
         background-color: rgba(255, 255, 255, 0.25);
-        border: 1px solid rgba(15, 23, 42, 0.12);
+        border: 1px solid rgba(0, 0, 0, 1);
     }
 
     .document-tree details > summary {

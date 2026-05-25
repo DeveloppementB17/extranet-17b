@@ -58,7 +58,7 @@ final class AdminUserType extends AbstractType
             'data' => $options['managed_entreprises_data'],
             'label' => 'Entreprises clientes gérées',
             'help' => 'Pour les rôles 17b (admin ou user) : cocher les entreprises clientes attribuées.',
-            'choice_attr' => static fn () => ['class' => 'h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary'],
+            'choice_attr' => static fn () => ['class' => 'h-4 w-4 mx-2 rounded border-dark text-brand-primary focus:ring-brand-primary'],
         ]);
 
         $pwdConstraintsFirst = $options['require_password']

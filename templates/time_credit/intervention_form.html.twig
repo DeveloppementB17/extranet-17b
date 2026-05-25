@@ -3,8 +3,23 @@
 {% block title %}Déclarer une intervention{% endblock %}
 
 {% block body %}
-    <div class="panel mx-auto max-w-xl px-8 py-8">
-        <h1 class="text-xl font-semibold text-brand">Déclarer une intervention</h1>
+<nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+        <span class="text-neutral-400"> / </span>
+        <a href="{{ path('time_credit_index') }}" class="hover:underline">Crédits temps</a>
+        <span class="text-neutral-400"> / </span>
+        <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit.title }}</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Déclarer une intervention</span>
+    </nav>
+
+    <p class="mt-6 text-m">
+            <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('time_credit_show', { id: credit.id }) }}">← Retour au crédit</a>
+        </p>
+
+    
+    <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
+        <h1 class="text-3xl font-extrabold text-brand">Déclarer une intervention</h1>
         <p class="mt-2 text-sm text-slate-600">
             {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
             Crédit : <span class="font-medium">{{ credit.title }}</span> — disponible :
@@ -23,23 +38,23 @@
         </p>
 
         {% for message in app.flashes('error') %}
-            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+            <div class="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
-        {{ form_start(form, { attr: { class: 'mt-6 space-y-5' } }) }}
+        {{ form_start(form, { attr: { class: 'mt-8 space-y-8' } }) }}
             <div>
-                {{ form_label(form.occurredAt, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                {{ form_widget(form.occurredAt, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                {{ form_label(form.occurredAt, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                {{ form_widget(form.occurredAt, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
                 {{ form_errors(form.occurredAt) }}
             </div>
             <div>
-                {{ form_label(form.durationValue, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                <div class="mt-2 grid gap-3 md:grid-cols-2">
-                    {{ form_widget(form.durationValue, { attr: { class: 'block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
-                    <div class="rounded bg-slate-100 p-1 ring-1 ring-slate-200" data-duration-unit-switch>
-                        <button type="button" class="duration-unit-btn w-1/2 rounded px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
+                {{ form_label(form.durationValue, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
+                    {{ form_widget(form.durationValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                    <div class="border border-black" data-duration-unit-switch>
+                        <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
                             Minutes
-                        </button><button type="button" class="duration-unit-btn w-1/2 rounded px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
+                        </button><button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
                             Heures
                         </button>
                     </div>
@@ -49,15 +64,15 @@
                 {{ form_errors(form.durationValue) }}
                 {{ form_errors(form.durationUnit) }}
             </div>
-            <div>
-                {{ form_label(form.description, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                {{ form_widget(form.description, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+            <div class="relative z-0 w-full group">
+                {{ form_widget(form.description, { attr: { class: 'block py-2.5 px-2 w-full text-lg text-heading bg-transparent border-1 border-slate-600 border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
+                {{ form_label(form.description, null, { label_attr: { class: 'absolute bg-black text-white z-10 text-lg font-semibold px-2 left-0 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:bg-transparent peer-placeholder-shown:text-slate-700 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
                 {{ form_errors(form.description) }}
             </div>
 
             <div class="flex flex-wrap gap-3">
-                <button type="submit" class="rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover">Enregistrer l’intervention</button>
-                <a class="rounded-sm border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_show', { id: credit.id }) }}">Annuler</a>
+                <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">Enregistrer l'intervention</button>
+                <a class="border border-slate-200 px-6 py-2 text-xl font-bold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_show', { id: credit.id }) }}">Annuler</a>
             </div>
         {{ form_end(form) }}
     </div>
@@ -74,10 +89,10 @@
             const setActive = (unit) => {
                 buttons.forEach((btn) => {
                     const active = btn.dataset.unit === unit;
-                    btn.classList.toggle('bg-white', active);
-                    btn.classList.toggle('text-brand', active);
+                    btn.classList.toggle('bg-black', active);
+                    btn.classList.toggle('text-white', active);
                     btn.classList.toggle('shadow-sm', active);
-                    btn.classList.toggle('text-slate-700', !active);
+                    btn.classList.toggle('text-black', !active);
                 });
             };
 

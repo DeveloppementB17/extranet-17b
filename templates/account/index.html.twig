@@ -3,8 +3,14 @@
 {% block title %}Mon compte{% endblock %}
 
 {% block body %}
+    <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Mon compte</span>
+    </nav>
+
     <div class="panel mx-auto max-w-lg px-8 py-8">
-        <h1 class="text-xl font-semibold text-brand">Mon compte</h1>
+        <h1 class="text-5xl font-extrabold text-brand">Mon compte</h1>
         <p class="mt-2 text-sm text-slate-600">Informations liées à ta session sur l’extranet.</p>
 
         <dl class="mt-8 space-y-6 text-sm">

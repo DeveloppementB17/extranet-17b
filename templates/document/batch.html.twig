@@ -10,12 +10,29 @@
         <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
     {% endfor %}
 
-    <div class="mx-auto max-w-xl">
-        <div class="panel px-8 py-8">
-            <h1 class="text-xl font-semibold text-brand">Ajouter des documents</h1>
-            <p class="mt-2 text-sm text-slate-600">
-                Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseigne le titre, l’entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+    <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+        <span class="text-neutral-400"> / </span>
+        <a href="{{ path('document_index') }}" class="hover:underline">Fichiers</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Ajouter des documents</span>
+    </nav>
+
+    <div class="mx-auto">
+    
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 align-middle">
+            <div class="flex flex-col gap-4">
+            <p class="mt-6 text-m">
+                <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('document_index') }}">← Retour à la liste</a>
             </p>
+            <h1 class="text-5xl font-extrabold text-brand">Ajouter des documents</h1>
+                <p class="mt-2 text-m text-slate-600">
+                    Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseigne le titre, l'entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+                </p>
+        </div>
+        <div class="panel border-2 border-black px-8 py-8">
+            
 
             {% if not has_entreprises %}
                 <div class="mt-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -23,11 +40,9 @@
                 </div>
             {% endif %}
 
-            <p class="mt-4 text-sm">
-                <a class="font-medium text-brand underline" href="{{ path('document_index') }}">← Retour à la liste</a>
-            </p>
+            
 
-            {{ form_start(form, { attr: { class: 'mt-6 space-y-5' } }) }}
+            {{ form_start(form, { attr: { class: 'mt-8 space-y-8' } }) }}
                 {% if form.vars.errors|length %}
                     <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                         {% for error in form.vars.errors %}
@@ -36,9 +51,9 @@
                     </div>
                 {% endif %}
 
-                <div>
-                    {{ form_label(form.title, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                    {{ form_widget(form.title, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                <div class="relative z-0 w-full group">
+                    {{ form_widget(form.title, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
+                    {{ form_label(form.title, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
                     {{ form_help(form.title) }}
                     {% if form.title.vars.errors|length %}
                         <div class="mt-2 text-sm text-red-700">
@@ -50,8 +65,8 @@
                 </div>
 
                 <div>
-                    {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                    {{ form_widget(form.entreprise, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    {{ form_widget(form.entreprise, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
                     {% if form.entreprise.vars.errors|length %}
                         <div class="mt-2 text-sm text-red-700">
                             {% for error in form.entreprise.vars.errors %}
@@ -62,8 +77,8 @@
                 </div>
 
                 <div>
-                    {{ form_label(form.category, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                    {{ form_widget(form.category, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {{ form_label(form.category, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    {{ form_widget(form.category, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
                     {% if form.category.vars.errors|length %}
                         <div class="mt-2 text-sm text-red-700">
                             {% for error in form.category.vars.errors %}
@@ -74,8 +89,20 @@
                 </div>
 
                 <div>
-                    {{ form_label(form.files, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                    {{ form_widget(form.files, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                    {{ form_label(form.files, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    <div id="dropzone-area" class="flex items-center justify-center w-full">
+                        <div class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-neutral-50 transition-colors" data-dropzone>
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-500 pointer-events-none">
+                                <svg class="w-8 h-8 mb-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
+                                </svg>
+                                <p class="mb-1 text-sm"><span class="font-semibold">Cliquer pour sélectionner</span> ou glisser-déposer</p>
+                                <p class="text-xs">20 Mo max par fichier (Ctrl/Cmd + clic pour en sélectionner plusieurs)</p>
+                            </div>
+                            {{ form_widget(form.files, { attr: { class: 'absolute inset-0 w-full h-full opacity-0 cursor-pointer', 'data-dropzone-input': '' } }) }}
+                        </div>
+                    </div>
+                    <div id="dropzone-file-list" class="mt-3 hidden"></div>
                     {{ form_help(form.files) }}
                     {% if form.files.vars.errors|length %}
                         <div class="mt-2 text-sm text-red-700">
@@ -86,9 +113,9 @@
                     {% endif %}
                 </div>
 
-                <div>
-                    {{ form_label(form.externalUrl, null, { label_attr: { class: 'block text-sm font-semibold text-slate-600' } }) }}
-                    {{ form_widget(form.externalUrl, { attr: { class: 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary' } }) }}
+                <div class="relative z-0 w-full group">
+                    {{ form_widget(form.externalUrl, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
+                    {{ form_label(form.externalUrl, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
                     {% if form.externalUrl.vars.errors|length %}
                         <div class="mt-2 text-sm text-red-700">
                             {% for error in form.externalUrl.vars.errors %}
@@ -98,10 +125,83 @@
                     {% endif %}
                 </div>
 
-                <button class="w-full rounded-sm bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover" type="submit" {% if not has_entreprises %}disabled{% endif %}>
+                <button class="ml-auto block bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover button" type="submit" {% if not has_entreprises %}disabled{% endif %}>
                     Enregistrer
                 </button>
             {{ form_end(form) }}
         </div>
+        </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const zone = document.querySelector('[data-dropzone]');
+        const input = document.querySelector('[data-dropzone-input]');
+        const list = document.getElementById('dropzone-file-list');
+        if (!zone || !input || !list) return;
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' o';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' Ko';
+            return (bytes / 1048576).toFixed(1) + ' Mo';
+        }
+
+        function fileIcon() {
+            return '<svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>';
+        }
+
+        function updateFileList(files) {
+            if (files.length === 0) {
+                list.classList.add('hidden');
+                list.innerHTML = '';
+                return;
+            }
+            list.classList.remove('hidden');
+            var html = '<div class="flex items-center p-3 mb-2 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200" role="alert">'
+                + '<svg class="w-4 h-4 me-2 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5"/></svg>'
+                + '<span class="font-semibold">' + files.length + ' fichier' + (files.length > 1 ? 's' : '') + ' sélectionné' + (files.length > 1 ? 's' : '') + '</span>'
+                + '</div>';
+            html += '<ul class="space-y-1">';
+            files.forEach(function(f) {
+                html += '<li class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">'
+                    + fileIcon()
+                    + '<span class="truncate font-medium">' + f.name + '</span>'
+                    + '<span class="ml-auto text-xs text-slate-400 whitespace-nowrap">' + formatSize(f.size) + '</span>'
+                    + '</li>';
+            });
+            html += '</ul>';
+            list.innerHTML = html;
+        }
+
+        input.addEventListener('change', function () {
+            updateFileList(Array.from(this.files || []));
+        });
+
+        ['dragenter', 'dragover'].forEach(function (evt) {
+            zone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.add('border-brand', 'bg-neutral-50');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function (evt) {
+            zone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove('border-brand', 'bg-neutral-50');
+            });
+        });
+
+        zone.addEventListener('drop', function (e) {
+            var dt = e.dataTransfer;
+            if (!dt || !dt.files || dt.files.length === 0) return;
+            input.files = dt.files;
+            updateFileList(Array.from(dt.files));
+        });
+    });
+    </script>
 {% endblock %}

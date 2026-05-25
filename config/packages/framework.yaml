@@ -8,6 +8,12 @@ framework:
     #esi: true
     #fragments: true
 
+when@dev:
+    framework:
+        profiler:
+            enabled: '%web_profiler.enabled%'
+            collect_serializer_data: true
+
 when@test:
     framework:
         test: true

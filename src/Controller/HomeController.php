@@ -71,7 +71,7 @@ final class HomeController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        if (!$this->isCsrfTokenValid('select_client_'.$entreprise->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('activate_client_'.$entreprise->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
 

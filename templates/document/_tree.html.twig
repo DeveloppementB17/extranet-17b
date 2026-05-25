@@ -4,20 +4,6 @@
     <svg class="doc-row-icon h-[20px] w-[20px] shrink-0 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
 {% endmacro %}
 
-{% macro icon_file_type(extension, mimeType) %}
-    {% set ext = extension|lower %}
-    {% set mime = (mimeType ?? '')|lower %}
-    {% if mime starts with 'image/' or ext in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'] %}
-        <svg class="doc-row-icon h-[20px] w-[20px] shrink-0 text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-label="Image"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75A2.25 2.25 0 0 1 6 4.5h12a2.25 2.25 0 0 1 2.25 2.25v10.5A2.25 2.25 0 0 1 18 19.5H6a2.25 2.25 0 0 1-2.25-2.25V6.75Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 15 4.5-4.5a1.5 1.5 0 0 1 2.121 0L15 15l1.5-1.5a1.5 1.5 0 0 1 2.121 0l1.629 1.629"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 8.25h.008v.008h-.008V8.25Z"/></svg>
-    {% elseif mime == 'application/pdf' or ext == 'pdf' %}
-        <svg class="doc-row-icon h-[20px] w-[20px] shrink-0 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-label="PDF"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.879a2.25 2.25 0 0 1 1.591.659l1.871 1.871a2.25 2.25 0 0 1 .659 1.591V18A2.25 2.25 0 0 1 16.25 20.25h-8.5A2.25 2.25 0 0 1 5.5 18V6A2.25 2.25 0 0 1 7.75 3.75Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75V7.5h3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.5 15h2.25a1.25 1.25 0 0 0 0-2.5H8.5V17.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.25 12.5v5h1.125a2.375 2.375 0 1 0 0-4.75H13.25"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 12.5h-2.75V17.5"/></svg>
-    {% elseif ext in ['doc', 'docx', 'odt', 'rtf'] %}
-        <svg class="doc-row-icon h-[20px] w-[20px] shrink-0 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-label="Document"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.879a2.25 2.25 0 0 1 1.591.659l1.871 1.871a2.25 2.25 0 0 1 .659 1.591V18A2.25 2.25 0 0 1 16.25 20.25h-8.5A2.25 2.25 0 0 1 5.5 18V6A2.25 2.25 0 0 1 7.75 3.75Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75V7.5h3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.5 12.5h7"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.5 15.5h7"/></svg>
-    {% else %}
-        {{ _self.icon_folder }}
-    {% endif %}
-{% endmacro %}
-
 {% macro icon_download() %}
     <svg class="h-[20px] w-[20px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
 {% endmacro %}
@@ -36,12 +22,10 @@
 
 {% macro document_row(doc, showClient) %}
     {% set displayName = doc.originalName ?? doc.title %}
-    {% set sourceName = (doc.originalName ?? doc.storageName ?? doc.title)|lower %}
-    {% set extension = sourceName and ('.' in sourceName) ? sourceName|split('.')|last : '' %}
     <div class="doc-file-row flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-300 py-3 first:border-t-0 md:flex-nowrap">
         <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 md:gap-4">
             <input type="checkbox" name="document_ids[]" value="{{ doc.id }}" form="doc-bulk-form" class="doc-row-checkbox h-4 w-4 shrink-0 border-2 border-black bg-white accent-black">
-            {{ _self.icon_file_type(extension, doc.mimeType) }}
+            {{ _self.icon_folder }}
             <span class="min-w-0 flex-1 font-['Proxima_Nova','Inter',sans-serif] text-base text-black">
                 {{ displayName }}
                 {% if showClient %}
