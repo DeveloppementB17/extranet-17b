@@ -109,6 +109,11 @@ php bin/console cache:clear --env=prod
 php bin/console doctrine:migrations:migrate --no-interaction --env=prod
 ```
 
+## Outil de recette `/recette` (optionnel)
+
+- Activer pendant la recette : `RECETTE_ENABLED=1` dans `.env.local` (voir `config/recette/README.md`)
+- **Après recettage** : `RECETTE_ENABLED=0` puis `php bin/console cache:clear --env=prod` (les URLs `/recette` répondent 404, sans redeploy de code)
+
 ## Checklist rapide
 
 - `.htaccess` présent **à la racine** (pas seulement dans `public/`)

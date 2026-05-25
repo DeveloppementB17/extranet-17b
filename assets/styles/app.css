@@ -3,7 +3,9 @@
    arbitraires (ex. h-[20px]) ne sont pas générés → SVG sans taille CSS = défaut
    navigateur ~300×150px. */
 @source "../../templates/**/*.twig";
+@source "../../templates/recette/**/*.twig";
 @source "../../src/**/*.php";
+@source "../recette/**/*.js";
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @import "flowbite/src/themes/default";

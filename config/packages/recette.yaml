@@ -1,0 +1,2 @@
+parameters:
+    recette.enabled: '%env(bool:RECETTE_ENABLED)%'

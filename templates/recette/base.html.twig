@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Recette extranet 17b{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <style>
+        .recette-shell { max-width: 56rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+        .recette-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 0.2rem 0.65rem; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .recette-badge--non_verifie { background: #f1f5f9; color: #475569; }
+        .recette-badge--en_cours { background: #fef3c7; color: #92400e; }
+        .recette-badge--valide { background: #dcfce7; color: #166534; }
+        .recette-item { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; background: #fff; }
+        .recette-item[data-status="valide"] { border-left: 4px solid #16a34a; }
+        .recette-item[data-status="en_cours"] { border-left: 4px solid #d97706; }
+        .recette-item[data-status="non_verifie"] { border-left: 4px solid #94a3b8; }
+        .recette-save-hint { font-size: 0.8rem; color: #64748b; }
+        .recette-save-hint.is-saving { color: #d97706; }
+        .recette-save-hint.is-saved { color: #16a34a; }
+        .recette-save-hint.is-error { color: #dc2626; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-[#f8f8f8] text-slate-900 antialiased">
+    <header class="border-b border-neutral-200 bg-white">
+        <div class="recette-shell flex flex-wrap items-center justify-between gap-3 py-4">
+            <div>
+                <a href="{{ path('recette_index') }}" class="font-['Sora',sans-serif] text-lg font-extrabold text-black hover:underline">
+                    Recette · Extranet 17b
+                </a>
+                <p class="mt-0.5 text-sm text-slate-500">Checklist pour chefs de projet — indépendant du site</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+                <a href="{{ path('app_home') }}" class="rounded border border-neutral-300 px-3 py-1.5 hover:bg-neutral-50" target="_blank" rel="noopener">
+                    Ouvrir l'extranet ↗
+                </a>
+                <a href="{{ path('recette_new') }}" class="rounded bg-black px-3 py-1.5 font-semibold text-white hover:bg-neutral-800">
+                    Nouvelle session
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="recette-shell">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-4 rounded border px-4 py-3 text-sm {{ label == 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-green-200 bg-green-50 text-green-800' }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

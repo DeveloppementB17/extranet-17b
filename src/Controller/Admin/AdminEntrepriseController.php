@@ -8,6 +8,7 @@ use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Form\Admin\AdminEntrepriseType;
 use App\Repository\EntrepriseRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -81,7 +82,16 @@ final class AdminEntrepriseController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entreprise->setSlug(mb_strtolower($entreprise->getSlug()));
             $entityManager->persist($entreprise);
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                $this->addFlash('error', 'Cet identifiant (slug) est déjà utilisé.');
+
+                return $this->render('admin/entreprise/form.html.twig', [
+                    'form' => $form,
+                    'title' => 'Nouvelle entreprise',
+                ]);
+            }
             $this->addFlash('success', 'Entreprise créée.');
 
             return $this->redirectToRoute('admin_entreprise_index');
@@ -101,7 +111,16 @@ final class AdminEntrepriseController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entreprise->setSlug(mb_strtolower($entreprise->getSlug()));
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                $this->addFlash('error', 'Cet identifiant (slug) est déjà utilisé.');
+
+                return $this->render('admin/entreprise/form.html.twig', [
+                    'form' => $form,
+                    'title' => 'Modifier l’entreprise',
+                ]);
+            }
             $this->addFlash('success', 'Entreprise mise à jour.');
 
             return $this->redirectToRoute('admin_entreprise_index');

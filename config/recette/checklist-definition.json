@@ -1,0 +1,593 @@
+{
+    "version": 3,
+    "title": "Recette extranet 17b",
+    "roles": [
+        {
+            "id": "ROLE_17B_ADMIN",
+            "label": "Administrateur 17b",
+            "hint": "admin-test@17b.test / ChangeMe123!"
+        },
+        {
+            "id": "ROLE_17B_USER",
+            "label": "Utilisateur 17b (périmètre limité)",
+            "hint": "staff-partial@17b.test / ChangeMe123! — gère Cliente Nord uniquement"
+        },
+        {
+            "id": "ROLE_CUSTOMER_ADMIN",
+            "label": "Administrateur client",
+            "hint": "admin-nord@clients.test / ChangeMe123! (Cliente Nord)"
+        },
+        {
+            "id": "ROLE_CUSTOMER_USER",
+            "label": "Utilisateur client",
+            "hint": "user-nord@clients.test / ChangeMe123! (Cliente Nord)"
+        }
+    ],
+    "statuses": [
+        {
+            "id": "non_verifie",
+            "label": "Non vérifié",
+            "default": true
+        },
+        {
+            "id": "en_cours",
+            "label": "En cours"
+        },
+        {
+            "id": "valide",
+            "label": "Validé"
+        }
+    ],
+    "sections": [
+        {
+            "id": "auth",
+            "title": "Authentification",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER", "ROLE_CUSTOMER_ADMIN", "ROLE_CUSTOMER_USER"],
+            "items": [
+                {
+                    "id": "auth-login-password-ok",
+                    "label": "Connexion valide (email + mot de passe)",
+                    "detail": "Aller sur /login → saisir un compte de test du rôle choisi (ex. admin-test@17b.test) + ChangeMe123! → soumettre.\n\nRésultat attendu : redirection vers / (tableau de bord), menu latéral visible, pas de message d’erreur."
+                },
+                {
+                    "id": "auth-login-password-ko",
+                    "label": "Connexion refusée (mauvais mot de passe)",
+                    "detail": "Sur /login : email valide + mot de passe incorrect (ex. « abc » ou « wrongpass »).\n\nRésultat attendu : message d’échec, pas de connexion, pas d’accès aux pages protégées."
+                },
+                {
+                    "id": "auth-login-code",
+                    "label": "Connexion par code email",
+                    "detail": "Depuis /login : demander un code → vérifier la réception de l’email → saisir le code sur /login-code.\n\nRésultat attendu : connexion réussie. Tester aussi un code expiré ou erroné : message d’erreur, pas de session."
+                },
+                {
+                    "id": "auth-reset-password-short",
+                    "label": "Réinitialisation : mot de passe trop court (< 10 car.)",
+                    "detail": "Obtenir un lien /reset-password/{token} (via « Mot de passe oublié ») → saisir un nouveau mot de passe de moins de 10 caractères (ex. « Court1! »).\n\nRésultat attendu : message d’erreur du type « au moins 10 caractères », mot de passe non enregistré."
+                },
+                {
+                    "id": "auth-reset-password-ok",
+                    "label": "Réinitialisation : mot de passe valide (≥ 10 car.)",
+                    "detail": "Même flux avec un mot de passe ≥ 10 caractères (ex. « NouveauMotDePasse2026 »).\n\nRésultat attendu : succès, connexion possible avec le nouveau mot de passe."
+                },
+                {
+                    "id": "auth-forgot-password",
+                    "label": "Mot de passe oublié (demande de lien)",
+                    "detail": "Sur /forgot-password : email existant (ex. user-nord@clients.test) → valider.\n\nRésultat attendu : message neutre ou de confirmation (pas d’énumération d’emails), email reçu si la boîte est accessible en test."
+                },
+                {
+                    "id": "auth-logout",
+                    "label": "Déconnexion",
+                    "detail": "Cliquer « Déconnexion » dans la sidebar.\n\nRésultat attendu : session fermée ; tenter d’ouvrir /documents en étant déconnecté → redirection vers /login."
+                }
+            ]
+        },
+        {
+            "id": "admin-users-validation",
+            "title": "Admin — création utilisateur (/admin/utilisateurs/nouveau)",
+            "roles": ["ROLE_17B_ADMIN"],
+            "items": [
+                {
+                    "id": "admin-user-ok-customer",
+                    "label": "✓ Création valide (client)",
+                    "detail": "Email unique ex. recette-user-2026-05@clients.test → rôle « Utilisateur client » → entreprise « Cliente Nord » (pas agence) → MDP ChangeMe123! x2 → enregistrer.\n\nRésultat : flash « Utilisateur créé », compte dans la liste, connexion OK."
+                },
+                {
+                    "id": "admin-user-dup-email",
+                    "label": "✗ Email déjà utilisé",
+                    "detail": "Réutiliser un email existant : admin-test@17b.test (ou user-nord@clients.test).\n\nRésultat : flash rouge « Cet email est déjà utilisé », formulaire réaffiché, aucun doublon en base."
+                },
+                {
+                    "id": "admin-user-email-invalid",
+                    "label": "✗ Email invalide",
+                    "detail": "Saisir « pas-un-email » ou « test@ » sans domaine valide.\n\nRésultat : erreur de validation sur le champ email, pas de création."
+                },
+                {
+                    "id": "admin-user-email-empty",
+                    "label": "✗ Email vide",
+                    "detail": "Laisser email vide, autres champs remplis → soumettre.\n\nRésultat : champ email obligatoire."
+                },
+                {
+                    "id": "admin-user-entreprise-empty",
+                    "label": "✗ Entreprise non choisie",
+                    "detail": "Email + rôle remplis, laisser « — Choisir — » sur l’entreprise.\n\nRésultat : « Choisis une entreprise » ou équivalent."
+                },
+                {
+                    "id": "admin-user-pwd-too-short",
+                    "label": "✗ Mot de passe < 8 caractères",
+                    "detail": "MDP « abc » + confirmation « abc ».\n\nRésultat : erreur validation longueur ou flash « au moins 8 caractères »."
+                },
+                {
+                    "id": "admin-user-pwd-mismatch",
+                    "label": "✗ Mots de passe différents",
+                    "detail": "MDP « ChangeMe123! » / confirmation « ChangeMe456! ».\n\nRésultat : « Les mots de passe doivent correspondre »."
+                },
+                {
+                    "id": "admin-user-pwd-empty",
+                    "label": "✗ Mot de passe vide (création)",
+                    "detail": "Nouvel utilisateur sans saisir le mot de passe.\n\nRésultat : « Mot de passe requis »."
+                },
+                {
+                    "id": "admin-user-17b-wrong-entreprise",
+                    "label": "✗ Compte 17b rattaché à une entreprise cliente",
+                    "detail": "Rôle « Administrateur 17b » ou « Utilisateur 17b » + entreprise « Cliente Nord » (non agence).\n\nRésultat : flash « Les comptes équipe 17b doivent être rattachés à une entreprise marquée agence » (entreprise « 17b »)."
+                },
+                {
+                    "id": "admin-user-client-wrong-entreprise",
+                    "label": "✗ Compte client rattaché à l’agence",
+                    "detail": "Rôle « Administrateur client » + entreprise « 17b » (agence cochée).\n\nRésultat : flash « Les comptes clients doivent être rattachés à une entreprise cliente (pas une agence) »."
+                },
+                {
+                    "id": "admin-user-17b-managed-agency",
+                    "label": "✗ 17b : entreprise « gérée » = agence",
+                    "detail": "Rôle Utilisateur 17b + entreprise agence « 17b » + cocher l’agence dans « Entreprises clientes gérées ».\n\nRésultat : « Les entreprises gérées doivent être des entreprises clientes »."
+                },
+                {
+                    "id": "admin-user-17b-ok-with-managed",
+                    "label": "✓ Staff 17b + entreprises gérées",
+                    "detail": "Rôle « Utilisateur 17b » → entreprise « 17b » → cocher « Cliente Nord » uniquement → MDP valide → créer.\n\nRésultat : succès ; à la connexion, accès Nord uniquement (comme staff-partial)."
+                },
+                {
+                    "id": "admin-user-edit-no-password",
+                    "label": "✓ Modification sans changer le MDP",
+                    "detail": "Éditer un utilisateur test → modifier l’email vers une variante unique → laisser MDP vide → enregistrer.\n\nRésultat : succès, ancien MDP toujours valide à la connexion."
+                },
+                {
+                    "id": "admin-user-edit-dup-email",
+                    "label": "✗ Modification : email déjà pris par un autre",
+                    "detail": "Éditer le compte recette créé → mettre l’email admin-test@17b.test → enregistrer.\n\nRésultat : « Cet email est déjà utilisé »."
+                },
+                {
+                    "id": "admin-user-index-search",
+                    "label": "Liste : recherche par email",
+                    "detail": "/admin/utilisateurs → champ recherche « nord » → valider.\n\nRésultat : seuls les comptes correspondants (email ou entreprise contenant « nord »)."
+                },
+                {
+                    "id": "admin-user-index-filter-role",
+                    "label": "Liste : filtre par rôle",
+                    "detail": "Filtrer rôle « ROLE_CUSTOMER_USER » → liste réduite aux utilisateurs clients simples."
+                },
+                {
+                    "id": "admin-user-delete-blocked",
+                    "label": "✗ Suppression si documents liés",
+                    "detail": "Tenter de supprimer un utilisateur qui a uploadé des documents (ex. admin-nord).\n\nRésultat : flash « Impossible de supprimer : des documents référencent encore cet utilisateur »."
+                }
+            ]
+        },
+        {
+            "id": "admin-entreprises-validation",
+            "title": "Admin — création entreprise (/admin/entreprises/nouveau)",
+            "roles": ["ROLE_17B_ADMIN"],
+            "items": [
+                {
+                    "id": "admin-ent-ok-client",
+                    "label": "✓ Création entreprise cliente valide",
+                    "detail": "Nom « Recette QA mai 2026 » → slug unique ex. recette-qa-test-01 → case « Agence » décochée → enregistrer.\n\nRésultat : flash « Entreprise créée », visible dans /admin/entreprises et le switcher 17b."
+                },
+                {
+                    "id": "admin-ent-dup-slug",
+                    "label": "✗ Slug déjà utilisé",
+                    "detail": "Créer une entreprise avec slug existant : demo-nord (Cliente Nord).\n\nRésultat : flash « Cet identifiant (slug) est déjà utilisé », pas de doublon."
+                },
+                {
+                    "id": "admin-ent-dup-slug-case",
+                    "label": "✗ Slug doublon après normalisation minuscules",
+                    "detail": "Slug saisi DEMO-NORD ou Demo-Nord → même contrainte que demo-nord après enregistrement.\n\nRésultat : refus (slug stocké en minuscules)."
+                },
+                {
+                    "id": "admin-ent-slug-invalid-chars",
+                    "label": "✗ Slug avec caractères interdits",
+                    "detail": "Slug « ma société » ou « client_nord » ou « ClientNord » (majuscules).\n\nRésultat : « Slug invalide (ex. ma-entreprise) » — pattern [a-z0-9-] uniquement."
+                },
+                {
+                    "id": "admin-ent-slug-empty",
+                    "label": "✗ Slug vide",
+                    "detail": "Nom rempli, slug vide.\n\nRésultat : « Le slug est requis »."
+                },
+                {
+                    "id": "admin-ent-name-empty",
+                    "label": "✗ Nom vide",
+                    "detail": "Slug rempli, nom vide.\n\nRésultat : « Le nom est requis »."
+                },
+                {
+                    "id": "admin-ent-agency-flag",
+                    "label": "✓ Création marquée « Agence 17b »",
+                    "detail": "Cocher « Agence 17b » → slug unique ex. recette-agence-test → enregistrer.\n\nRésultat : type agence en liste ; utilisable pour rattacher les comptes équipe 17b."
+                },
+                {
+                    "id": "admin-ent-edit-rename",
+                    "label": "✓ Modification du nom",
+                    "detail": "Modifier l’entreprise recette créée : changer le nom → enregistrer → vérifier affichage liste + switcher."
+                },
+                {
+                    "id": "admin-ent-edit-slug-dup",
+                    "label": "✗ Modification : slug pris par une autre",
+                    "detail": "Éditer l’entreprise recette → slug demo-sud (ou autre existant) → enregistrer.\n\nRésultat : « Cet identifiant (slug) est déjà utilisé »."
+                },
+                {
+                    "id": "admin-ent-delete-with-users",
+                    "label": "✗ Suppression : utilisateurs rattachés",
+                    "detail": "Supprimer « Cliente Nord » (comptes admin-nord, user-nord existants).\n\nRésultat : « Impossible de supprimer : des utilisateurs sont encore rattachés »."
+                },
+                {
+                    "id": "admin-ent-delete-with-docs",
+                    "label": "✗ Suppression : documents présents",
+                    "detail": "Sur une entreprise cliente avec documents en fixtures, tenter la suppression.\n\nRésultat : message documents ou catégories encore associés."
+                },
+                {
+                    "id": "admin-ent-delete-ok-empty",
+                    "label": "✓ Suppression entreprise vide",
+                    "detail": "Créer entreprise test sans user ni doc → la supprimer (CSRF OK).\n\nRésultat : flash « Entreprise supprimée », disparaît de la liste."
+                },
+                {
+                    "id": "admin-ent-index-search",
+                    "label": "Liste : recherche et filtre type",
+                    "detail": "/admin/entreprises → recherche « nord » → filtre « client » uniquement.\n\nRésultat : Cliente Nord visible, agence « 17b » masquée si filtre client."
+                }
+            ]
+        },
+        {
+            "id": "customer-users-validation",
+            "title": "Admin client — création utilisateur (/compte/utilisateurs/nouveau)",
+            "roles": ["ROLE_CUSTOMER_ADMIN"],
+            "items": [
+                {
+                    "id": "cu-ok-new",
+                    "label": "✓ Création collègue valide",
+                    "detail": "admin-nord@clients.test → /compte/utilisateurs/nouveau → email unique recette-collegue@clients.test → MDP Client2026! x2.\n\nRésultat : « Utilisateur client créé », visible dans la liste Nord uniquement."
+                },
+                {
+                    "id": "cu-dup-email-same-org",
+                    "label": "✗ Email déjà utilisé (même entreprise)",
+                    "detail": "Créer un compte avec user-nord@clients.test (déjà existant).\n\nRésultat : « Cet email est déjà utilisé »."
+                },
+                {
+                    "id": "cu-dup-email-other-org",
+                    "label": "✗ Email d’un autre client (global)",
+                    "detail": "Tenter admin-sud@clients.test ou admin-test@17b.test depuis compte Nord.\n\nRésultat : même message email déjà utilisé (unicité globale, pas par entreprise)."
+                },
+                {
+                    "id": "cu-email-invalid",
+                    "label": "✗ Email invalide",
+                    "detail": "« collègue » ou « @sans-local » → soumettre.\n\nRésultat : erreur validation email."
+                },
+                {
+                    "id": "cu-email-empty",
+                    "label": "✗ Email vide",
+                    "detail": "Champ email vide + MDP rempli.\n\nRésultat : champ obligatoire."
+                },
+                {
+                    "id": "cu-pwd-too-short",
+                    "label": "✗ Mot de passe < 8 caractères",
+                    "detail": "MDP « 1234567 » (7 car.).\n\nRésultat : validation ou flash « au moins 8 caractères »."
+                },
+                {
+                    "id": "cu-pwd-mismatch",
+                    "label": "✗ Mots de passe différents",
+                    "detail": "MDP / confirmation différents.\n\nRésultat : message correspondance."
+                },
+                {
+                    "id": "cu-pwd-empty",
+                    "label": "✗ Mot de passe vide",
+                    "detail": "Email valide, MDP non renseigné.\n\nRésultat : « Mot de passe requis »."
+                },
+                {
+                    "id": "cu-edit-dup-email",
+                    "label": "✗ Modification : email pris",
+                    "detail": "Éditer le collègue recette → email user-nord@clients.test.\n\nRésultat : email déjà utilisé."
+                },
+                {
+                    "id": "cu-edit-keep-password",
+                    "label": "✓ Modification email sans MDP",
+                    "detail": "Changer vers un email unique, MDP vide → ancien MDP inchangé à la connexion."
+                },
+                {
+                    "id": "cu-cannot-pick-role",
+                    "label": "Pas de choix de rôle admin 17b",
+                    "detail": "Vérifier que le formulaire client ne propose pas ROLE_17B_ADMIN ni choix d’entreprise : tout nouveau compte = utilisateur client de Nord."
+                },
+                {
+                    "id": "cu-delete-ok",
+                    "label": "✓ Suppression du compte test",
+                    "detail": "Supprimer le collègue recette créé (sans documents liés).\n\nRésultat : succès + disparition de la liste."
+                }
+            ]
+        },
+        {
+            "id": "navigation",
+            "title": "Navigation et interface",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER", "ROLE_CUSTOMER_ADMIN", "ROLE_CUSTOMER_USER"],
+            "items": [
+                {
+                    "id": "nav-sidebar",
+                    "label": "Menu latéral selon le rôle",
+                    "detail": "Vérifier les entrées visibles :\n• Tous : Accueil, Fichiers, Crédit temps\n• CUSTOMER_ADMIN : + Utilisateurs\n• 17B_ADMIN : + Administration\n• Stratégie : grisé / non cliquable\n\nRésultat attendu : pas de lien vers une section interdite au rôle testé."
+                },
+                {
+                    "id": "nav-burger-mobile",
+                    "label": "Menu burger (viewport < 1024px)",
+                    "detail": "Réduire la fenêtre (< 1024px de large) → le bouton burger apparaît → clic ouvre la sidebar → second clic ou navigation la referme.\n\nÀ ≥ 1024px : pas de burger, sidebar fixe."
+                },
+                {
+                    "id": "nav-home",
+                    "label": "Tableau de bord accueil",
+                    "detail": "Page / : cartes Documents et Crédits temps avec compteurs cohérents pour l’entreprise / client actif.\n\n17B_USER sans client sélectionné : message invitant à choisir une entreprise."
+                },
+                {
+                    "id": "nav-account",
+                    "label": "Page Mon compte (/compte)",
+                    "detail": "Affiche l’email connecté et les informations attendues, sans données d’un autre utilisateur."
+                }
+            ]
+        },
+        {
+            "id": "staff-client",
+            "title": "Sélection client (équipe 17b)",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER"],
+            "items": [
+                {
+                    "id": "staff-switcher-select",
+                    "label": "Sélection entreprise active (ex. Cliente Nord)",
+                    "detail": "Sidebar : select « Entreprise active » → choisir « Cliente Nord » (ou autre).\n\nRésultat attendu : flash succès, badge en haut à droite « Entreprise active : Cliente Nord », listes documents/crédits filtrées."
+                },
+                {
+                    "id": "staff-switcher-clear",
+                    "label": "Effacer la sélection client",
+                    "detail": "Select2 → option vide / effacer la valeur → valider.\n\nRésultat attendu : badge « Aucune entreprise sélectionnée », accueil 17B_USER bloqué ou limité selon le design."
+                },
+                {
+                    "id": "staff-scope-17b-user-nord-sud",
+                    "label": "17B_USER : accès Cliente Nord OK, Cliente Sud refusé",
+                    "detail": "Compte staff-partial@17b.test : sélectionner Cliente Nord → voir ses documents. Changer l’URL ou tenter d’accéder à un document / crédit de Cliente Sud (copier l’ID depuis un compte admin si besoin).\n\nRésultat attendu : 403 ou accès refusé pour Sud ; Nord accessible."
+                },
+                {
+                    "id": "staff-csrf-switcher",
+                    "label": "Switcher client : pas de 403 CSRF en navigation normale",
+                    "detail": "Changer de client plusieurs fois, naviguer entre pages (Turbo) sans recharger manuellement.\n\nRésultat attendu : pas d’erreur 403 « Jeton CSRF invalide » en usage normal."
+                }
+            ]
+        },
+        {
+            "id": "documents-lecture",
+            "title": "Documents — consultation et téléchargement",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER", "ROLE_CUSTOMER_ADMIN", "ROLE_CUSTOMER_USER"],
+            "items": [
+                {
+                    "id": "doc-index-tree",
+                    "label": "Arborescence /documents",
+                    "detail": "Ouvrir /documents → développer catégories → fichiers listés pour SON entreprise (ou client actif pour 17b).\n\nCliente Nord ne doit pas voir les fichiers Cliente Sud dans la liste."
+                },
+                {
+                    "id": "doc-download-ok",
+                    "label": "Téléchargement autorisé (document de son périmètre)",
+                    "detail": "Sur un document de son entreprise : clic Télécharger (/documents/{id}/download).\n\nRésultat attendu : fichier téléchargé, nom et contenu corrects."
+                },
+                {
+                    "id": "doc-download-forbidden",
+                    "label": "Téléchargement interdit (autre entreprise)",
+                    "detail": "En étant connecté Cliente Nord (user-nord@clients.test), tenter d’ouvrir directement l’URL de téléchargement d’un document Cliente Sud (récupérer l’ID via admin-test ou fixtures).\n\nEx. : /documents/XX/download où XX = doc Sud.\n\nRésultat attendu : 403 Accès refusé ou page d’erreur, aucun fichier téléchargé."
+                },
+                {
+                    "id": "doc-preview-forbidden",
+                    "label": "Prévisualisation interdite (autre entreprise)",
+                    "detail": "Même scénario avec /documents/{id}/preview pour un document hors périmètre.\n\nRésultat attendu : accès refusé."
+                },
+                {
+                    "id": "doc-customer-no-manage",
+                    "label": "Client : pas de boutons modifier / supprimer",
+                    "detail": "ROLE_CUSTOMER_USER ou CUSTOMER_ADMIN sur /documents : vérifier l’absence des actions d’édition/suppression sur les fichiers.\n\nRésultat attendu : lecture et téléchargement seulement."
+                }
+            ]
+        },
+        {
+            "id": "documents-upload",
+            "title": "Documents — dépôt et validations",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER"],
+            "items": [
+                {
+                    "id": "doc-batch-upload-ok",
+                    "label": "Upload valide (< 20 Mo, une entreprise choisie)",
+                    "detail": "/documents/ajouter → entreprise + titre + 1 fichier PDF ou TXT < 20 Mo (ex. 500 Ko) → envoyer.\n\nRésultat attendu : document visible dans l’arborescence du client concerné."
+                },
+                {
+                    "id": "doc-batch-upload-too-large",
+                    "label": "Upload refusé : fichier > 20 Mo",
+                    "detail": "Tenter d’uploader un fichier > 20 Mo (créer un .zip ou utiliser un gros PDF de test).\n\nRésultat attendu : message d’erreur du type « 20 Mo max » / validation Symfony File, aucun document enregistré."
+                },
+                {
+                    "id": "doc-batch-file-and-url",
+                    "label": "Upload refusé : fichier ET URL en même temps",
+                    "detail": "Remplir à la fois un fichier ET une URL externe (https://example.com/doc.pdf) → soumettre.\n\nRésultat attendu : erreur « Indique soit un fichier, soit une URL externe, pas les deux »."
+                },
+                {
+                    "id": "doc-batch-empty",
+                    "label": "Upload refusé : ni fichier ni URL",
+                    "detail": "Titre + entreprise renseignés, mais aucun fichier ni URL → soumettre.\n\nRésultat attendu : « Ajoute un fichier ou une URL externe »."
+                },
+                {
+                    "id": "doc-batch-url-invalid",
+                    "label": "URL externe invalide",
+                    "detail": "Saisir une URL non http(s), ex. « ftp://serveur/doc.pdf » ou « pas-une-url ».\n\nRésultat attendu : erreur de validation sur le champ URL."
+                },
+                {
+                    "id": "doc-batch-url-ok",
+                    "label": "Document par URL externe seule (https)",
+                    "detail": "Uniquement URL https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf (ou autre URL https valide), sans fichier.\n\nRésultat attendu : document créé, lien externe fonctionnel."
+                },
+                {
+                    "id": "doc-edit-delete",
+                    "label": "Modification et suppression (périmètre OK)",
+                    "detail": "Sur un document de l’entreprise gérée : modifier le titre → enregistrer. Puis supprimer (avec confirmation CSRF).\n\nRésultat attendu : métadonnées mises à jour puis document retiré de la liste."
+                }
+            ]
+        },
+        {
+            "id": "documents-admin",
+            "title": "Catégories documents (admin 17b)",
+            "roles": ["ROLE_17B_ADMIN"],
+            "items": [
+                {
+                    "id": "doc-cat-crud",
+                    "label": "CRUD catégories avec hiérarchie",
+                    "detail": "/documents/categories → créer catégorie « Tests recette » → créer sous-catégorie enfant → modifier le libellé → supprimer l’enfant puis le parent.\n\nRésultat attendu : chaque étape persistée, pas d’orphelins incohérents dans l’arborescence upload."
+                }
+            ]
+        },
+        {
+            "id": "time-credit",
+            "title": "Crédits temps",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER", "ROLE_CUSTOMER_ADMIN", "ROLE_CUSTOMER_USER"],
+            "items": [
+                {
+                    "id": "tc-index-scope",
+                    "label": "Liste filtrée par entreprise",
+                    "detail": "/credits-temps : uniquement les crédits de l’entreprise du compte (client) ou du client actif (17b).\n\nComparer Nord vs Sud avec deux comptes : listes différentes."
+                },
+                {
+                    "id": "tc-show-forbidden",
+                    "label": "Fiche crédit d’une autre entreprise : accès refusé",
+                    "detail": "Connecté user-nord@clients.test → URL directe /credits-temps/{id} d’un crédit Cliente Sud.\n\nRésultat attendu : 403 ou redirection, pas de détail affiché."
+                },
+                {
+                    "id": "tc-show-ok",
+                    "label": "Fiche détail : solde et interventions",
+                    "detail": "Ouvrir un crédit de son périmètre → vérifier total, consommé, restant, liste des interventions datées."
+                },
+                {
+                    "id": "tc-customer-readonly",
+                    "label": "Client : consultation seule (pas de création)",
+                    "detail": "CUSTOMER_USER sur /credits-temps : pas de bouton « Nouveau crédit », pas de formulaire d’intervention.\n\nRésultat attendu : lecture uniquement."
+                },
+                {
+                    "id": "tc-create-intervention",
+                    "label": "17b : création crédit + intervention",
+                    "detail": "17B_ADMIN ou USER (client actif sélectionné) : /credits-temps/nouveau → créer crédit (ex. 120 min) → fiche détail → ajouter intervention 30 min.\n\nRésultat attendu : solde restant = 90 min, historique mis à jour."
+                },
+                {
+                    "id": "tc-archive-delete",
+                    "label": "Archivage et suppression (admin)",
+                    "detail": "Archiver un crédit (17b) → vérifier statut archivé. En ROLE_17B_ADMIN uniquement : supprimer un crédit non utilisé (solde = total initial si règle affichée).\n\nRésultat attendu : actions réservées aux bons rôles."
+                }
+            ]
+        },
+        {
+            "id": "time-credit-admin",
+            "title": "Catégories crédits temps",
+            "roles": ["ROLE_17B_ADMIN"],
+            "items": [
+                {
+                    "id": "tc-cat-crud",
+                    "label": "CRUD catégories /admin/credits/categories",
+                    "detail": "Créer « Recette QA », modifier, tenter suppression si utilisée par un crédit (message ou blocage attendu), supprimer si vide."
+                }
+            ]
+        },
+        {
+            "id": "customer-users",
+            "title": "Utilisateurs client — navigation",
+            "roles": ["ROLE_CUSTOMER_ADMIN"],
+            "items": [
+                {
+                    "id": "cu-scope-same-entreprise",
+                    "label": "Liste limitée à son entreprise",
+                    "detail": "admin-nord@clients.test → /compte/utilisateurs : uniquement des comptes de Cliente Nord, pas Sud/Est."
+                },
+                {
+                    "id": "cu-forbidden-admin-url",
+                    "label": "Accès /admin refusé",
+                    "detail": "Tenter /admin, /admin/utilisateurs, /admin/entreprises.\n\nRésultat : 403 ou redirection."
+                },
+                {
+                    "id": "cu-forbidden-edit-other",
+                    "label": "✗ Modifier un utilisateur d’une autre entreprise",
+                    "detail": "Récupérer l’ID d’un user Sud (via admin 17b) → URL /compte/utilisateurs/{id}/modifier en étant admin Nord.\n\nRésultat : accès refusé."
+                }
+            ]
+        },
+        {
+            "id": "admin-17b",
+            "title": "Administration 17b — navigation",
+            "roles": ["ROLE_17B_ADMIN"],
+            "items": [
+                {
+                    "id": "admin-dashboard",
+                    "label": "Tableau de bord /admin",
+                    "detail": "Vérifier les 4 liens : entreprises, utilisateurs, catégories documents, catégories crédits temps."
+                },
+                {
+                    "id": "admin-staff-partial-verify",
+                    "label": "Vérifier staff-partial existant",
+                    "detail": "Fiche staff-partial@17b.test : entreprise 17b + Cliente Nord cochée → connexion → Sud inaccessible (cf. section staff-client)."
+                }
+            ]
+        },
+        {
+            "id": "securite",
+            "title": "Sécurité et cas limites",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER", "ROLE_CUSTOMER_ADMIN", "ROLE_CUSTOMER_USER"],
+            "items": [
+                {
+                    "id": "sec-url-admin-customer",
+                    "label": "URLs admin interdites aux clients",
+                    "detail": "CUSTOMER_USER : tester /admin, /documents/categories, /documents/ajouter, /credits-temps/nouveau.\n\nRésultat attendu : accès refusé sur chaque URL."
+                },
+                {
+                    "id": "sec-url-upload-customer",
+                    "label": "Client : pas d’upload documents",
+                    "detail": "user-nord@clients.test → ouvrir /documents/ajouter directement.\n\nRésultat attendu : 403."
+                },
+                {
+                    "id": "sec-csrf-post",
+                    "label": "Formulaire POST sans jeton CSRF",
+                    "detail": "Sur un formulaire de suppression (ex. document), soumettre sans _token ou avec token expiré (session ancienne).\n\nRésultat attendu : erreur CSRF / accès refusé, pas de suppression."
+                },
+                {
+                    "id": "sec-anonymous-protected",
+                    "label": "Pages protégées sans connexion",
+                    "detail": "Navigation privée → /documents, /credits-temps, /admin sans login.\n\nRésultat attendu : redirection /login."
+                }
+            ]
+        },
+        {
+            "id": "transversal",
+            "title": "UX transverse",
+            "roles": ["ROLE_17B_ADMIN", "ROLE_17B_USER", "ROLE_CUSTOMER_ADMIN", "ROLE_CUSTOMER_USER"],
+            "items": [
+                {
+                    "id": "ux-responsive",
+                    "label": "Responsive : iPhone / iPad / desktop",
+                    "detail": "Tester accueil, liste documents et fiche crédit sur 375px, 768px et 1280px : pas de scroll horizontal, burger OK, tableaux lisibles."
+                },
+                {
+                    "id": "ux-flash-messages",
+                    "label": "Messages flash après action",
+                    "detail": "Après upload réussi, sélection client, création user : bandeau vert/rouge visible en haut de la zone de contenu."
+                },
+                {
+                    "id": "ux-select2-switcher",
+                    "label": "Select2 switcher client (17b)",
+                    "detail": "Recherche textuelle dans la liste, effacement, pas de rechargement infini ni double soumission à l’ouverture de page."
+                }
+            ]
+        }
+    ]
+}
