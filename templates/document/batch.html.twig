@@ -30,6 +30,10 @@
                 <p class="mt-2 text-m text-slate-600">
                     Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseigne le titre, l'entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
                 </p>
+                <p class="text-sm text-slate-600">
+                    <span class="font-semibold text-slate-800">Extensions autorisées :</span>
+                    {{ allowed_extensions_label }}
+                </p>
         </div>
         <div class="panel border-2 border-black px-8 py-8">
             
@@ -97,7 +101,7 @@
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
                                 </svg>
                                 <p class="mb-1 text-sm"><span class="font-semibold">Cliquer pour sélectionner</span> ou glisser-déposer</p>
-                                <p class="text-xs">20 Mo max par fichier (Ctrl/Cmd + clic pour en sélectionner plusieurs)</p>
+                                <p class="text-xs">20 Mo max · {{ allowed_extensions_label|default('') }}</p>
                             </div>
                             {{ form_widget(form.files, { attr: { class: 'absolute inset-0 w-full h-full opacity-0 cursor-pointer', 'data-dropzone-input': '' } }) }}
                         </div>

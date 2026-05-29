@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Document\DocumentUploadPolicy;
 use App\Entity\Document;
 use App\Entity\Entreprise;
 use App\Entity\User;
@@ -200,8 +201,7 @@ final class DocumentController extends AbstractController
     {
         $this->denyAccessUnlessGranted(DocumentVoter::DOWNLOAD, $document);
 
-        $mime = $document->getMimeType() ?: '';
-        if (!str_starts_with($mime, 'image/') || $document->isExternalLink()) {
+        if ($document->isExternalLink()) {
             throw $this->createNotFoundException();
         }
 
@@ -210,8 +210,40 @@ final class DocumentController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        $previewKind = DocumentUploadPolicy::previewKind($document);
+        if ($previewKind === null) {
+            throw $this->createNotFoundException();
+        }
+
+        $mime = $document->getMimeType() ?: 'application/octet-stream';
+
+        if ($previewKind === 'text') {
+            $size = filesize($absolutePath);
+            if ($size === false || $size > DocumentUploadPolicy::textPreviewMaxBytes()) {
+                throw $this->createNotFoundException('Fichier trop volumineux pour l’aperçu.');
+            }
+
+            $content = file_get_contents($absolutePath);
+            if ($content === false) {
+                throw $this->createNotFoundException();
+            }
+
+            $extension = DocumentUploadPolicy::resolveExtension($document);
+            if ($extension === 'json' || str_contains(strtolower($mime), 'json')) {
+                $decoded = json_decode($content, true);
+                if (json_last_error() === \JSON_ERROR_NONE) {
+                    $content = json_encode($decoded, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES) ?: $content;
+                }
+            }
+
+            return $this->render('document/preview_text.html.twig', [
+                'document' => $document,
+                'content' => $content,
+            ]);
+        }
+
         $response = new BinaryFileResponse($absolutePath);
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE, $document->getOriginalName() ?: $document->getTitle());
         $response->headers->set('Content-Type', $mime);
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Cache-Control', 'private, max-age=3600');

@@ -14,6 +14,13 @@ when@dev:
             enabled: '%web_profiler.enabled%'
             collect_serializer_data: true
 
+when@prod:
+    framework:
+        session:
+            cookie_secure: auto
+            cookie_samesite: lax
+            cookie_httponly: true
+
 when@test:
     framework:
         test: true

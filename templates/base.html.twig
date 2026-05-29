@@ -27,7 +27,7 @@
     {% set routeName = app.request.attributes.get('_route') %}
     {% set minimalAuthRoutes = ['app_login', 'auth_forgot_password', 'auth_reset_password', 'auth_code', 'auth_code_verify_form'] %}
     {% set showDashboardShell = app.user and routeName not in minimalAuthRoutes %}
-    <body class="min-h-screen {% if showDashboardShell %}bg-[#f8f8f8]{% else %}bg-brand{% endif %} text-slate-900 antialiased">
+    <body class="min-h-screen {% if showDashboardShell %}bg-[#f8f8f8]{% else %}bg-brand{% endif %} text-slate-900 antialiased"{% if routeName in minimalAuthRoutes %} data-turbo="false"{% endif %}>
         {% block header %}
             {% if not showDashboardShell %}
                 {% set currentRoute = routeName %}

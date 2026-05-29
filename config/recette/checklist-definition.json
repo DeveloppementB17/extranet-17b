@@ -181,47 +181,27 @@
                 {
                     "id": "admin-ent-ok-client",
                     "label": "✓ Création entreprise cliente valide",
-                    "detail": "Nom « Recette QA mai 2026 » → slug unique ex. recette-qa-test-01 → case « Agence » décochée → enregistrer.\n\nRésultat : flash « Entreprise créée », visible dans /admin/entreprises et le switcher 17b."
+                    "detail": "Nom « Recette QA mai 2026 » → enregistrer (slug généré automatiquement, ex. recette-qa-mai-2026).\n\nRésultat : flash « Entreprise créée », visible dans /admin/entreprises et le switcher 17b."
                 },
                 {
                     "id": "admin-ent-dup-slug",
-                    "label": "✗ Slug déjà utilisé",
-                    "detail": "Créer une entreprise avec slug existant : demo-nord (Cliente Nord).\n\nRésultat : flash « Cet identifiant (slug) est déjà utilisé », pas de doublon."
+                    "label": "✓ Création : slug auto unique si homonyme",
+                    "detail": "Créer une entreprise nommée « Cliente Nord » alors que demo-nord existe.\n\nRésultat : slug suffixé (ex. cliente-nord-2), entreprise créée."
                 },
                 {
-                    "id": "admin-ent-dup-slug-case",
-                    "label": "✗ Slug doublon après normalisation minuscules",
-                    "detail": "Slug saisi DEMO-NORD ou Demo-Nord → même contrainte que demo-nord après enregistrement.\n\nRésultat : refus (slug stocké en minuscules)."
-                },
-                {
-                    "id": "admin-ent-slug-invalid-chars",
-                    "label": "✗ Slug avec caractères interdits",
-                    "detail": "Slug « ma société » ou « client_nord » ou « ClientNord » (majuscules).\n\nRésultat : « Slug invalide (ex. ma-entreprise) » — pattern [a-z0-9-] uniquement."
-                },
-                {
-                    "id": "admin-ent-slug-empty",
-                    "label": "✗ Slug vide",
-                    "detail": "Nom rempli, slug vide.\n\nRésultat : « Le slug est requis »."
+                    "id": "admin-ent-slug-from-name",
+                    "label": "✓ Création : slug dérivé du nom",
+                    "detail": "Créer « Ma Société Test » → vérifier dans la liste le slug ma-societe-test.\n\nRésultat : pas de champ slug à saisir."
                 },
                 {
                     "id": "admin-ent-name-empty",
                     "label": "✗ Nom vide",
-                    "detail": "Slug rempli, nom vide.\n\nRésultat : « Le nom est requis »."
-                },
-                {
-                    "id": "admin-ent-agency-flag",
-                    "label": "✓ Création marquée « Agence 17b »",
-                    "detail": "Cocher « Agence 17b » → slug unique ex. recette-agence-test → enregistrer.\n\nRésultat : type agence en liste ; utilisable pour rattacher les comptes équipe 17b."
+                    "detail": "Soumettre le formulaire sans nom.\n\nRésultat : « Le nom est requis »."
                 },
                 {
                     "id": "admin-ent-edit-rename",
                     "label": "✓ Modification du nom",
-                    "detail": "Modifier l’entreprise recette créée : changer le nom → enregistrer → vérifier affichage liste + switcher."
-                },
-                {
-                    "id": "admin-ent-edit-slug-dup",
-                    "label": "✗ Modification : slug pris par une autre",
-                    "detail": "Éditer l’entreprise recette → slug demo-sud (ou autre existant) → enregistrer.\n\nRésultat : « Cet identifiant (slug) est déjà utilisé »."
+                    "detail": "Modifier l’entreprise recette créée : changer le nom → enregistrer → slug inchangé (lecture seule sur le formulaire)."
                 },
                 {
                     "id": "admin-ent-delete-with-users",
@@ -231,7 +211,7 @@
                 {
                     "id": "admin-ent-delete-with-docs",
                     "label": "✗ Suppression : documents présents",
-                    "detail": "Sur une entreprise cliente avec documents en fixtures, tenter la suppression.\n\nRésultat : message documents ou catégories encore associés."
+                    "detail": "Sur une entreprise cliente avec documents en fixtures, tenter la suppression.\n\nRésultat : message documents encore associés."
                 },
                 {
                     "id": "admin-ent-delete-ok-empty",

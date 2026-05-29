@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Document\DocumentUploadPolicy;
 use App\Entity\Entreprise;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -65,12 +66,22 @@ final class DocumentBatchUploadType extends AbstractType
             'mapped' => false,
             'required' => false,
             'multiple' => true,
-            'help' => '20 Mo max par fichier. Sélectionne un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseigne une URL externe.',
+            'help' => sprintf(
+                '20 Mo max par fichier. Extensions autorisées : %s. Sélectionne un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseigne une URL externe.',
+                DocumentUploadPolicy::extensionsLabel(),
+            ),
             'help_attr' => ['class' => 'mt-2 text-sm text-slate-600'],
+            'attr' => [
+                'accept' => DocumentUploadPolicy::acceptAttribute(),
+            ],
             'constraints' => [
                 new Count(min: 0),
                 new All(constraints: [
-                    new File(maxSize: '20M'),
+                    new File(
+                        maxSize: '20M',
+                        extensions: DocumentUploadPolicy::extensions(),
+                        extensionsMessage: 'Extension non autorisée. Formats acceptés : {{ extensions }}.',
+                    ),
                 ]),
             ],
         ]);

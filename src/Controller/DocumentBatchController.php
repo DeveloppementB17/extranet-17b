@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Document\DocumentMimeResolver;
+use App\Document\DocumentUploadPolicy;
 use App\Entity\Document;
 use App\Entity\DocumentCategory;
 use App\Entity\Entreprise;
@@ -31,6 +33,7 @@ final class DocumentBatchController extends AbstractController
         EntrepriseRepository $entrepriseRepository,
         ManagedClientContext $managedClientContext,
         DocumentStorage $storage,
+        DocumentMimeResolver $mimeResolver,
         EntityManagerInterface $entityManager,
     ): Response {
         $user = $this->getUser();
@@ -115,7 +118,7 @@ final class DocumentBatchController extends AbstractController
                 $multi = \count($validFiles) > 1;
                 foreach ($validFiles as $file) {
                     $sizeBeforeMove = $file->getSize();
-                    $mimeBeforeMove = (string) ($file->getClientMimeType() ?: 'application/octet-stream');
+                    $mimeBeforeMove = $mimeResolver->resolveForUpload($file);
                     $stored = $storage->storeUploadedFile($file, $user);
 
                     $doc = new Document();
@@ -152,6 +155,7 @@ final class DocumentBatchController extends AbstractController
         return $this->render('document/batch.html.twig', [
             'form' => $form,
             'has_entreprises' => $hasEntreprises,
+            'allowed_extensions_label' => DocumentUploadPolicy::extensionsLabel(),
         ]);
     }
 

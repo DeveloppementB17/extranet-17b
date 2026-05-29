@@ -1,4 +1,6 @@
 import './stimulus_bootstrap.js';
+// CSRF stateless (SameOriginCsrfTokenManager) : cookie + en-tête pour Turbo et navigateurs stricts (Firefox).
+import './controllers/csrf_protection_controller.js';
 import 'flowbite';
 import ApexCharts from 'apexcharts';
 

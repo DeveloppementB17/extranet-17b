@@ -3,9 +3,10 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Document;
-use App\Entity\DocumentCategory;
 use App\Entity\Entreprise;
+use App\Entity\TimeCredit;
 use App\Entity\User;
+use App\Entreprise\EntrepriseSlugGenerator;
 use App\Form\Admin\AdminEntrepriseType;
 use App\Repository\EntrepriseRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -29,7 +30,7 @@ final class AdminEntrepriseController extends AbstractController
         $sort = (string) $request->query->get('sort', 'name');
         $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $allowedSorts = ['name', 'slug', 'type'];
+        $allowedSorts = ['name', 'type'];
         if (!\in_array($sort, $allowedSorts, true)) {
             $sort = 'name';
         }
@@ -55,7 +56,6 @@ final class AdminEntrepriseController extends AbstractController
 
         usort($entreprises, static function (Entreprise $left, Entreprise $right) use ($sort, $direction): int {
             $result = match ($sort) {
-                'slug' => strcasecmp((string) $left->getSlug(), (string) $right->getSlug()),
                 'type' => ($left->isAgency() <=> $right->isAgency()) * -1,
                 default => strcasecmp($left->getName(), $right->getName()),
             };
@@ -73,14 +73,18 @@ final class AdminEntrepriseController extends AbstractController
     }
 
     #[Route('/nouveau', name: 'admin_entreprise_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        EntrepriseSlugGenerator $slugGenerator,
+    ): Response {
         $entreprise = new Entreprise();
         $form = $this->createForm(AdminEntrepriseType::class, $entreprise);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entreprise->setSlug(mb_strtolower($entreprise->getSlug()));
+            $entreprise->setSlug($slugGenerator->generateUniqueSlug($entreprise->getName()));
+            $entreprise->setAgency(false);
             $entityManager->persist($entreprise);
             try {
                 $entityManager->flush();
@@ -110,11 +114,10 @@ final class AdminEntrepriseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entreprise->setSlug(mb_strtolower($entreprise->getSlug()));
             try {
                 $entityManager->flush();
             } catch (UniqueConstraintViolationException) {
-                $this->addFlash('error', 'Cet identifiant (slug) est déjà utilisé.');
+                $this->addFlash('error', 'Impossible d’enregistrer cette entreprise (conflit d’identifiant).');
 
                 return $this->render('admin/entreprise/form.html.twig', [
                     'form' => $form,
@@ -153,9 +156,9 @@ final class AdminEntrepriseController extends AbstractController
             return $this->redirectToRoute('admin_entreprise_index');
         }
 
-        $nCat = $entityManager->getRepository(DocumentCategory::class)->count(['entreprise' => $entreprise]);
-        if ($nCat > 0) {
-            $this->addFlash('error', 'Impossible de supprimer : des dossiers documents existent encore pour cette entreprise.');
+        $nCredits = $entityManager->getRepository(TimeCredit::class)->count(['entreprise' => $entreprise]);
+        if ($nCredits > 0) {
+            $this->addFlash('error', 'Impossible de supprimer : des crédits temps sont encore associés à cette entreprise.');
 
             return $this->redirectToRoute('admin_entreprise_index');
         }

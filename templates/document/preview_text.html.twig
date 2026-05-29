@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Aperçu — {{ document.title }}{% endblock %}
+
+{% block body %}
+    <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('document_index') }}" class="hover:underline">Fichiers</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Aperçu</span>
+    </nav>
+
+    <div class="panel py-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-2xl font-extrabold text-brand">{{ document.title }}</h1>
+            <a class="font-semibold text-brand underline underline-offset-2" href="{{ path('document_download', { id: document.id }) }}">Télécharger</a>
+        </div>
+
+        <pre class="mt-6 max-h-[70vh] overflow-auto rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap break-words">{{ content }}</pre>
+    </div>
+{% endblock %}
