@@ -36,6 +36,27 @@
                 {% endfor %}
             </div>
 
+            <h3 class="mt-10 text-2xl font-extrabold text-black">Fonctionnalités concrètes</h3>
+            <p class="mt-2 text-base text-slate-700">Ce que l’extranet sait faire au quotidien — utile pour les démos et la recette.</p>
+            <div class="mt-5 grid gap-5 lg:grid-cols-3">
+                {% for group in key_features %}
+                    <article class="rounded-xl border-2 {{ group.color }} p-5">
+                        <header class="flex items-center gap-2">
+                            <span class="text-2xl" aria-hidden="true">{{ group.emoji }}</span>
+                            <h4 class="text-lg font-extrabold text-slate-900">{{ group.group }}</h4>
+                        </header>
+                        <ul class="mt-4 space-y-4">
+                            {% for item in group.items %}
+                                <li>
+                                    <p class="text-sm font-extrabold text-slate-900">{{ item.title }}</p>
+                                    <p class="mt-1 text-sm leading-relaxed text-slate-700">{{ item.text }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </article>
+                {% endfor %}
+            </div>
+
             <h3 class="mt-10 text-2xl font-extrabold text-black">Comment ça marche ?</h3>
             <ol class="mt-5 grid gap-4 sm:grid-cols-2">
                 {% for step in simple_steps %}

@@ -1,5 +1,5 @@
 {
-    "version": 3,
+    "version": 4,
     "title": "Recette extranet 17b",
     "roles": [
         {
@@ -409,6 +409,11 @@
                     "detail": "/documents/ajouter → entreprise + titre + 1 fichier PDF ou TXT < 20 Mo (ex. 500 Ko) → envoyer.\n\nRésultat attendu : document visible dans l’arborescence du client concerné."
                 },
                 {
+                    "id": "doc-batch-multiple-files",
+                    "label": "Upload multiple : plusieurs fichiers en une fois",
+                    "detail": "/documents/ajouter → même entreprise + titre + sélectionner 2 ou 3 fichiers (< 20 Mo chacun) → envoyer.\n\nRésultat attendu : autant de documents créés que de fichiers, titres suffixés par le nom de fichier si plusieurs."
+                },
+                {
                     "id": "doc-batch-upload-too-large",
                     "label": "Upload refusé : fichier > 20 Mo",
                     "detail": "Tenter d’uploader un fichier > 20 Mo (créer un .zip ou utiliser un gros PDF de test).\n\nRésultat attendu : message d’erreur du type « 20 Mo max » / validation Symfony File, aucun document enregistré."
@@ -461,6 +466,21 @@
                     "id": "tc-index-scope",
                     "label": "Liste filtrée par entreprise",
                     "detail": "/credits-temps : uniquement les crédits de l’entreprise du compte (client) ou du client actif (17b).\n\nComparer Nord vs Sud avec deux comptes : listes différentes."
+                },
+                {
+                    "id": "tc-list-multiple-active",
+                    "label": "Plusieurs crédits actifs visibles en même temps",
+                    "detail": "Sur une entreprise avec au moins 2 crédits actifs (ex. Cliente Nord) → /credits-temps : les deux lignes apparaissent dans le tableau avec soldes distincts.\n\nRésultat attendu : pas de fusion, chaque enveloppe reste indépendante."
+                },
+                {
+                    "id": "tc-list-filters-sort",
+                    "label": "Recherche, filtres et tri sur la liste",
+                    "detail": "Sur /credits-temps (17b ou admin client) : tester recherche par titre, filtre catégorie, filtre statut actif/archivé, tri par colonne (ex. solde restant).\n\nRésultat attendu : la liste se met à jour sans erreur."
+                },
+                {
+                    "id": "tc-quick-intervention-widget",
+                    "label": "Intervention rapide depuis la liste (17b)",
+                    "detail": "17B avec client actif sélectionné → /credits-temps : bloc « Déclarer une intervention » en haut. Si 2+ crédits actifs, choisir le crédit dans la liste déroulante → saisir minutes + libellé → enregistrer.\n\nRésultat attendu : solde du bon crédit décrémenté, pas besoin d’ouvrir la fiche détail."
                 },
                 {
                     "id": "tc-show-forbidden",

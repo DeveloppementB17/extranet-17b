@@ -28,6 +28,7 @@ final class AdminExtranetGuideController extends AbstractController
             'simple_steps' => $this->simpleSteps(),
             'simple_roles' => $this->simpleRoles(),
             'simple_pillars' => $this->simplePillars(),
+            'key_features' => $this->keyFeatures(),
         ]);
     }
 
@@ -100,6 +101,74 @@ final class AdminExtranetGuideController extends AbstractController
                 'subtitle' => 'Consultation',
                 'can_do' => ['Télécharger les fichiers', 'Consulter les crédits temps', 'Gérer son compte'],
                 'cannot_do' => ['Ajouter des fichiers', 'Gérer d’autres utilisateurs', 'Modifier quoi que ce soit côté 17b'],
+            ],
+        ];
+    }
+
+    /**
+     * Fonctionnalités concrètes à mettre en avant (guide simple + démo).
+     *
+     * @return list<array{emoji: string, group: string, color: string, items: list<array{title: string, text: string}>}>
+     */
+    private function keyFeatures(): array
+    {
+        return [
+            [
+                'emoji' => '📁',
+                'group' => 'Fichiers',
+                'color' => 'border-sky-300 bg-sky-50/60',
+                'items' => [
+                    [
+                        'title' => 'Upload multiple',
+                        'text' => 'Déposer plusieurs fichiers en une seule fois (même entreprise, même dossier). Chaque fichier apparaît avec un titre distinct.',
+                    ],
+                    [
+                        'title' => 'Lien externe',
+                        'text' => 'Alternative au fichier : enregistrer un document comme lien https (Google Drive, WeTransfer, etc.) sans upload sur le serveur.',
+                    ],
+                    [
+                        'title' => 'Arborescence',
+                        'text' => 'Documents rangés par catégories / sous-dossiers. Prévisualisation et téléchargement selon le type de fichier.',
+                    ],
+                ],
+            ],
+            [
+                'emoji' => '⏱️',
+                'group' => 'Crédits temps',
+                'color' => 'border-amber-300 bg-amber-50/60',
+                'items' => [
+                    [
+                        'title' => 'Plusieurs enveloppes en parallèle',
+                        'text' => 'Une entreprise peut avoir plusieurs crédits actifs (ex. « Site web », « Print »). Tous sont visibles dans le même tableau.',
+                    ],
+                    [
+                        'title' => 'Recherche, filtres et tri',
+                        'text' => 'Filtrer par entreprise, catégorie, statut (actif / archivé), rechercher par titre ou n° de dossier, trier les colonnes.',
+                    ],
+                    [
+                        'title' => 'Intervention rapide',
+                        'text' => 'Depuis la liste, formulaire intégré pour saisir une intervention : choix du crédit concerné si plusieurs sont actifs, sans ouvrir chaque fiche.',
+                    ],
+                ],
+            ],
+            [
+                'emoji' => '🔐',
+                'group' => 'Transversal',
+                'color' => 'border-violet-300 bg-violet-50/60',
+                'items' => [
+                    [
+                        'title' => 'Entreprise active (staff 17b)',
+                        'text' => 'Sélecteur en bas du menu : filtre fichiers et crédits sur le client choisi. Badge visible en haut de page.',
+                    ],
+                    [
+                        'title' => 'Périmètre isolé',
+                        'text' => 'Chaque client ne voit que ses données. Un collaborateur 17b ne voit que les entreprises qui lui sont assignées.',
+                    ],
+                    [
+                        'title' => 'Connexion flexible',
+                        'text' => 'Mot de passe classique ou code à usage unique par email. Réinitialisation du mot de passe oublié.',
+                    ],
+                ],
             ],
         ];
     }
@@ -200,13 +269,13 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'title' => 'Fichiers (documents)',
                 'path' => '/documents',
-                'description' => 'Bibliothèque organisée en dossiers (catégories). Prévisualisation et téléchargement. L’équipe 17b peut déposer des fichiers ou des liens externes (max. 20 Mo par fichier), modifier et supprimer.',
+                'description' => 'Bibliothèque en arborescence (catégories). Prévisualisation et téléchargement. Dépôt via /documents/ajouter : plusieurs fichiers d’un coup ou un lien https seul (max. 20 Mo par fichier, pas les deux à la fois). Modification et suppression réservées à l’équipe 17b.',
                 'roles' => 'Lecture : tous · Gestion : 17b (admin & user autorisé)',
             ],
             [
                 'title' => 'Crédits temps',
                 'path' => '/credits-temps',
-                'description' => 'Suivi des enveloppes de temps (minutes) par entreprise, historique des interventions, soldes restants. L’équipe 17b crée les crédits et saisit les consommations ; les clients consultent.',
+                'description' => 'Plusieurs enveloppes minutes peuvent coexister par client. Liste avec recherche, filtres et tri ; formulaire d’intervention rapide depuis la page. Fiche détail : solde, historique. L’équipe 17b crée et consomme ; les clients consultent uniquement.',
                 'roles' => 'Gestion : 17b · Lecture : clients',
             ],
             [
@@ -273,6 +342,14 @@ final class AdminExtranetGuideController extends AbstractController
                 'user_client' => 'Non',
             ],
             [
+                'feature' => 'Documents — upload multiple ou lien',
+                'detail' => 'Plusieurs fichiers en une fois, ou URL https seule (exclusif).',
+                'admin_17b' => 'Oui',
+                'user_17b' => 'Oui — client actif',
+                'admin_client' => 'Non',
+                'user_client' => 'Non',
+            ],
+            [
                 'feature' => 'Catégories de documents',
                 'detail' => 'CRUD dossiers /documents/categories.',
                 'admin_17b' => 'Oui',
@@ -295,6 +372,14 @@ final class AdminExtranetGuideController extends AbstractController
                 'user_17b' => 'Oui — client actif + périmètre géré',
                 'admin_client' => 'Non',
                 'user_client' => 'Non',
+            ],
+            [
+                'feature' => 'Crédits temps — plusieurs enveloppes & intervention rapide',
+                'detail' => 'Liste multi-crédits, filtres, widget intervention depuis /credits-temps.',
+                'admin_17b' => 'Oui',
+                'user_17b' => 'Oui — client actif',
+                'admin_client' => 'Consultation seule',
+                'user_client' => 'Consultation seule',
             ],
             [
                 'feature' => 'Crédits temps — suppression',
