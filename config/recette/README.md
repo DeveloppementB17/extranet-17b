@@ -2,6 +2,13 @@
 
 Interface parallèle à l’extranet pour les chefs de projet : **https://…/recette**
 
+## Présentation de l’extranet (chefs de projet)
+
+Page réservée aux **admins 17b** connectés : **`/admin/presentation`**
+
+- Objectif de l’extranet, modules, profils et tableau des droits
+- Lien optionnel vers `/recette` en annexe
+
 ## Utilisation
 
 1. Ouvrir `/recette` (accès public, sans connexion extranet).

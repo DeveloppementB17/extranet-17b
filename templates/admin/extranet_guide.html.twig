@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Présentation de l'extranet — Administration{% endblock %}
+
+{% block body %}
+    <div class="panel py-8">
+        <nav class="mb-6 text-sm text-slate-600">
+            <a href="{{ path('admin_dashboard') }}" class="hover:underline">Administration</a>
+            <span aria-hidden="true"> / </span>
+            <span class="font-medium text-slate-900">Présentation extranet</span>
+        </nav>
+
+        <h1 class="text-4xl font-extrabold text-brand">Présentation de l’extranet 17b</h1>
+        <p class="mt-3 max-w-3xl text-slate-600">
+            Document interne pour les <strong>chefs de projet</strong> et l’équipe 17b : objectifs de la plateforme,
+            modules disponibles et <strong>droits selon les rôles</strong>. Page visible uniquement par les administrateurs 17b connectés.
+        </p>
+
+        {# --- Objectif --- #}
+        <section class="mt-10 border-2 border-black bg-white p-6 md:p-8">
+            <h2 class="text-2xl font-extrabold text-brand">À quoi sert l’extranet ?</h2>
+            <p class="mt-3 text-sm leading-relaxed text-slate-700">
+                L’extranet 17b est l’espace sécurisé d’échange entre <strong>l’agence 17b</strong> et ses <strong>entreprises clientes</strong>.
+                Il centralise les livrables (fichiers), le suivi des <strong>crédits temps</strong> (minutes allouées et consommées)
+                et la gestion des <strong>comptes utilisateurs</strong> côté client.
+            </p>
+            <ul class="mt-4 list-disc space-y-2 ps-5 text-sm text-slate-700">
+                <li>Chaque utilisateur ne voit que les données de <strong>son périmètre</strong> (entreprise cliente ou clients gérés pour le staff 17b).</li>
+                <li>Les comptes <strong>équipe 17b</strong> sont rattachés à l’agence ; les comptes <strong>clients</strong> à une entreprise cliente.</li>
+                <li>La navigation principale est le <strong>menu latéral</strong> (Accueil, Fichiers, Crédit temps) ; l’administration globale est dans <strong>/admin</strong>.</li>
+            </ul>
+        </section>
+
+        {# --- Profils --- #}
+        <section class="mt-10">
+            <h2 class="text-2xl font-extrabold text-brand">Les quatre profils utilisateur</h2>
+            <div class="mt-4 overflow-x-auto border border-slate-200 bg-white">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        <tr>
+                            <th class="px-4 py-3">Profil</th>
+                            <th class="px-4 py-3">Public</th>
+                            <th class="px-4 py-3">Rattachement</th>
+                            <th class="px-4 py-3">En bref</th>
+                            {% if app.environment == 'dev' %}
+                                <th class="px-4 py-3">Compte test (dev)</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for profile in role_profiles %}
+                            <tr class="align-top">
+                                <td class="px-4 py-3 font-semibold text-slate-900">
+                                    {{ profile.label }}
+                                    <div class="mt-0.5 font-mono text-xs font-normal text-slate-500">{{ profile.role }}</div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-700">{{ profile.audience }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ profile.entreprise }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ profile.resume }}</td>
+                                {% if app.environment == 'dev' %}
+                                    <td class="px-4 py-3 font-mono text-xs text-slate-600">{{ profile.test_account }}</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if app.environment == 'dev' %}
+                <p class="mt-2 text-xs text-slate-500">Mot de passe des comptes de test : <span class="font-mono">ChangeMe123!</span></p>
+            {% endif %}
+        </section>
+
+        {# --- Modules --- #}
+        <section class="mt-10">
+            <h2 class="text-2xl font-extrabold text-brand">Grands modules</h2>
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                {% for module in modules %}
+                    <article class="border border-slate-200 bg-white p-5">
+                        <h3 class="text-lg font-bold text-slate-900">{{ module.title }}</h3>
+                        {% if module.path != '—' and module.path != 'Sidebar' %}
+                            <p class="mt-1 font-mono text-xs text-slate-500">{{ module.path }}</p>
+                        {% elseif module.path == 'Sidebar' %}
+                            <p class="mt-1 text-xs font-medium text-slate-500">Barre latérale</p>
+                        {% endif %}
+                        <p class="mt-2 text-sm text-slate-700">{{ module.description }}</p>
+                        <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Qui y accède</p>
+                        <p class="text-sm text-slate-800">{{ module.roles }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        {# --- Matrice droits --- #}
+        <section class="mt-10">
+            <h2 class="text-2xl font-extrabold text-brand">Tableau des droits par rôle</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                Synthèse des actions autorisées ou interdites. À utiliser comme référence lors des démonstrations ou tests fonctionnels.
+            </p>
+            <div class="mt-4 overflow-x-auto border border-slate-200 bg-white">
+                <table class="min-w-[56rem] w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        <tr>
+                            <th class="sticky left-0 z-10 min-w-[12rem] bg-slate-50 px-4 py-3">Fonctionnalité</th>
+                            {% for col in role_labels %}
+                                <th class="min-w-[9rem] px-4 py-3">{{ col.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for row in extranet_rights %}
+                            <tr class="align-top hover:bg-slate-50/80">
+                                <th scope="row" class="sticky left-0 z-10 bg-white px-4 py-3 font-semibold text-slate-900">
+                                    {{ row.feature }}
+                                    <div class="mt-1 text-xs font-normal font-medium text-slate-500">{{ row.detail }}</div>
+                                </th>
+                                <td class="px-4 py-3 text-slate-800">{{ row.admin_17b }}</td>
+                                <td class="px-4 py-3 text-slate-800">{{ row.user_17b }}</td>
+                                <td class="px-4 py-3 text-slate-800">{{ row.admin_client }}</td>
+                                <td class="px-4 py-3 text-slate-800">{{ row.user_client }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {# --- Connexion --- #}
+        <section class="mt-10 rounded-lg border border-slate-200 bg-slate-50 p-6">
+            <h2 class="text-lg font-extrabold text-slate-900">Connexion</h2>
+            <ul class="mt-3 list-disc space-y-2 ps-5 text-sm text-slate-700">
+                <li><strong>Mot de passe</strong> : email + mot de passe sur <code class="text-xs">/login</code>.</li>
+                <li><strong>Code par email</strong> : alternative sans mot de passe mémorisé (<code class="text-xs">/login-code</code>).</li>
+                <li><strong>Mot de passe oublié</strong> : réinitialisation par lien email (nouveau MDP ≥ 10 caractères).</li>
+                <li>Création de compte utilisateur (admin) : mot de passe ≥ 8 caractères ; email unique dans toute la plateforme.</li>
+            </ul>
+        </section>
+
+        {# --- Annexe recette --- #}
+        <section class="mt-10 border-t border-slate-200 pt-8">
+            <h2 class="text-lg font-bold text-slate-800">Annexe — Outil de recette (optionnel)</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                Pour tracer les tests, un outil séparé <code class="text-xs">/recette</code> permet de cocher des points de contrôle par rôle.
+                Ce n’est pas l’extranet lui-même : pas de connexion requise sur cet outil.
+            </p>
+            {% if recette_enabled %}
+                <a href="{{ path('recette_index') }}" target="_blank" rel="noopener"
+                   class="mt-3 inline-flex text-sm font-semibold text-brand hover:underline">
+                    Ouvrir l’outil de recette ↗
+                </a>
+            {% else %}
+                <p class="mt-2 text-xs text-slate-500">Non activé sur cet environnement (<code>RECETTE_ENABLED=0</code>).</p>
+            {% endif %}
+        </section>
+
+        <div class="mt-8">
+            <a href="{{ path('admin_dashboard') }}"
+               class="inline-flex items-center border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                ← Retour administration
+            </a>
+        </div>
+    </div>
+{% endblock %}
