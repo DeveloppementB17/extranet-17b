@@ -28,19 +28,20 @@
                 <h1 class="text-5xl font-extrabold text-brand">Crédits temps</h1>
                 <p class="mt-1 text-m text-slate-600">Suivi des enveloppes minutes et des interventions associées.</p>
             </div>
+            {% set selected_client = managed_selected_client() %}
             {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
-                <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
-                    Nouveau crédit
-                </a>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
+                        Nouveau crédit
+                    </a>
+                    {% if selected_client %}
+                        <a class="border border-dark px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="{{ path('time_credit_intervention_quick_page', { return_to: app.request.requestUri }) }}">
+                            Déclarer une intervention
+                        </a>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
-
-        {% set selected_client = managed_selected_client() %}
-        {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and selected_client %}
-            <div class="mt-6">
-                {{ render(path('time_credit_intervention_widget', { return_to: app.request.requestUri })) }}
-            </div>
-        {% endif %}
 
         {% if is_admin_list_view %}
             <form method="get" class="mt-6 space-y-3">
@@ -195,17 +196,16 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
-                                {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
                                 <span
                                     class="cursor-help"
                                     data-tooltip-target="tc-index-remaining-{{ credit.id }}"
                                     data-tooltip-placement="top"
                                     tabindex="0"
                                 >
-                                    {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
+                                    {{ (credit.remainingMinutes / 60)|round(2) }} h
                                 </span>
                                 <div id="tc-index-remaining-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                                    {{ remaining_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                                    {{ credit.remainingMinutes }} min
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>

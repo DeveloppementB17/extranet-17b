@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Déclarer une intervention{% endblock %}
+
+{% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+        <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+        <span class="text-neutral-400"> / </span>
+        <a href="{{ path('admin_dashboard') }}" class="hover:underline">Administration</a>
+        <span class="text-neutral-400"> / </span>
+        <span class="font-medium" aria-current="page">Déclarer une intervention</span>
+    </nav>
+
+    <p class="mt-6 text-m">
+        <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ return_to }}">← Retour</a>
+    </p>
+
+    {% if form is defined %}
+        {{ include('time_credit/_quick_intervention_form.html.twig', {
+            form: form,
+            selected_entreprise: selected_entreprise,
+            has_available_credits: has_available_credits,
+            cancel_url: return_to,
+            fixed_credit: fixed_credit|default(null),
+        }) }}
+    {% else %}
+        <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
+            <h1 class="text-3xl font-extrabold text-brand">Déclarer une intervention</h1>
+            {% if selected_entreprise is null %}
+                <p class="mt-2 text-sm text-slate-700">Sélectionne d'abord une entreprise dans la barre latérale.</p>
+            {% else %}
+                <p class="mt-2 text-sm text-slate-700">Aucun crédit actif avec minutes disponibles pour cette entreprise.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

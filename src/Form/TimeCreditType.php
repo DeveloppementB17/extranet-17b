@@ -7,13 +7,15 @@ use App\Entity\TimeCredit;
 use App\Entity\TimeCreditCategory;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\GreaterThan;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class TimeCreditType extends AbstractType
@@ -50,16 +52,24 @@ final class TimeCreditType extends AbstractType
                     'maxlength' => 120,
                 ],
             ])
-            ->add('totalMinutes', NumberType::class, [
-                'label' => 'Total (heures)',
+            ->add('totalValue', NumberType::class, [
+                'label' => 'Total',
+                'mapped' => false,
                 'scale' => 2,
-                'constraints' => [new GreaterThan(value: 0, message: 'Le total doit être supérieur à 0 heure.')],
+                'constraints' => [new GreaterThanOrEqual(value: 0.01, message: 'Le total doit être supérieur à 0.')],
+                'disabled' => $options['lock_total_field'],
                 'attr' => [
                     'class' => 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary',
                     'min' => 0.01,
                     'step' => 0.25,
                 ],
-            ]);
+            ])
+            ->add('totalUnit', HiddenType::class, [
+                'label' => false,
+                'mapped' => false,
+                'data' => 'minutes',
+            ])
+            ->add('totalMinutes', HiddenType::class);
 
         if ($options['allow_archive_field']) {
             $builder->add('archived', CheckboxType::class, [
@@ -68,11 +78,42 @@ final class TimeCreditType extends AbstractType
             ]);
         }
 
-        // L’UI saisit des heures, le modèle persiste des minutes.
-        $builder->get('totalMinutes')->addModelTransformer(new CallbackTransformer(
-            static fn (?int $minutes): float => $minutes === null ? 0.0 : round($minutes / 60, 2),
-            static fn (mixed $hours): int => (int) round(((float) ($hours ?? 0)) * 60),
-        ));
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, static function (FormEvent $event) use ($options): void {
+            if ($options['lock_total_field']) {
+                return;
+            }
+
+            $data = $event->getData();
+            if (!\is_array($data)) {
+                return;
+            }
+
+            $rawValue = $data['totalValue'] ?? null;
+            $value = is_numeric($rawValue) ? (float) $rawValue : 0.0;
+            $unit = (string) ($data['totalUnit'] ?? 'minutes');
+            $minutes = $unit === 'hours'
+                ? (int) round($value * 60)
+                : (int) round($value);
+
+            $data['totalMinutes'] = max(0, $minutes);
+            $event->setData($data);
+        });
+
+        $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event): void {
+            $credit = $event->getData();
+            if (!$credit instanceof TimeCredit) {
+                return;
+            }
+
+            $minutes = $credit->getTotalMinutes();
+            if ($minutes <= 0) {
+                return;
+            }
+
+            $form = $event->getForm();
+            $form->get('totalValue')->setData((float) $minutes);
+            $form->get('totalUnit')->setData('minutes');
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -82,11 +123,13 @@ final class TimeCreditType extends AbstractType
             'entreprise_choices' => [],
             'category_choices' => [],
             'allow_archive_field' => true,
+            'lock_total_field' => false,
             'preselected_entreprise' => null,
         ]);
         $resolver->setAllowedTypes('entreprise_choices', 'array');
         $resolver->setAllowedTypes('category_choices', 'array');
         $resolver->setAllowedTypes('allow_archive_field', 'bool');
+        $resolver->setAllowedTypes('lock_total_field', 'bool');
         $resolver->setAllowedTypes('preselected_entreprise', ['null', Entreprise::class]);
     }
 }

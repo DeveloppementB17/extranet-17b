@@ -1,0 +1,27 @@
+<div>
+    {{ form_label(form.occurredAt, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+    {{ form_widget(form.occurredAt, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+    {{ form_errors(form.occurredAt) }}
+</div>
+<div>
+    {{ form_label(form.durationValue, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+    <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
+        {{ form_widget(form.durationValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+        <div class="border border-black" data-duration-unit-switch>
+            <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
+                Minutes
+            </button><button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
+                Heures
+            </button>
+        </div>
+    </div>
+    {{ form_widget(form.durationMinutes) }}
+    {{ form_widget(form.durationUnit) }}
+    {{ form_errors(form.durationValue) }}
+    {{ form_errors(form.durationUnit) }}
+</div>
+<div class="relative z-0 w-full group">
+    {{ form_widget(form.description, { attr: { class: 'block py-2.5 px-2 w-full text-lg text-heading bg-transparent border-1 border-slate-600 border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
+    {{ form_label(form.description, null, { label_attr: { class: 'absolute bg-black text-white z-10 text-lg font-semibold px-2 left-0 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:bg-transparent peer-placeholder-shown:text-slate-700 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
+    {{ form_errors(form.description) }}
+</div>

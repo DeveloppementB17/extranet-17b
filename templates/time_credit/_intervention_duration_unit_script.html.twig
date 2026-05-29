@@ -1,0 +1,44 @@
+<script>
+    (() => {
+        const valueField = document.getElementById('{{ form.durationValue.vars.id }}');
+        const unitField = document.getElementById('{{ form.durationUnit.vars.id }}');
+        const switchRoot = document.querySelector('[data-duration-unit-switch]');
+        if (!valueField || !unitField || !switchRoot) {
+            return;
+        }
+
+        const buttons = switchRoot.querySelectorAll('.duration-unit-btn');
+        const setActive = (unit) => {
+            buttons.forEach((btn) => {
+                const active = btn.dataset.unit === unit;
+                btn.classList.toggle('bg-black', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('shadow-sm', active);
+                btn.classList.toggle('text-black', !active);
+            });
+        };
+
+        const convertValue = (fromUnit, toUnit) => {
+            const raw = parseFloat(valueField.value.replace(',', '.'));
+            if (Number.isNaN(raw) || fromUnit === toUnit) {
+                return;
+            }
+
+            const converted = fromUnit === 'minutes' ? raw / 60 : raw * 60;
+            const precision = toUnit === 'hours' ? 2 : 0;
+            valueField.value = converted.toFixed(precision).replace(/\.00$/, '');
+        };
+
+        buttons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const nextUnit = btn.dataset.unit;
+                const previousUnit = unitField.value || 'minutes';
+                convertValue(previousUnit, nextUnit);
+                unitField.value = nextUnit;
+                setActive(nextUnit);
+            });
+        });
+
+        setActive(unitField.value || 'minutes');
+    })();
+</script>

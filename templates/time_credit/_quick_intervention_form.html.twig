@@ -1,39 +1,47 @@
-<div class="panel-muted border-2 border-black rounded-sm p-5">
-    <h2 class="text-lg font-extrabold text-brand">Déclarer une intervention</h2>
+{% set wrapper_class = embedded|default(false) ? 'panel-muted border-2 border-black rounded-sm p-5' : 'panel border-2 border-black mx-auto max-w-xl px-8 py-8' %}
+{% set title_tag = embedded|default(false) ? 'h2' : 'h1' %}
+{% set title_class = embedded|default(false) ? 'text-lg font-extrabold text-brand' : 'text-3xl font-extrabold text-brand' %}
+
+<div class="{{ wrapper_class }}">
+    <{{ title_tag }} class="{{ title_class }}">Déclarer une intervention</{{ title_tag }}>
 
     {% if selected_entreprise is not null %}
-        <p class="mt-2 text-sm text-slate-700">
+        <p class="mt-2 text-sm text-slate-600">
             Entreprise active : <span class="font-medium">{{ selected_entreprise.name }}</span>
         </p>
         {% if has_available_credits %}
-            {{ form_start(form, { attr: { class: 'mt-4 space-y-6' } }) }}
-                <div>
-                    {{ form_label(form.timeCredit, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                    {{ form_widget(form.timeCredit, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                    {{ form_errors(form.timeCredit) }}
-                </div>
-                <div class="grid gap-4 sm:grid-cols-2">
+            {% if fixed_credit is defined and fixed_credit %}
+                <p class="mt-2 text-sm text-slate-600">
+                    {% set remaining_display_in_hours = fixed_credit.remainingMinutes > 180 %}
+                    Crédit : <span class="font-medium">{{ fixed_credit.title }}</span> — disponible :
+                    {{ remaining_display_in_hours ? (fixed_credit.remainingMinutes / 60)|round(2) ~ ' h' : fixed_credit.remainingMinutes ~ ' min' }}.
+                </p>
+            {% endif %}
+            {{ form_start(form, { attr: { class: (embedded|default(false) ? 'mt-4' : 'mt-8') ~ ' space-y-8' } }) }}
+                {% if form.timeCredit is defined and form.timeCredit.vars.attr.class|default('') != 'hidden' %}
                     <div>
-                        {{ form_label(form.occurredAt, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                        {{ form_widget(form.occurredAt, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                        {{ form_errors(form.occurredAt) }}
+                        {{ form_label(form.timeCredit, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                        {{ form_widget(form.timeCredit, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                        {{ form_errors(form.timeCredit) }}
                     </div>
-                    <div class="relative z-0 w-full group">
-                        {{ form_widget(form.durationMinutes, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
-                        {{ form_label(form.durationMinutes, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
-                        {{ form_errors(form.durationMinutes) }}
-                    </div>
+                {% elseif form.timeCreditId is defined %}
+                    {{ form_widget(form.timeCreditId) }}
+                {% endif %}
+                {% include 'time_credit/_intervention_form_fields.html.twig' %}
+                {% if form.returnTo is defined %}
+                    {{ form_widget(form.returnTo) }}
+                {% endif %}
+
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">
+                        Enregistrer l'intervention
+                    </button>
+                    {% if cancel_url is defined and not embedded|default(false) %}
+                        <a class="border border-slate-200 px-6 py-2 text-xl font-bold text-slate-700 hover:bg-slate-50" href="{{ cancel_url }}">Annuler</a>
+                    {% endif %}
                 </div>
-                <div class="relative z-0 w-full group">
-                    {{ form_widget(form.description, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
-                    {{ form_label(form.description, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
-                    {{ form_errors(form.description) }}
-                </div>
-                {{ form_widget(form.returnTo) }}
-                <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">
-                    Enregistrer l'intervention
-                </button>
             {{ form_end(form) }}
+            {% include 'time_credit/_intervention_duration_unit_script.html.twig' %}
         {% else %}
             <p class="mt-3 text-sm text-slate-700">Aucun crédit actif avec minutes disponibles pour cette entreprise.</p>
         {% endif %}

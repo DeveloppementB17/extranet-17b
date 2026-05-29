@@ -1,6 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Déclarer une intervention{% endblock %}
+{% set is_edit_mode = is_edit_mode|default(false) %}
+{% set available_minutes = available_minutes|default(credit.remainingMinutes) %}
+{% set page_title = is_edit_mode ? 'Modifier l\'intervention' : 'Déclarer une intervention' %}
+{% set submit_label = is_edit_mode ? 'Enregistrer les modifications' : 'Enregistrer l\'intervention' %}
+
+{% block title %}{{ page_title }}{% endblock %}
 
 {% block body %}
 <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
@@ -10,18 +15,18 @@
         <span class="text-neutral-400"> / </span>
         <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit.title }}</a>
         <span class="text-neutral-400"> / </span>
-        <span class="font-medium" aria-current="page">Déclarer une intervention</span>
+        <span class="font-medium" aria-current="page">{{ page_title }}</span>
     </nav>
 
     <p class="mt-6 text-m">
-            <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('time_credit_show', { id: credit.id }) }}">← Retour au crédit</a>
+            <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ cancel_url }}">← Retour</a>
         </p>
 
     
     <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
-        <h1 class="text-3xl font-extrabold text-brand">Déclarer une intervention</h1>
+        <h1 class="text-3xl font-extrabold text-brand">{{ page_title }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
+            {% set remaining_display_in_hours = available_minutes > 180 %}
             Crédit : <span class="font-medium">{{ credit.title }}</span> — disponible :
             <span
                 class="cursor-help"
@@ -29,12 +34,15 @@
                 data-tooltip-placement="top"
                 tabindex="0"
             >
-                {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
+                {{ remaining_display_in_hours ? (available_minutes / 60)|round(2) ~ ' h' : available_minutes ~ ' min' }}
             </span>.
             <div id="tc-intervention-remaining-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                {{ remaining_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                {{ remaining_display_in_hours ? available_minutes ~ ' min' : (available_minutes / 60)|round(2) ~ ' h' }}
                 <div class="tooltip-arrow" data-popper-arrow></div>
             </div>
+            {% if is_edit_mode %}
+                <span class="block mt-1 text-xs text-slate-500">Le solde inclut la durée actuelle de cette intervention.</span>
+            {% endif %}
         </p>
 
         {% for message in app.flashes('error') %}
@@ -42,82 +50,16 @@
         {% endfor %}
 
         {{ form_start(form, { attr: { class: 'mt-8 space-y-8' } }) }}
-            <div>
-                {{ form_label(form.occurredAt, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                {{ form_widget(form.occurredAt, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                {{ form_errors(form.occurredAt) }}
-            </div>
-            <div>
-                {{ form_label(form.durationValue, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
-                    {{ form_widget(form.durationValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                    <div class="border border-black" data-duration-unit-switch>
-                        <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
-                            Minutes
-                        </button><button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
-                            Heures
-                        </button>
-                    </div>
-                </div>
-                {{ form_widget(form.durationMinutes) }}
-                {{ form_widget(form.durationUnit) }}
-                {{ form_errors(form.durationValue) }}
-                {{ form_errors(form.durationUnit) }}
-            </div>
-            <div class="relative z-0 w-full group">
-                {{ form_widget(form.description, { attr: { class: 'block py-2.5 px-2 w-full text-lg text-heading bg-transparent border-1 border-slate-600 border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
-                {{ form_label(form.description, null, { label_attr: { class: 'absolute bg-black text-white z-10 text-lg font-semibold px-2 left-0 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:bg-transparent peer-placeholder-shown:text-slate-700 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
-                {{ form_errors(form.description) }}
-            </div>
+            {% include 'time_credit/_intervention_form_fields.html.twig' %}
+            {% if form.returnTo is defined %}
+                {{ form_widget(form.returnTo) }}
+            {% endif %}
 
             <div class="flex flex-wrap gap-3">
-                <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">Enregistrer l'intervention</button>
-                <a class="border border-slate-200 px-6 py-2 text-xl font-bold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_show', { id: credit.id }) }}">Annuler</a>
+                <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">{{ submit_label }}</button>
+                <a class="border border-slate-200 px-6 py-2 text-xl font-bold text-slate-700 hover:bg-slate-50" href="{{ cancel_url }}">Annuler</a>
             </div>
         {{ form_end(form) }}
     </div>
-    <script>
-        (() => {
-            const valueField = document.getElementById('{{ form.durationValue.vars.id }}');
-            const unitField = document.getElementById('{{ form.durationUnit.vars.id }}');
-            const switchRoot = document.querySelector('[data-duration-unit-switch]');
-            if (!valueField || !unitField || !switchRoot) {
-                return;
-            }
-
-            const buttons = switchRoot.querySelectorAll('.duration-unit-btn');
-            const setActive = (unit) => {
-                buttons.forEach((btn) => {
-                    const active = btn.dataset.unit === unit;
-                    btn.classList.toggle('bg-black', active);
-                    btn.classList.toggle('text-white', active);
-                    btn.classList.toggle('shadow-sm', active);
-                    btn.classList.toggle('text-black', !active);
-                });
-            };
-
-            const convertValue = (fromUnit, toUnit) => {
-                const raw = parseFloat(valueField.value.replace(',', '.'));
-                if (Number.isNaN(raw) || fromUnit === toUnit) {
-                    return;
-                }
-
-                const converted = fromUnit === 'minutes' ? raw / 60 : raw * 60;
-                const precision = toUnit === 'hours' ? 2 : 0;
-                valueField.value = converted.toFixed(precision).replace(/\.00$/, '');
-            };
-
-            buttons.forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const nextUnit = btn.dataset.unit;
-                    const previousUnit = unitField.value || 'minutes';
-                    convertValue(previousUnit, nextUnit);
-                    unitField.value = nextUnit;
-                    setActive(nextUnit);
-                });
-            });
-
-            setActive(unitField.value || 'minutes');
-        })();
-    </script>
+    {% include 'time_credit/_intervention_duration_unit_script.html.twig' %}
 {% endblock %}

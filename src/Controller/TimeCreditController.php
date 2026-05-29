@@ -7,12 +7,12 @@ use App\Entity\TimeCredit;
 use App\Entity\TimeCreditMovement;
 use App\Entity\User;
 use App\Form\TimeCreditInterventionType;
-use App\Form\TimeCreditQuickInterventionType;
 use App\Form\TimeCreditType;
 use App\Repository\EntrepriseRepository;
 use App\Repository\TimeCreditCategoryRepository;
 use App\Repository\TimeCreditMovementRepository;
 use App\Repository\TimeCreditRepository;
+use App\Security\Voter\TimeCreditMovementVoter;
 use App\Security\Voter\TimeCreditVoter;
 use App\Tenant\ManagedClientContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -136,6 +136,44 @@ final class TimeCreditController extends AbstractController
         ]);
     }
 
+    #[Route('/intervention', name: 'time_credit_intervention_quick_page', methods: ['GET'])]
+    #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
+    public function interventionQuickPage(
+        Request $request,
+        ManagedClientContext $managedClientContext,
+        TimeCreditRepository $timeCreditRepository,
+    ): Response {
+        $returnTo = (string) ($request->query->get('return_to') ?? $this->generateUrl('admin_dashboard'));
+        $context = $this->buildInterventionSelectorContext(
+            $managedClientContext,
+            $timeCreditRepository,
+            $returnTo,
+            redirectSingleCredit: true,
+        );
+
+        if ($context['single_credit'] instanceof TimeCredit) {
+            return $this->redirectToRoute('time_credit_intervention_new', [
+                'id' => $context['single_credit']->getId(),
+                'return_to' => $returnTo,
+            ]);
+        }
+
+        if ($context['form'] === null) {
+            return $this->render('time_credit/intervention_quick_page.html.twig', [
+                'return_to' => $returnTo,
+                'selected_entreprise' => $context['selected_entreprise'],
+            ]);
+        }
+
+        return $this->render('time_credit/intervention_quick_page.html.twig', [
+            'return_to' => $returnTo,
+            'form' => $context['form'],
+            'selected_entreprise' => $context['selected_entreprise'],
+            'has_available_credits' => true,
+            'fixed_credit' => $context['fixed_credit'],
+        ]);
+    }
+
     #[Route('/interventions/formulaire', name: 'time_credit_intervention_widget', methods: ['GET'])]
     #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
     public function interventionWidget(
@@ -143,29 +181,20 @@ final class TimeCreditController extends AbstractController
         ManagedClientContext $managedClientContext,
         TimeCreditRepository $timeCreditRepository,
     ): Response {
-        $actor = $this->getUser();
-        if (!$actor instanceof User || !$actor->is17bStaff()) {
-            throw $this->createAccessDeniedException();
-        }
-
-        $selectedEntreprise = $managedClientContext->getSelectedManagedEntreprise($actor);
-        $choices = $selectedEntreprise instanceof Entreprise
-            ? $timeCreditRepository->findActiveByEntreprise($selectedEntreprise)
-            : [];
-        $preselectedCredit = \count($choices) === 1 ? $choices[0] : null;
-
         $returnTo = (string) ($request->query->get('return_to') ?? '/credits-temps');
-        $form = $this->createForm(TimeCreditQuickInterventionType::class, null, [
-            'time_credit_choices' => $choices,
-            'preselected_time_credit' => $preselectedCredit,
-            'return_to' => $returnTo,
-            'action' => $this->generateUrl('time_credit_intervention_quick_create'),
-        ]);
+        $context = $this->buildInterventionSelectorContext(
+            $managedClientContext,
+            $timeCreditRepository,
+            $returnTo,
+            redirectSingleCredit: false,
+        );
 
         return $this->render('time_credit/_quick_intervention_form.html.twig', [
-            'form' => $form,
-            'selected_entreprise' => $selectedEntreprise,
-            'has_available_credits' => $choices !== [],
+            'form' => $context['form'],
+            'selected_entreprise' => $context['selected_entreprise'],
+            'has_available_credits' => $context['choices'] !== [],
+            'fixed_credit' => $context['fixed_credit'],
+            'embedded' => true,
         ]);
     }
 
@@ -190,63 +219,52 @@ final class TimeCreditController extends AbstractController
         }
 
         $choices = $timeCreditRepository->findActiveByEntreprise($selectedEntreprise);
-        $preselectedCredit = \count($choices) === 1 ? $choices[0] : null;
-        $form = $this->createForm(TimeCreditQuickInterventionType::class, null, [
-            'time_credit_choices' => $choices,
-            'preselected_time_credit' => $preselectedCredit,
-            'return_to' => (string) ($request->request->all('time_credit_quick_intervention')['returnTo'] ?? '/credits-temps'),
+        $returnTo = (string) ($request->request->all('time_credit_intervention')['returnTo'] ?? '/credits-temps');
+        $formOptions = [
+            'return_to' => $returnTo,
             'action' => $this->generateUrl('time_credit_intervention_quick_create'),
-        ]);
+        ];
+        if (\count($choices) === 1) {
+            $formOptions['fixed_time_credit'] = $choices[0];
+        } else {
+            $formOptions['show_credit_selector'] = true;
+            $formOptions['time_credit_choices'] = $choices;
+        }
+        $form = $this->createForm(TimeCreditInterventionType::class, null, $formOptions);
         $form->handleRequest($request);
 
         if (!$form->isSubmitted() || !$form->isValid()) {
             $this->addFlash('error', 'Intervention invalide : vérifie les champs saisis.');
 
-            return $this->redirect($this->resolveReturnPath((string) $form->get('returnTo')->getData()));
+            return $this->redirect($this->resolveReturnPath($returnTo));
         }
 
-        $credit = $form->get('timeCredit')->getData();
+        $credit = $this->resolveInterventionCreditFromForm($form, $timeCreditRepository);
         if (!$credit instanceof TimeCredit) {
             $this->addFlash('error', 'Crédit temps invalide.');
 
-            return $this->redirect($this->resolveReturnPath((string) $form->get('returnTo')->getData()));
+            return $this->redirect($this->resolveReturnPath($returnTo));
         }
 
         $this->denyAccessUnlessGranted(TimeCreditVoter::INTERVENE, $credit);
 
-        /** @var \DateTimeImmutable $occurredAt */
-        $occurredAt = $form->get('occurredAt')->getData();
-        $duration = (int) $form->get('durationMinutes')->getData();
-        $description = (string) $form->get('description')->getData();
+        $error = $this->registerIntervention(
+            $entityManager,
+            $actor,
+            $credit,
+            $form->get('occurredAt')->getData(),
+            (int) $form->get('durationMinutes')->getData(),
+            (string) $form->get('description')->getData(),
+        );
+        if ($error !== null) {
+            $this->addFlash('error', $error);
 
-        if ($duration <= 0) {
-            $this->addFlash('error', 'La durée doit être supérieure à 0 minute.');
-
-            return $this->redirect($this->resolveReturnPath((string) $form->get('returnTo')->getData()));
-        }
-        if ($duration > $credit->getRemainingMinutes()) {
-            $this->addFlash('error', 'La durée dépasse le solde disponible du crédit.');
-
-            return $this->redirect($this->resolveReturnPath((string) $form->get('returnTo')->getData()));
+            return $this->redirect($this->resolveReturnPath($returnTo));
         }
 
-        $movement = (new TimeCreditMovement())
-            ->setTimeCredit($credit)
-            ->setCreatedBy($actor)
-            ->setType(TimeCreditMovement::TYPE_INTERVENTION)
-            ->setDeltaMinutes(-$duration)
-            ->setDescription($description)
-            ->setOccurredAt($occurredAt);
-
-        $credit->setRemainingMinutes($credit->getRemainingMinutes() - $duration);
-        if ($credit->getRemainingMinutes() <= 0) {
-            $credit->setArchived(true);
-        }
-        $credit->addMovement($movement);
-        $entityManager->flush();
         $this->addFlash('success', 'Intervention enregistrée.');
 
-        return $this->redirect($this->resolveReturnPath((string) $form->get('returnTo')->getData()));
+        return $this->redirect($this->resolveReturnPath($returnTo));
     }
 
     #[Route('/nouveau', name: 'time_credit_new', methods: ['GET', 'POST'])]
@@ -364,6 +382,7 @@ final class TimeCreditController extends AbstractController
             'entreprise_choices' => [$credit->getEntreprise()],
             'category_choices' => $categoryRepository->findAllOrdered(),
             'allow_archive_field' => true,
+            'lock_total_field' => true,
         ]);
         $form->handleRequest($request);
 
@@ -445,7 +464,12 @@ final class TimeCreditController extends AbstractController
     {
         $this->denyAccessUnlessGranted(TimeCreditVoter::INTERVENE, $credit);
 
-        $form = $this->createForm(TimeCreditInterventionType::class);
+        $returnTo = (string) ($request->query->get('return_to') ?? '');
+        $cancelUrl = $returnTo !== '' ? $returnTo : $this->generateUrl('time_credit_show', ['id' => $credit->getId()]);
+
+        $form = $this->createForm(TimeCreditInterventionType::class, null, [
+            'return_to' => $returnTo !== '' ? $returnTo : null,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -454,44 +478,81 @@ final class TimeCreditController extends AbstractController
                 throw $this->createAccessDeniedException();
             }
 
-            $duration = (int) $form->get('durationMinutes')->getData();
-            if ($duration <= 0) {
-                $this->addFlash('error', 'La durée doit être supérieure à 0 minute.');
+            $error = $this->registerIntervention(
+                $entityManager,
+                $actor,
+                $credit,
+                $form->get('occurredAt')->getData(),
+                (int) $form->get('durationMinutes')->getData(),
+                (string) $form->get('description')->getData(),
+            );
+            if ($error !== null) {
+                $this->addFlash('error', $error);
 
                 return $this->render('time_credit/intervention_form.html.twig', [
                     'form' => $form,
                     'credit' => $credit,
+                    'cancel_url' => $cancelUrl,
                 ]);
             }
 
-            if ($duration > $credit->getRemainingMinutes()) {
-                $this->addFlash('error', 'La durée dépasse le solde disponible du crédit.');
-
-                return $this->render('time_credit/intervention_form.html.twig', [
-                    'form' => $form,
-                    'credit' => $credit,
-                ]);
-            }
-
-            /** @var \DateTimeImmutable $occurredAt */
-            $occurredAt = $form->get('occurredAt')->getData();
-            $description = (string) $form->get('description')->getData();
-
-            $movement = (new TimeCreditMovement())
-                ->setTimeCredit($credit)
-                ->setCreatedBy($actor)
-                ->setType(TimeCreditMovement::TYPE_INTERVENTION)
-                ->setDeltaMinutes(-$duration)
-                ->setDescription($description)
-                ->setOccurredAt($occurredAt);
-
-            $credit->setRemainingMinutes($credit->getRemainingMinutes() - $duration);
-            if ($credit->getRemainingMinutes() <= 0) {
-                $credit->setArchived(true);
-            }
-            $credit->addMovement($movement);
-            $entityManager->flush();
             $this->addFlash('success', 'Intervention enregistrée.');
+
+            return $this->redirect($this->resolveReturnPath($returnTo !== '' ? $returnTo : $this->generateUrl('time_credit_show', ['id' => $credit->getId()])));
+        }
+
+        return $this->render('time_credit/intervention_form.html.twig', [
+            'form' => $form,
+            'credit' => $credit,
+            'cancel_url' => $cancelUrl,
+        ]);
+    }
+
+    #[Route('/{id}/intervention/{movementId}/modifier', name: 'time_credit_intervention_edit', requirements: ['movementId' => '\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
+    public function editIntervention(
+        Request $request,
+        TimeCredit $credit,
+        int $movementId,
+        TimeCreditMovementRepository $movementRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $this->denyAccessUnlessGranted(TimeCreditVoter::INTERVENE, $credit);
+
+        $movement = $this->resolveInterventionMovement($credit, $movementId, $movementRepository);
+        $this->denyAccessUnlessGranted(TimeCreditMovementVoter::MANAGE_INTERVENTION, $movement);
+
+        $cancelUrl = $this->generateUrl('time_credit_show', ['id' => $credit->getId()]);
+        $availableMinutes = $credit->getRemainingMinutes() + abs($movement->getDeltaMinutes());
+
+        $form = $this->createForm(TimeCreditInterventionType::class, null, [
+            'initial_movement' => $movement,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $error = $this->updateIntervention(
+                $entityManager,
+                $credit,
+                $movement,
+                $form->get('occurredAt')->getData(),
+                (int) $form->get('durationMinutes')->getData(),
+                (string) $form->get('description')->getData(),
+            );
+            if ($error !== null) {
+                $this->addFlash('error', $error);
+
+                return $this->render('time_credit/intervention_form.html.twig', [
+                    'form' => $form,
+                    'credit' => $credit,
+                    'cancel_url' => $cancelUrl,
+                    'available_minutes' => $availableMinutes,
+                    'is_edit_mode' => true,
+                    'movement' => $movement,
+                ]);
+            }
+
+            $this->addFlash('success', 'Intervention mise à jour.');
 
             return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
         }
@@ -499,7 +560,40 @@ final class TimeCreditController extends AbstractController
         return $this->render('time_credit/intervention_form.html.twig', [
             'form' => $form,
             'credit' => $credit,
+            'cancel_url' => $cancelUrl,
+            'available_minutes' => $availableMinutes,
+            'is_edit_mode' => true,
+            'movement' => $movement,
         ]);
+    }
+
+    #[Route('/{id}/intervention/{movementId}/supprimer', name: 'time_credit_intervention_delete', requirements: ['movementId' => '\d+'], methods: ['POST'])]
+    #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
+    public function deleteIntervention(
+        Request $request,
+        TimeCredit $credit,
+        int $movementId,
+        TimeCreditMovementRepository $movementRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $this->denyAccessUnlessGranted(TimeCreditVoter::INTERVENE, $credit);
+
+        $movement = $this->resolveInterventionMovement($credit, $movementId, $movementRepository);
+        $this->denyAccessUnlessGranted(TimeCreditMovementVoter::MANAGE_INTERVENTION, $movement);
+
+        if (!$this->isCsrfTokenValid('delete_time_credit_intervention'.$movement->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        $duration = abs($movement->getDeltaMinutes());
+        $credit->setRemainingMinutes($credit->getRemainingMinutes() + $duration);
+        $credit->setArchived($credit->getRemainingMinutes() <= 0);
+        $entityManager->remove($movement);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Intervention supprimée.');
+
+        return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
     }
 
     /**
@@ -543,5 +637,185 @@ final class TimeCreditController extends AbstractController
         }
 
         return $this->generateUrl('time_credit_index');
+    }
+
+    /**
+     * @return array{
+     *     selected_entreprise: ?Entreprise,
+     *     choices: list<TimeCredit>,
+     *     single_credit: ?TimeCredit,
+     *     form: ?\Symfony\Component\Form\FormInterface
+     * }
+     */
+    private function buildInterventionSelectorContext(
+        ManagedClientContext $managedClientContext,
+        TimeCreditRepository $timeCreditRepository,
+        ?string $returnTo = null,
+        bool $redirectSingleCredit = false,
+    ): array {
+        $actor = $this->getUser();
+        if (!$actor instanceof User || !$actor->is17bStaff()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $selectedEntreprise = $managedClientContext->getSelectedManagedEntreprise($actor);
+        $choices = $selectedEntreprise instanceof Entreprise
+            ? $timeCreditRepository->findActiveByEntreprise($selectedEntreprise)
+            : [];
+        $singleCredit = \count($choices) === 1 ? $choices[0] : null;
+
+        if ($selectedEntreprise === null || $choices === []) {
+            return [
+                'selected_entreprise' => $selectedEntreprise,
+                'choices' => $choices,
+                'single_credit' => $singleCredit,
+                'fixed_credit' => null,
+                'form' => null,
+            ];
+        }
+
+        if ($redirectSingleCredit && $singleCredit instanceof TimeCredit) {
+            return [
+                'selected_entreprise' => $selectedEntreprise,
+                'choices' => $choices,
+                'single_credit' => $singleCredit,
+                'fixed_credit' => null,
+                'form' => null,
+            ];
+        }
+
+        $formOptions = [
+            'return_to' => $returnTo,
+            'action' => $this->generateUrl('time_credit_intervention_quick_create'),
+        ];
+        if ($singleCredit instanceof TimeCredit) {
+            $formOptions['fixed_time_credit'] = $singleCredit;
+        } else {
+            $formOptions['show_credit_selector'] = true;
+            $formOptions['time_credit_choices'] = $choices;
+        }
+
+        $form = $this->createForm(TimeCreditInterventionType::class, null, $formOptions);
+
+        return [
+            'selected_entreprise' => $selectedEntreprise,
+            'choices' => $choices,
+            'single_credit' => $singleCredit,
+            'fixed_credit' => $singleCredit,
+            'form' => $form,
+        ];
+    }
+
+    private function resolveInterventionCreditFromForm(
+        \Symfony\Component\Form\FormInterface $form,
+        TimeCreditRepository $timeCreditRepository,
+    ): ?TimeCredit {
+        if ($form->has('timeCredit')) {
+            $credit = $form->get('timeCredit')->getData();
+
+            return $credit instanceof TimeCredit ? $credit : null;
+        }
+
+        if ($form->has('timeCreditId')) {
+            $creditId = (int) $form->get('timeCreditId')->getData();
+            if ($creditId <= 0) {
+                return null;
+            }
+
+            $credit = $timeCreditRepository->find($creditId);
+
+            return $credit instanceof TimeCredit ? $credit : null;
+        }
+
+        return null;
+    }
+
+    private function registerIntervention(
+        EntityManagerInterface $entityManager,
+        User $actor,
+        TimeCredit $credit,
+        mixed $occurredAt,
+        int $duration,
+        string $description,
+    ): ?string {
+        if ($duration <= 0) {
+            return 'La durée doit être supérieure à 0 minute.';
+        }
+
+        if ($duration > $credit->getRemainingMinutes()) {
+            return 'La durée dépasse le solde disponible du crédit.';
+        }
+
+        if (!$occurredAt instanceof \DateTimeImmutable) {
+            return 'Date d’intervention invalide.';
+        }
+
+        $movement = (new TimeCreditMovement())
+            ->setTimeCredit($credit)
+            ->setCreatedBy($actor)
+            ->setType(TimeCreditMovement::TYPE_INTERVENTION)
+            ->setDeltaMinutes(-$duration)
+            ->setDescription($description)
+            ->setOccurredAt($occurredAt);
+
+        $credit->setRemainingMinutes($credit->getRemainingMinutes() - $duration);
+        if ($credit->getRemainingMinutes() <= 0) {
+            $credit->setArchived(true);
+        }
+        $credit->addMovement($movement);
+        $entityManager->flush();
+
+        return null;
+    }
+
+    private function updateIntervention(
+        EntityManagerInterface $entityManager,
+        TimeCredit $credit,
+        TimeCreditMovement $movement,
+        mixed $occurredAt,
+        int $newDuration,
+        string $description,
+    ): ?string {
+        $previousDuration = abs($movement->getDeltaMinutes());
+        if ($newDuration <= 0) {
+            return 'La durée doit être supérieure à 0 minute.';
+        }
+
+        $maxAllowed = $credit->getRemainingMinutes() + $previousDuration;
+        if ($newDuration > $maxAllowed) {
+            return 'La durée dépasse le solde disponible du crédit.';
+        }
+
+        if (!$occurredAt instanceof \DateTimeImmutable) {
+            return 'Date d’intervention invalide.';
+        }
+
+        $credit->setRemainingMinutes($credit->getRemainingMinutes() + $previousDuration - $newDuration);
+        $movement
+            ->setDeltaMinutes(-$newDuration)
+            ->setOccurredAt($occurredAt)
+            ->setDescription($description);
+
+        $credit->setArchived($credit->getRemainingMinutes() <= 0);
+        $entityManager->flush();
+
+        return null;
+    }
+
+    private function resolveInterventionMovement(
+        TimeCredit $credit,
+        int $movementId,
+        TimeCreditMovementRepository $movementRepository,
+    ): TimeCreditMovement {
+        $movement = $movementRepository->find($movementId);
+        if (
+            !$movement instanceof TimeCreditMovement
+            || $movement->getTimeCredit()?->getId() !== $credit->getId()
+            || $movement->getType() !== TimeCreditMovement::TYPE_INTERVENTION
+        ) {
+            throw $this->createNotFoundException('Intervention introuvable.');
+        }
+
+        return $movement;
     }
 }

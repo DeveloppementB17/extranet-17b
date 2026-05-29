@@ -49,10 +49,32 @@
                 {{ form_label(form.dossierNumber, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
                 {{ form_errors(form.dossierNumber) }}
             </div>
-            <div class="relative z-0 w-full group">
-                {{ form_widget(form.totalMinutes, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
-                {{ form_label(form.totalMinutes, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
-                {{ form_errors(form.totalMinutes) }}
+            <div>
+                {% if edit_mode|default(false) %}
+                    {% set total_min = form.vars.data.totalMinutes %}
+                    <p class="block text-lg font-semibold text-brand mb-2">Total initial</p>
+                    <p class="text-lg text-heading">
+                        {{ total_min >= 60 ? (total_min / 60)|round(2) ~ ' h' : total_min ~ ' min' }}
+                        <span class="text-sm text-slate-500">({{ total_min >= 60 ? total_min ~ ' min' : (total_min / 60)|round(2) ~ ' h' }})</span>
+                    </p>
+                    {{ form_widget(form.totalMinutes) }}
+                {% else %}
+                    {{ form_label(form.totalValue, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
+                        {{ form_widget(form.totalValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                        <div class="border border-black" data-duration-unit-switch>
+                            <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
+                                Minutes
+                            </button><button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
+                                Heures
+                            </button>
+                        </div>
+                    </div>
+                    {{ form_widget(form.totalMinutes) }}
+                    {{ form_widget(form.totalUnit) }}
+                    {{ form_errors(form.totalValue) }}
+                    {{ form_errors(form.totalUnit) }}
+                {% endif %}
             </div>
             {% if form.archived is defined %}
                 <div class="rounded bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
@@ -68,4 +90,50 @@
     </div>
     </div>
     </div>
+    {% if not edit_mode|default(false) %}
+    <script>
+        (() => {
+            const valueField = document.getElementById('{{ form.totalValue.vars.id }}');
+            const unitField = document.getElementById('{{ form.totalUnit.vars.id }}');
+            const switchRoot = document.querySelector('[data-duration-unit-switch]');
+            if (!valueField || !unitField || !switchRoot) {
+                return;
+            }
+
+            const buttons = switchRoot.querySelectorAll('.duration-unit-btn');
+            const setActive = (unit) => {
+                buttons.forEach((btn) => {
+                    const active = btn.dataset.unit === unit;
+                    btn.classList.toggle('bg-black', active);
+                    btn.classList.toggle('text-white', active);
+                    btn.classList.toggle('shadow-sm', active);
+                    btn.classList.toggle('text-black', !active);
+                });
+            };
+
+            const convertValue = (fromUnit, toUnit) => {
+                const raw = parseFloat(valueField.value.replace(',', '.'));
+                if (Number.isNaN(raw) || fromUnit === toUnit) {
+                    return;
+                }
+
+                const converted = fromUnit === 'minutes' ? raw / 60 : raw * 60;
+                const precision = toUnit === 'hours' ? 2 : 0;
+                valueField.value = converted.toFixed(precision).replace(/\.00$/, '');
+            };
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const nextUnit = btn.dataset.unit;
+                    const previousUnit = unitField.value || 'minutes';
+                    convertValue(previousUnit, nextUnit);
+                    unitField.value = nextUnit;
+                    setActive(nextUnit);
+                });
+            });
+
+            setActive(unitField.value || 'minutes');
+        })();
+    </script>
+    {% endif %}
 {% endblock %}
