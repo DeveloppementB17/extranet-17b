@@ -12,9 +12,92 @@
 
         <h1 class="text-4xl font-extrabold text-brand">Présentation de l’extranet 17b</h1>
         <p class="mt-3 max-w-3xl text-slate-600">
-            Document interne pour les <strong>chefs de projet</strong> et l’équipe 17b : objectifs de la plateforme,
-            modules disponibles et <strong>droits selon les rôles</strong>. Page visible uniquement par les administrateurs 17b connectés.
+            Document interne pour les <strong>chefs de projet</strong> et l’équipe 17b.
+            Commencez par le <strong>guide simple</strong> ci-dessous, puis consultez le détail si besoin.
         </p>
+
+        {# ========== GUIDE SIMPLE (public non technique) ========== #}
+        <section class="guide-simple mt-10 rounded-2xl border-4 border-black bg-[#fffbea] p-6 md:p-10">
+            <p class="text-xs font-bold uppercase tracking-widest text-amber-800">Guide simple</p>
+            <h2 class="mt-2 text-3xl font-extrabold text-black md:text-4xl">L’extranet, c’est quoi ?</h2>
+            <p class="mt-4 max-w-3xl text-lg font-semibold leading-snug text-slate-900 md:text-xl">
+                Un site privé où <span class="underline decoration-4 decoration-amber-400">17b</span> et ses
+                <span class="underline decoration-4 decoration-sky-400">clients</span> échangent des fichiers
+                et suivent le temps passé sur leurs projets — en toute sécurité.
+            </p>
+
+            <div class="mt-8 grid gap-4 md:grid-cols-3">
+                {% for pillar in simple_pillars %}
+                    <div class="rounded-xl border-2 {{ pillar.color }} p-5 text-center shadow-sm">
+                        <span class="text-4xl" aria-hidden="true">{{ pillar.emoji }}</span>
+                        <h3 class="mt-3 text-xl font-extrabold text-slate-900">{{ pillar.title }}</h3>
+                        <p class="mt-2 text-base font-medium leading-snug text-slate-800">{{ pillar.text }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h3 class="mt-10 text-2xl font-extrabold text-black">Comment ça marche ?</h3>
+            <ol class="mt-5 grid gap-4 sm:grid-cols-2">
+                {% for step in simple_steps %}
+                    <li class="flex gap-4 rounded-xl border-2 border-black bg-white p-5 shadow-[4px_4px_0_0_#000]">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-black text-xl font-extrabold text-white" aria-hidden="true">{{ step.number }}</span>
+                        <div>
+                            <p class="text-lg font-extrabold text-slate-900">{{ step.title }}</p>
+                            <p class="mt-1 text-base leading-relaxed text-slate-700">{{ step.text }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+
+            <h3 class="mt-10 text-2xl font-extrabold text-black">Les 4 types de comptes</h3>
+            <p class="mt-2 text-base text-slate-700">Même site, mais pas les mêmes pouvoirs. Lisez « Je peux » et « Je ne peux pas ».</p>
+            <div class="mt-5 grid gap-5 lg:grid-cols-2">
+                {% for role in simple_roles %}
+                    <article class="overflow-hidden rounded-xl border-2 border-black bg-white">
+                        <header class="flex items-center gap-3 border-b-2 border-black bg-slate-100 px-5 py-4">
+                            <span class="text-3xl" aria-hidden="true">{{ role.emoji }}</span>
+                            <div>
+                                <h4 class="text-xl font-extrabold text-slate-900">{{ role.title }}</h4>
+                                <p class="text-sm font-semibold text-slate-600">{{ role.subtitle }}</p>
+                            </div>
+                        </header>
+                        <div class="grid gap-0 sm:grid-cols-2">
+                            <div class="border-b border-slate-200 bg-green-50 p-4 sm:border-b-0 sm:border-r">
+                                <p class="text-xs font-bold uppercase tracking-wide text-green-800">Je peux</p>
+                                <ul class="mt-2 space-y-1.5">
+                                    {% for item in role.can_do %}
+                                        <li class="flex gap-2 text-sm font-semibold text-green-950">
+                                            <span class="text-green-600" aria-hidden="true">✓</span> {{ item }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="bg-red-50 p-4">
+                                <p class="text-xs font-bold uppercase tracking-wide text-red-800">Je ne peux pas</p>
+                                <ul class="mt-2 space-y-1.5">
+                                    {% for item in role.cannot_do %}
+                                        <li class="flex gap-2 text-sm font-semibold text-red-950">
+                                            <span class="text-red-500" aria-hidden="true">✗</span> {{ item }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <aside class="mt-8 rounded-xl border-2 border-dashed border-slate-400 bg-white/80 p-5">
+                <p class="text-lg font-extrabold text-slate-900">💡 À retenir en une phrase</p>
+                <p class="mt-2 text-base font-medium leading-relaxed text-slate-800">
+                    <strong>17b</strong> prépare et partage · le <strong>client</strong> consulte et suit · chacun reste dans
+                    <strong>sa boîte</strong> (son entreprise), sauf les admins 17b qui voient tout.
+                </p>
+            </aside>
+        </section>
+
+        {# ========== RÉFÉRENCE DÉTAILLÉE ========== #}
+        <p class="mt-12 text-xs font-bold uppercase tracking-widest text-slate-500">Référence détaillée</p>
 
         {# --- Objectif --- #}
         <section class="mt-10 border-2 border-black bg-white p-6 md:p-8">

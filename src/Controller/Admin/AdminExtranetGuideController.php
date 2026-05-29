@@ -25,6 +25,9 @@ final class AdminExtranetGuideController extends AbstractController
             'role_profiles' => $this->roleProfiles(),
             'modules' => $this->modules(),
             'extranet_rights' => $this->extranetRightsMatrix(),
+            'simple_steps' => $this->simpleSteps(),
+            'simple_roles' => $this->simpleRoles(),
+            'simple_pillars' => $this->simplePillars(),
         ]);
     }
 
@@ -33,6 +36,99 @@ final class AdminExtranetGuideController extends AbstractController
     public function legacyGuideRecette(): RedirectResponse
     {
         return $this->redirectToRoute('admin_extranet_presentation', status: Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    /**
+     * @return list<array{number: string, title: string, text: string}>
+     */
+    private function simpleSteps(): array
+    {
+        return [
+            [
+                'number' => '1',
+                'title' => 'On se connecte',
+                'text' => 'Chacun ouvre l’extranet avec son email et son mot de passe. C’est comme une porte d’entrée personnelle.',
+            ],
+            [
+                'number' => '2',
+                'title' => 'On voit son espace',
+                'text' => 'Le menu à gauche mène vers l’accueil, les fichiers et les crédits temps. On ne voit que ce qui concerne notre entreprise (ou nos clients, pour l’équipe 17b).',
+            ],
+            [
+                'number' => '3',
+                'title' => 'On échange et on suit',
+                'text' => '17b dépose des documents et note le temps passé. Le client consulte, télécharge et suit son solde de minutes.',
+            ],
+            [
+                'number' => '4',
+                'title' => 'Chacun son rôle',
+                'text' => 'Tout le monde n’a pas les mêmes boutons : certains peuvent ajouter des fichiers, d’autres seulement les lire. C’est normal et voulu.',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array{emoji: string, title: string, subtitle: string, can_do: list<string>, cannot_do: list<string>}>
+     */
+    private function simpleRoles(): array
+    {
+        return [
+            [
+                'emoji' => '🛠️',
+                'title' => 'Admin 17b',
+                'subtitle' => 'Pilotage complet',
+                'can_do' => ['Tout voir', 'Gérer entreprises & comptes', 'Déposer des fichiers', 'Gérer les crédits temps'],
+                'cannot_do' => ['Rien de bloquant — c’est le profil le plus ouvert'],
+            ],
+            [
+                'emoji' => '👤',
+                'title' => 'Collaborateur 17b',
+                'subtitle' => 'Sur ses clients uniquement',
+                'can_do' => ['Choisir une entreprise active', 'Travailler sur ses clients assignés', 'Déposer des fichiers', 'Saisir du temps'],
+                'cannot_do' => ['Accéder à l’admin globale', 'Voir les clients non assignés'],
+            ],
+            [
+                'emoji' => '⭐',
+                'title' => 'Admin client',
+                'subtitle' => 'Référent chez le client',
+                'can_do' => ['Voir les fichiers de son entreprise', 'Suivre les crédits temps', 'Inviter des collègues'],
+                'cannot_do' => ['Déposer des fichiers', 'Modifier les crédits', 'Accéder à /admin'],
+            ],
+            [
+                'emoji' => '👁️',
+                'title' => 'Utilisateur client',
+                'subtitle' => 'Consultation',
+                'can_do' => ['Télécharger les fichiers', 'Consulter les crédits temps', 'Gérer son compte'],
+                'cannot_do' => ['Ajouter des fichiers', 'Gérer d’autres utilisateurs', 'Modifier quoi que ce soit côté 17b'],
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array{emoji: string, title: string, text: string, color: string}>
+     */
+    private function simplePillars(): array
+    {
+        return [
+            [
+                'emoji' => '📁',
+                'title' => 'Fichiers',
+                'text' => 'Les livrables et documents partagés, rangés dans des dossiers.',
+                'color' => 'bg-sky-50 border-sky-300',
+            ],
+            [
+                'emoji' => '⏱️',
+                'title' => 'Crédits temps',
+                'text' => 'Le « budget minutes » de l’entreprise et ce qu’il reste après chaque intervention.',
+                'color' => 'bg-amber-50 border-amber-300',
+            ],
+            [
+                'emoji' => '👥',
+                'title' => 'Comptes',
+                'text' => 'Qui peut se connecter : équipe 17b d’un côté, équipe client de l’autre.',
+                'color' => 'bg-violet-50 border-violet-300',
+            ],
+        ];
     }
 
     /**
