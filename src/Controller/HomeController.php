@@ -35,7 +35,7 @@ final class HomeController extends AbstractController
         $selectedClientCredits = [];
         $selectedClientDocumentFolders = [];
         if ($user instanceof User && $user->is17bStaff()) {
-            $managedClients = $entrepriseRepository->findNonAgencyByIdsOrdered($user->getManagedEntrepriseIds());
+            $managedClients = $entrepriseRepository->findSwitchableClientsForStaff($user);
             $selectedClient = $managedClientContext->getSelectedManagedEntreprise($user);
 
             if ($selectedClient instanceof Entreprise) {

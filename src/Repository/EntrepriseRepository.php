@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Entreprise;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -23,6 +24,20 @@ class EntrepriseRepository extends ServiceEntityRepository
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * Entreprises clientes sélectionnables dans le switcher staff 17b.
+     *
+     * @return list<Entreprise>
+     */
+    public function findSwitchableClientsForStaff(User $user): array
+    {
+        if ($user->is17bAdmin()) {
+            return $this->findNonAgencyOrdered();
+        }
+
+        return $this->findNonAgencyByIdsOrdered($user->getManagedEntrepriseIds());
     }
 
     /**

@@ -209,6 +209,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function managesEntreprise(Entreprise $entreprise): bool
     {
+        if ($entreprise->isAgency()) {
+            return false;
+        }
+
+        if ($this->is17bAdmin()) {
+            return true;
+        }
+
         $id = $entreprise->getId();
         if ($id === null) {
             return false;

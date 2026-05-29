@@ -29,14 +29,14 @@ final class ManagedClientContext
         }
 
         $selectedId = (int) $session->get(self::SESSION_KEY);
-        if ($selectedId <= 0 || !\in_array($selectedId, $actor->getManagedEntrepriseIds(), true)) {
+        if ($selectedId <= 0) {
             $session->remove(self::SESSION_KEY);
 
             return null;
         }
 
         $entreprise = $this->entrepriseRepository->find($selectedId);
-        if (!$entreprise instanceof Entreprise || $entreprise->isAgency()) {
+        if (!$entreprise instanceof Entreprise || !$actor->managesEntreprise($entreprise)) {
             $session->remove(self::SESSION_KEY);
 
             return null;

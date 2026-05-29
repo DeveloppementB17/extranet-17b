@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import 'admin/_form_macros.html.twig' as adminForm %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block body %}
@@ -24,44 +26,56 @@
             <div class="mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
         {% endfor %}
         {% for message in app.flashes('error') %}
-            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+            <div class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{{ message }}</div>
         {% endfor %}
 
-        {{ form_start(form, { attr: { class: 'mt-8 space-y-8' } }) }}
+        {{ form_start(form, { attr: {
+            class: 'mt-8 space-y-8',
+            'data-controller': 'admin-user-form',
+            'data-admin-user-form-agency-entreprise-id-value': agency_entreprise_id|default('')
+        } }) }}
+            {{ adminForm.form_errors_all(form) }}
             <div class="relative z-0 w-full group">
                 {{ form_widget(form.email, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
                 {{ form_label(form.email, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
-                {{ form_errors(form.email) }}
+                {{ adminForm.field_errors(form.email) }}
             </div>
             <div>
                 {{ form_label(form.primaryRole, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                {{ form_widget(form.primaryRole, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                {{ form_errors(form.primaryRole) }}
+                {{ form_widget(form.primaryRole, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0', 'data-admin-user-form-target': 'roleSelect', 'data-action': 'admin-user-form#toggle' } }) }}
+                {{ adminForm.field_errors(form.primaryRole) }}
             </div>
             <div>
                 {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                {{ form_widget(form.entreprise, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                {{ form_widget(form.entreprise, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0', 'data-admin-user-form-target': 'entrepriseSelect' } }) }}
                 {{ form_help(form.entreprise) }}
-                {{ form_errors(form.entreprise) }}
+                {{ adminForm.field_errors(form.entreprise) }}
             </div>
-            <div>
+            <div class="hidden" data-admin-user-form-target="managedBlock">
                 {{ form_label(form.managedEntreprises, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                <div class="my-2 space-y-2 bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
-                    {{ form_widget(form.managedEntreprises) }}
-                </div>
+                <ul class="my-2 space-y-2 bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
+                    {% for choice in form.managedEntreprises %}
+                        <li>
+                            <label class="flex cursor-pointer items-center gap-3 text-base text-slate-800">
+                                {{ form_widget(choice, { attr: { class: 'h-4 w-4 shrink-0 rounded border-slate-400 text-brand-primary focus:ring-brand-primary' } }) }}
+                                <span>{{ choice.vars.label }}</span>
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
                 {{ form_help(form.managedEntreprises) }}
-                {{ form_errors(form.managedEntreprises) }}
+                {{ adminForm.field_errors(form.managedEntreprises) }}
             </div>
             <div class="relative z-0 w-full group">
                 {{ form_widget(form.plainPassword.first, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
                 {{ form_label(form.plainPassword.first, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
                 {{ form_help(form.plainPassword.first) }}
-                {{ form_errors(form.plainPassword.first) }}
+                {{ adminForm.field_errors(form.plainPassword.first) }}
             </div>
             <div class="relative z-0 w-full group">
                 {{ form_widget(form.plainPassword.second, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
                 {{ form_label(form.plainPassword.second, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
-                {{ form_errors(form.plainPassword.second) }}
+                {{ adminForm.field_errors(form.plainPassword.second) }}
             </div>
             <div class="flex flex-wrap gap-3">
                 <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">Enregistrer</button>

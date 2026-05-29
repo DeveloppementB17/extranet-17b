@@ -27,7 +27,7 @@ final class HeaderStaffClientSwitcherController extends AbstractController
             return new Response('');
         }
 
-        $managedClients = $entrepriseRepository->findNonAgencyByIdsOrdered($user->getManagedEntrepriseIds());
+        $managedClients = $entrepriseRepository->findSwitchableClientsForStaff($user);
 
         return $this->render('header/_staff_client_switcher.html.twig', [
             'managed_clients' => $managedClients,

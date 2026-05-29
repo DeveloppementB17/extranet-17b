@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -97,18 +98,20 @@ final class AdminUserController extends AbstractController
         EntrepriseRepository $entrepriseRepository,
         UserPasswordHasherInterface $passwordHasher,
     ): Response {
+        $clientEntreprises = $entrepriseRepository->findNonAgencyOrdered();
         $user = new User();
         $form = $this->createForm(AdminUserType::class, $user, [
             'require_password' => true,
             'entreprise_choices' => $entrepriseRepository->findAllOrdered(),
-            'client_entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(),
+            'client_entreprise_choices' => $clientEntreprises,
             'primary_role_data' => 'ROLE_CUSTOMER_USER',
-            'managed_entreprises_data' => [],
+            'managed_entreprises_data' => $clientEntreprises,
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $primaryRole = (string) $form->get('primaryRole')->getData();
+            $this->applyAgencyEntrepriseFor17bStaff($user, $primaryRole, $entrepriseRepository);
             /** @var iterable<Entreprise>|null $managedRaw */
             $managedRaw = $form->get('managedEntreprises')->getData();
             /** @var list<Entreprise> $managed */
@@ -118,20 +121,14 @@ final class AdminUserController extends AbstractController
             if ($err !== null) {
                 $this->addFlash('error', $err);
 
-                return $this->render('admin/user/form.html.twig', [
-                    'form' => $form,
-                    'title' => 'Nouvel utilisateur',
-                ]);
+                return $this->renderUserForm($form, 'Nouvel utilisateur', $entrepriseRepository);
             }
 
             $plain = (string) $form->get('plainPassword')->getData();
             if ($plain !== '' && strlen($plain) < 8) {
                 $this->addFlash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
 
-                return $this->render('admin/user/form.html.twig', [
-                    'form' => $form,
-                    'title' => 'Nouvel utilisateur',
-                ]);
+                return $this->renderUserForm($form, 'Nouvel utilisateur', $entrepriseRepository);
             }
 
             $this->applyRoleAndManaged($user, $primaryRole, $managed);
@@ -143,10 +140,7 @@ final class AdminUserController extends AbstractController
             } catch (UniqueConstraintViolationException) {
                 $this->addFlash('error', 'Cet email est déjà utilisé.');
 
-                return $this->render('admin/user/form.html.twig', [
-                    'form' => $form,
-                    'title' => 'Nouvel utilisateur',
-                ]);
+                return $this->renderUserForm($form, 'Nouvel utilisateur', $entrepriseRepository);
             }
 
             $this->addFlash('success', 'Utilisateur créé.');
@@ -154,10 +148,7 @@ final class AdminUserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
-        return $this->render('admin/user/form.html.twig', [
-            'form' => $form,
-            'title' => 'Nouvel utilisateur',
-        ]);
+        return $this->renderUserForm($form, 'Nouvel utilisateur', $entrepriseRepository);
     }
 
     #[Route('/{id}/modifier', name: 'admin_user_edit', methods: ['GET', 'POST'])]
@@ -179,6 +170,7 @@ final class AdminUserController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $primaryRole = (string) $form->get('primaryRole')->getData();
+            $this->applyAgencyEntrepriseFor17bStaff($user, $primaryRole, $entrepriseRepository);
             /** @var iterable<Entreprise>|null $managedRaw */
             $managedRaw = $form->get('managedEntreprises')->getData();
             /** @var list<Entreprise> $managed */
@@ -188,22 +180,14 @@ final class AdminUserController extends AbstractController
             if ($err !== null) {
                 $this->addFlash('error', $err);
 
-                return $this->render('admin/user/form.html.twig', [
-                    'form' => $form,
-                    'title' => 'Modifier l’utilisateur',
-                    'edit_user' => $user,
-                ]);
+                return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
             }
 
             $plain = (string) $form->get('plainPassword')->getData();
             if ($plain !== '' && strlen($plain) < 8) {
                 $this->addFlash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
 
-                return $this->render('admin/user/form.html.twig', [
-                    'form' => $form,
-                    'title' => 'Modifier l’utilisateur',
-                    'edit_user' => $user,
-                ]);
+                return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
             }
 
             $this->applyRoleAndManaged($user, $primaryRole, $managed);
@@ -216,11 +200,7 @@ final class AdminUserController extends AbstractController
             } catch (UniqueConstraintViolationException) {
                 $this->addFlash('error', 'Cet email est déjà utilisé.');
 
-                return $this->render('admin/user/form.html.twig', [
-                    'form' => $form,
-                    'title' => 'Modifier l’utilisateur',
-                    'edit_user' => $user,
-                ]);
+                return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
             }
 
             $this->addFlash('success', 'Utilisateur mis à jour.');
@@ -228,11 +208,7 @@ final class AdminUserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
-        return $this->render('admin/user/form.html.twig', [
-            'form' => $form,
-            'title' => 'Modifier l’utilisateur',
-            'edit_user' => $user,
-        ]);
+        return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
     }
 
     #[Route('/{id}/supprimer', name: 'admin_user_delete', methods: ['POST'])]
@@ -293,7 +269,10 @@ final class AdminUserController extends AbstractController
             }
         }
 
-        if ($primaryRole === 'ROLE_17B_ADMIN' || $primaryRole === 'ROLE_17B_USER') {
+        if ($primaryRole === 'ROLE_17B_USER') {
+            if ($managed === []) {
+                return 'Sélectionne au moins une entreprise cliente gérée.';
+            }
             foreach ($managed as $e) {
                 if ($e->isAgency()) {
                     return 'Les entreprises gérées doivent être des entreprises clientes.';
@@ -304,6 +283,39 @@ final class AdminUserController extends AbstractController
         return null;
     }
 
+    private function applyAgencyEntrepriseFor17bStaff(User $user, string $primaryRole, EntrepriseRepository $entrepriseRepository): void
+    {
+        if ($primaryRole !== 'ROLE_17B_ADMIN' && $primaryRole !== 'ROLE_17B_USER') {
+            return;
+        }
+
+        $agency = $this->resolveAgencyEntreprise($entrepriseRepository);
+        if ($agency !== null) {
+            $user->setEntreprise($agency);
+        }
+    }
+
+    private function resolveAgencyEntreprise(EntrepriseRepository $entrepriseRepository): ?Entreprise
+    {
+        $agencies = $entrepriseRepository->findAgenciesOrdered();
+
+        return $agencies[0] ?? null;
+    }
+
+    private function renderUserForm(
+        FormInterface $form,
+        string $title,
+        EntrepriseRepository $entrepriseRepository,
+        ?User $editUser = null,
+    ): Response {
+        return $this->render('admin/user/form.html.twig', [
+            'form' => $form,
+            'title' => $title,
+            'edit_user' => $editUser,
+            'agency_entreprise_id' => $this->resolveAgencyEntreprise($entrepriseRepository)?->getId(),
+        ]);
+    }
+
     /**
      * @param list<Entreprise> $managed
      */
@@ -311,7 +323,7 @@ final class AdminUserController extends AbstractController
     {
         $user->setRoles([$primaryRole]);
         $user->clearManagedEntreprises();
-        if ($primaryRole === 'ROLE_17B_ADMIN' || $primaryRole === 'ROLE_17B_USER') {
+        if ($primaryRole === 'ROLE_17B_USER') {
             foreach ($managed as $entreprise) {
                 $user->addManagedEntreprise($entreprise);
             }
