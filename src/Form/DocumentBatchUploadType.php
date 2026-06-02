@@ -109,6 +109,27 @@ final class DocumentBatchUploadType extends AbstractType
             if (!\is_array($files)) {
                 $files = [];
             }
+
+            $hasUploadErrors = false;
+            foreach ($files as $file) {
+                if (!$file instanceof UploadedFile) {
+                    continue;
+                }
+                if ($file->getError() === \UPLOAD_ERR_INI_SIZE || $file->getError() === \UPLOAD_ERR_FORM_SIZE) {
+                    $hasUploadErrors = true;
+                    $form->addError(new FormError('Un ou plusieurs fichiers dépassent la taille autorisée. Réduisez la taille des fichiers puis réessayez.'));
+                    break;
+                }
+                if ($file->getError() !== \UPLOAD_ERR_OK) {
+                    $hasUploadErrors = true;
+                    $form->addError(new FormError('Un ou plusieurs fichiers n’ont pas pu être téléversés correctement.'));
+                    break;
+                }
+            }
+            if ($hasUploadErrors) {
+                return;
+            }
+
             $validFiles = array_values(array_filter(
                 $files,
                 static fn (mixed $file): bool => $file instanceof UploadedFile && $file->getError() === \UPLOAD_ERR_OK,

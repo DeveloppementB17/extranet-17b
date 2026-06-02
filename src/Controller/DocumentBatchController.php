@@ -51,6 +51,22 @@ final class DocumentBatchController extends AbstractController
             }
         }
 
+        if ($request->isMethod('POST')) {
+            $postMaxBytes = self::bytesFromIniSize((string) ini_get('post_max_size'));
+            $contentLength = (int) $request->server->get('CONTENT_LENGTH', 0);
+            if ($postMaxBytes > 0 && $contentLength > $postMaxBytes) {
+                $this->addFlash(
+                    'error',
+                    sprintf(
+                        'Le total des fichiers envoyés dépasse la limite autorisée du serveur (%s). Réduisez la taille totale et réessayez.',
+                        ini_get('post_max_size') ?: 'limite inconnue',
+                    ),
+                );
+
+                return $this->redirectToRoute('document_batch_upload');
+            }
+        }
+
         $allowedEntreprises = $forcedEntreprise instanceof Entreprise
             ? [$forcedEntreprise]
             : $this->allowedClientEntreprises($user, $entrepriseRepository);
@@ -203,5 +219,23 @@ final class DocumentBatchController extends AbstractController
         foreach ($category->getChildren() as $child) {
             $this->appendCategoryBranchChoices($child, $next, $choices);
         }
+    }
+
+    private static function bytesFromIniSize(string $value): int
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return 0;
+        }
+
+        $unit = strtolower($trimmed[\strlen($trimmed) - 1]);
+        $bytes = (int) $trimmed;
+
+        return match ($unit) {
+            'g' => $bytes * 1024 * 1024 * 1024,
+            'm' => $bytes * 1024 * 1024,
+            'k' => $bytes * 1024,
+            default => (int) $trimmed,
+        };
     }
 }
