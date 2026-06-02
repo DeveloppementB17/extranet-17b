@@ -12,6 +12,8 @@ use App\Repository\EntrepriseRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -76,13 +78,15 @@ final class AdminEntrepriseController extends AbstractController
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
+        EntrepriseRepository $entrepriseRepository,
         EntrepriseSlugGenerator $slugGenerator,
     ): Response {
         $entreprise = new Entreprise();
         $form = $this->createForm(AdminEntrepriseType::class, $entreprise);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid() && !$this->addDuplicateNameErrorIfNeeded($entreprise, $entrepriseRepository, $form)) {
+            $entreprise->setName(trim($entreprise->getName()));
             $entreprise->setSlug($slugGenerator->generateUniqueSlug($entreprise->getName()));
             $entreprise->setAgency(false);
             $entityManager->persist($entreprise);
@@ -108,12 +112,17 @@ final class AdminEntrepriseController extends AbstractController
     }
 
     #[Route('/{id}/modifier', name: 'admin_entreprise_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Entreprise $entreprise, EntityManagerInterface $entityManager): Response
-    {
+    public function edit(
+        Request $request,
+        Entreprise $entreprise,
+        EntrepriseRepository $entrepriseRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
         $form = $this->createForm(AdminEntrepriseType::class, $entreprise);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid() && !$this->addDuplicateNameErrorIfNeeded($entreprise, $entrepriseRepository, $form)) {
+            $entreprise->setName(trim($entreprise->getName()));
             try {
                 $entityManager->flush();
             } catch (UniqueConstraintViolationException) {
@@ -168,5 +177,22 @@ final class AdminEntrepriseController extends AbstractController
         $this->addFlash('success', 'Entreprise supprimée.');
 
         return $this->redirectToRoute('admin_entreprise_index');
+    }
+
+    /**
+     * @param FormInterface<mixed> $form
+     */
+    private function addDuplicateNameErrorIfNeeded(
+        Entreprise $entreprise,
+        EntrepriseRepository $entrepriseRepository,
+        FormInterface $form,
+    ): bool {
+        if (!$entrepriseRepository->existsByName($entreprise->getName(), $entreprise->getId())) {
+            return false;
+        }
+
+        $form->get('name')->addError(new FormError('Une entreprise porte déjà ce nom.'));
+
+        return true;
     }
 }

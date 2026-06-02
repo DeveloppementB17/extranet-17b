@@ -26,6 +26,26 @@ class EntrepriseRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function existsByName(string $name, ?int $excludeEntrepriseId = null): bool
+    {
+        $normalized = mb_strtolower(trim($name));
+        if ($normalized === '') {
+            return false;
+        }
+
+        $qb = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->andWhere('LOWER(e.name) = :name')
+            ->setParameter('name', $normalized);
+
+        if ($excludeEntrepriseId !== null) {
+            $qb->andWhere('e.id != :excludeId')
+                ->setParameter('excludeId', $excludeEntrepriseId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
     /**
      * Entreprises clientes sélectionnables dans le switcher staff 17b.
      *
