@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -254,6 +255,14 @@ final class AdminUserController extends AbstractController
                 return $this->renderUserForm($form, 'Nouvel utilisateur', $entrepriseRepository);
             }
 
+            if (!$this->isEmailAvailableForUser($userRepository, (string) $form->get('email')->getData(), null)) {
+                $message = 'Cet email est déjà utilisé.';
+                $form->get('email')->addError(new FormError($message));
+                $this->addFlash('error', $message);
+
+                return $this->renderUserForm($form, 'Nouvel utilisateur', $entrepriseRepository);
+            }
+
             $plain = (string) $form->get('plainPassword')->getData();
             if ($plain !== '' && strlen($plain) < 8) {
                 $this->addFlash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
@@ -309,6 +318,14 @@ final class AdminUserController extends AbstractController
             $err = $this->validateRoleEntreprise($user, $primaryRole, $managed);
             if ($err !== null) {
                 $this->addFlash('error', $err);
+
+                return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
+            }
+
+            if (!$this->isEmailAvailableForUser($userRepository, (string) $form->get('email')->getData(), $user->getId())) {
+                $message = 'Cet email est déjà utilisé.';
+                $form->get('email')->addError(new FormError($message));
+                $this->addFlash('error', $message);
 
                 return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
             }
@@ -458,5 +475,15 @@ final class AdminUserController extends AbstractController
                 $user->addManagedEntreprise($entreprise);
             }
         }
+    }
+
+    private function isEmailAvailableForUser(UserRepository $userRepository, string $email, ?int $currentUserId): bool
+    {
+        $existing = $userRepository->findOneBy(['email' => mb_strtolower(trim($email))]);
+        if (!$existing instanceof User) {
+            return true;
+        }
+
+        return $currentUserId !== null && $existing->getId() === $currentUserId;
     }
 }
