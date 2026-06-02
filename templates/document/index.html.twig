@@ -32,9 +32,6 @@
             {% endif %}
         </div>
 
-    {# Formulaire vide pour les cases à cocher (actions groupées à brancher plus tard) #}
-    <form id="doc-bulk-form" method="post" action="#" class="hidden" tabindex="-1" aria-hidden="true"></form>
-
         {% if is_admin_list_view %}
             <form method="get" class="mt-6 grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4">
                 <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un fichier..." class="border border-black px-3 py-2 text-sm">
@@ -59,7 +56,36 @@
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
             </form>
 
-            <div class="mt-6 overflow-x-auto overflow-hidden ring-1 ring-slate-200">
+            {% if can_bulk_delete %}
+                <form id="doc-bulk-form" method="post" action="{{ path('document_bulk_delete', app.request.query.all) }}" class="hidden" tabindex="-1" aria-hidden="true">
+                    <input type="hidden" name="_token" value="{{ csrf_token('document_bulk_delete') }}">
+                </form>
+                <div class="mt-4 flex flex-wrap items-center gap-3" id="doc-bulk-controls">
+                    <button type="button" id="doc-bulk-enter" class="cursor-pointer border border-black px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-neutral-50">
+                        Sélection multiple
+                    </button>
+                    <div id="doc-bulk-panel" class="hidden flex flex-wrap items-center gap-4 border border-slate-200 bg-slate-50 px-4 py-3">
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                            <input id="doc-bulk-select-all" type="checkbox" class="h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary">
+                            Tout sélectionner
+                        </label>
+                        <button
+                            type="submit"
+                            form="doc-bulk-form"
+                            id="doc-bulk-delete"
+                            class="cursor-pointer bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled
+                        >
+                            Supprimer la sélection
+                        </button>
+                        <button type="button" id="doc-bulk-cancel" class="cursor-pointer border border-black px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="mt-6 overflow-x-auto overflow-hidden ring-1 ring-slate-200"{% if can_bulk_delete %} id="doc-bulk-table-wrap"{% endif %}>
                 <table class="w-full min-w-[960px] text-left text-sm">
                     <thead class="bg-brand-card text-slate-600 h-[66px]">
                         <tr>
@@ -67,6 +93,11 @@
                             {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% set nextCategoryDir = sort_field == 'category' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% set nextDateDir = sort_field == 'created_at' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            {% if can_bulk_delete %}
+                                <th class="doc-bulk-col hidden w-10 px-4 py-3 font-semibold text-black" scope="col">
+                                    <span class="sr-only">Sélection</span>
+                                </th>
+                            {% endif %}
                             <th class="w-16 px-4 py-3 font-semibold text-black">Aperçu</th>
                             <th class="px-4 py-3 font-semibold">
                                 <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
@@ -150,6 +181,20 @@
                     <tbody class="divide-y divide-slate-200 bg-white">
                         {% for document in documents %}
                             <tr class="hover:bg-neutral-50">
+                                {% if can_bulk_delete and is_granted('DOCUMENT_MANAGE', document) %}
+                                    <td class="doc-bulk-col hidden px-4 py-3">
+                                        <input
+                                            type="checkbox"
+                                            form="doc-bulk-form"
+                                            name="document_ids[]"
+                                            value="{{ document.id }}"
+                                            class="doc-bulk-checkbox h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary"
+                                            aria-label="Sélectionner {{ document.title }}"
+                                        >
+                                    </td>
+                                {% elseif can_bulk_delete %}
+                                    <td class="doc-bulk-col hidden px-4 py-3" aria-hidden="true"></td>
+                                {% endif %}
                                 <td class="px-4 py-3">
                                     {{ doc_preview.preview_cell(document) }}
                                 </td>
@@ -178,7 +223,7 @@
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="6" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
+                                <td colspan="{{ can_bulk_delete ? 7 : 6 }}" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -193,6 +238,75 @@
                 {% endfor %}
                 {{ doc_tree.uncategorized(documents_by_category, show_client_in_tree, can_upload, category_roots is empty) }}
             </div>
+        {% endif %}
+
+        {% if can_bulk_delete %}
+            <script>
+                (() => {
+                    const enterBtn = document.getElementById('doc-bulk-enter');
+                    const panel = document.getElementById('doc-bulk-panel');
+                    const cancelBtn = document.getElementById('doc-bulk-cancel');
+                    const selectAll = document.getElementById('doc-bulk-select-all');
+                    const deleteBtn = document.getElementById('doc-bulk-delete');
+                    const bulkForm = document.getElementById('doc-bulk-form');
+                    const bulkCols = Array.from(document.querySelectorAll('.doc-bulk-col'));
+                    const checkboxes = () => Array.from(document.querySelectorAll('.doc-bulk-checkbox'));
+
+                    const updateDeleteButton = () => {
+                        if (!deleteBtn) {
+                            return;
+                        }
+                        deleteBtn.disabled = checkboxes().every((cb) => !cb.checked);
+                    };
+
+                    const setBulkMode = (active) => {
+                        enterBtn.classList.toggle('hidden', active);
+                        panel.classList.toggle('hidden', !active);
+                        bulkCols.forEach((cell) => cell.classList.toggle('hidden', !active));
+                        if (!active) {
+                            checkboxes().forEach((cb) => {
+                                cb.checked = false;
+                            });
+                            if (selectAll) {
+                                selectAll.checked = false;
+                            }
+                            updateDeleteButton();
+                        }
+                    };
+
+                    enterBtn?.addEventListener('click', () => setBulkMode(true));
+                    cancelBtn?.addEventListener('click', () => setBulkMode(false));
+
+                    selectAll?.addEventListener('change', () => {
+                        checkboxes().forEach((cb) => {
+                            cb.checked = selectAll.checked;
+                        });
+                        updateDeleteButton();
+                    });
+
+                    document.addEventListener('change', (event) => {
+                        if (event.target instanceof HTMLInputElement && event.target.classList.contains('doc-bulk-checkbox')) {
+                            updateDeleteButton();
+                            if (selectAll) {
+                                const boxes = checkboxes();
+                                selectAll.checked = boxes.length > 0 && boxes.every((cb) => cb.checked);
+                            }
+                        }
+                    });
+
+                    bulkForm?.addEventListener('submit', (event) => {
+                        const count = checkboxes().filter((cb) => cb.checked).length;
+                        if (count === 0) {
+                            event.preventDefault();
+                            return;
+                        }
+                        const label = count === 1 ? '1 document' : `${count} documents`;
+                        if (!window.confirm(`Supprimer ${label} ? Cette action est irréversible.`)) {
+                            event.preventDefault();
+                        }
+                    });
+                })();
+            </script>
         {% endif %}
         
     </div>

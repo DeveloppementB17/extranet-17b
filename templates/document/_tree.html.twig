@@ -23,8 +23,7 @@
 {% macro document_row(doc, showClient) %}
     {% set displayName = doc.originalName ?? doc.title %}
     <div class="doc-file-row flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-300 py-3 first:border-t-0 md:flex-nowrap">
-        <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 md:gap-4">
-            <input type="checkbox" name="document_ids[]" value="{{ doc.id }}" form="doc-bulk-form" class="doc-row-checkbox h-4 w-4 shrink-0 border-2 border-black bg-white accent-black">
+        <div class="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
             {{ _self.icon_folder }}
             <span class="min-w-0 flex-1 font-['Proxima_Nova','Inter',sans-serif] text-base text-black">
                 {{ displayName }}
@@ -32,7 +31,7 @@
                     <span class="mt-0.5 block text-xs font-normal text-neutral-500">{{ doc.client ? doc.client.email : doc.entreprise.name }} · {{ doc.createdAt|date('d/m/Y H:i') }}</span>
                 {% endif %}
             </span>
-        </label>
+        </div>
         <div class="flex w-full shrink-0 items-center justify-end gap-4 sm:w-auto md:gap-5">
             {% if doc.externalUrl %}
                 <a href="{{ path('document_download', { id: doc.id }) }}" target="_blank" rel="noopener noreferrer" class="text-black hover:opacity-70" title="Ouvrir le lien">{{ _self.icon_download }}</a>

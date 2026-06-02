@@ -135,7 +135,70 @@ final class DocumentController extends AbstractController
             'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
             'available_entreprises' => $availableEntreprises,
             'available_categories' => $availableCategories,
+            'can_bulk_delete' => $user->is17bAdmin() && $isAdminListView,
         ]);
+    }
+
+    #[Route('/suppression-masse', name: 'document_bulk_delete', methods: ['POST'])]
+    public function bulkDelete(
+        Request $request,
+        DocumentRepository $documentRepository,
+        DocumentStorage $storage,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->is17bAdmin()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$this->isCsrfTokenValid('document_bulk_delete', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        /** @var list<string> $selectedRaw */
+        $selectedRaw = array_values($request->request->all('document_ids'));
+        $selectedIds = array_values(array_unique(array_filter(array_map('intval', $selectedRaw), static fn (int $id): bool => $id > 0)));
+        if ($selectedIds === []) {
+            $this->addFlash('error', 'Sélectionnez au moins un document.');
+
+            return $this->redirectToRoute('document_index', $request->query->all());
+        }
+
+        $documents = $documentRepository->findBy(['id' => $selectedIds]);
+        if ($documents === []) {
+            $this->addFlash('error', 'Aucun document trouvé pour la sélection.');
+
+            return $this->redirectToRoute('document_index', $request->query->all());
+        }
+
+        $deleted = 0;
+        $skipped = 0;
+        foreach ($documents as $document) {
+            if (!$this->isGranted(DocumentVoter::MANAGE, $document)) {
+                ++$skipped;
+                continue;
+            }
+
+            $this->removeDocumentFile($document, $storage);
+            $entityManager->remove($document);
+            ++$deleted;
+        }
+
+        $entityManager->flush();
+
+        if ($deleted === 0) {
+            $this->addFlash('error', 'Aucun document n’a pu être supprimé.');
+        } else {
+            $message = $deleted === 1
+                ? '1 document supprimé.'
+                : sprintf('%d documents supprimés.', $deleted);
+            if ($skipped > 0) {
+                $message .= sprintf(' %d ignoré(s) (droits insuffisants).', $skipped);
+            }
+            $this->addFlash('success', $message);
+        }
+
+        return $this->redirectToRoute('document_index', $request->query->all());
     }
 
     #[Route('/{id}/edit', name: 'document_edit', methods: ['GET', 'POST'])]
@@ -297,22 +360,28 @@ final class DocumentController extends AbstractController
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
 
-        if (!$document->isExternalLink()) {
-            try {
-                $absolutePath = $storage->resolveAbsolutePath($document);
-                if (is_file($absolutePath)) {
-                    @unlink($absolutePath);
-                }
-            } catch (\InvalidArgumentException) {
-                // Rien à supprimer côté disque (données incomplètes/lien externe).
-            }
-        }
-
+        $this->removeDocumentFile($document, $storage);
         $entityManager->remove($document);
         $entityManager->flush();
         $this->addFlash('success', 'Document supprimé.');
 
         return $this->redirectToRoute('document_index');
+    }
+
+    private function removeDocumentFile(Document $document, DocumentStorage $storage): void
+    {
+        if ($document->isExternalLink()) {
+            return;
+        }
+
+        try {
+            $absolutePath = $storage->resolveAbsolutePath($document);
+            if (is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+        } catch (\InvalidArgumentException) {
+            // Rien à supprimer côté disque (données incomplètes/lien externe).
+        }
     }
 
     /**
