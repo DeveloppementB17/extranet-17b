@@ -59,14 +59,14 @@ final class EmailCodeAuthenticator extends AbstractAuthenticator
             new UserBadge($email, function (string $userIdentifier) use ($code): User {
                 $user = $this->userRepository->findOneBy(['email' => $userIdentifier]);
                 if (!$user instanceof User) {
-                    throw new CustomUserMessageAuthenticationException('Email ou code incorrect.');
+                    throw new CustomUserMessageAuthenticationException('Aucun compte ne correspond à cet email.');
                 }
 
                 $hash = $user->getLoginCodeHash();
                 $expiresAt = $user->getLoginCodeExpiresAt();
 
                 if ($hash === null || $expiresAt === null) {
-                    throw new CustomUserMessageAuthenticationException('Email ou code incorrect.');
+                    throw new CustomUserMessageAuthenticationException('Aucun code actif pour cet email. Demande un nouveau code.');
                 }
 
                 if ($expiresAt <= new \DateTimeImmutable()) {
@@ -74,7 +74,7 @@ final class EmailCodeAuthenticator extends AbstractAuthenticator
                 }
 
                 if (!password_verify($code, $hash)) {
-                    throw new CustomUserMessageAuthenticationException('Email ou code incorrect.');
+                    throw new CustomUserMessageAuthenticationException('Code incorrect.');
                 }
 
                 return $user;
@@ -98,7 +98,9 @@ final class EmailCodeAuthenticator extends AbstractAuthenticator
     {
         $request->getSession()->getFlashBag()->add('error', $exception->getMessage());
 
-        return new RedirectResponse($this->urlGenerator->generate('auth_code'));
+        $email = mb_strtolower(trim((string) $request->request->get('email', '')));
+
+        return new RedirectResponse($this->urlGenerator->generate('auth_code_verify_form', ['email' => $email]));
     }
 }
 

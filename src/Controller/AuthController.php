@@ -52,35 +52,39 @@ final class AuthController extends AbstractController
                 return $this->redirectToRoute('auth_code');
             }
 
-            // Anti-enumération: on répond toujours pareil.
-            $this->addFlash('success', "Si un compte existe, un code vient d'être envoyé.");
-
             $user = $userRepository->findOneBy(['email' => $email]);
-            if ($user !== null) {
-                $now = new \DateTimeImmutable();
+            if ($user === null) {
+                $this->addFlash('error', 'Aucun compte ne correspond à cet email.');
 
-                // Throttle simple (60s) pour éviter le spam.
-                $last = $user->getLoginCodeRequestedAt();
-                if ($last !== null && $last > $now->sub(new \DateInterval('PT60S'))) {
-                    return $this->redirectToRoute('auth_code_verify_form', ['email' => $email]);
-                }
+                return $this->redirectToRoute('auth_code');
+            }
 
-                $code = (string) random_int(100000, 999999);
-                $user->setLoginCodeHash(password_hash($code, PASSWORD_DEFAULT));
-                $user->setLoginCodeExpiresAt($now->add(new \DateInterval('PT10M')));
-                $user->setLoginCodeRequestedAt($now);
-                $entityManager->flush();
+            $now = new \DateTimeImmutable();
 
-                try {
-                    $systemMailer->sendText(
-                        $user->getEmail(),
-                        'Votre code de connexion 17b',
-                        "Votre code de connexion : {$code}\n\nIl expire dans 10 minutes.",
-                    );
-                } catch (\Throwable) {
-                    if ($this->getParameter('kernel.debug')) {
-                        $this->addFlash('error', 'L’envoi du code par email a échoué. Réessaie dans un instant ou contacte l’administrateur.');
-                    }
+            // Throttle simple (60s) pour éviter le spam.
+            $last = $user->getLoginCodeRequestedAt();
+            if ($last !== null && $last > $now->sub(new \DateInterval('PT60S'))) {
+                $this->addFlash('success', 'Un code a déjà été envoyé récemment. Vérifie ta boîte email.');
+
+                return $this->redirectToRoute('auth_code_verify_form', ['email' => $email]);
+            }
+
+            $code = (string) random_int(100000, 999999);
+            $user->setLoginCodeHash(password_hash($code, PASSWORD_DEFAULT));
+            $user->setLoginCodeExpiresAt($now->add(new \DateInterval('PT10M')));
+            $user->setLoginCodeRequestedAt($now);
+            $entityManager->flush();
+
+            try {
+                $systemMailer->sendText(
+                    $user->getEmail(),
+                    'Votre code de connexion 17b',
+                    "Votre code de connexion : {$code}\n\nIl expire dans 10 minutes.",
+                );
+                $this->addFlash('success', 'Code envoyé. Vérifie ta boîte email.');
+            } catch (\Throwable) {
+                if ($this->getParameter('kernel.debug')) {
+                    $this->addFlash('error', 'L’envoi du code par email a échoué. Réessaie dans un instant ou contacte l’administrateur.');
                 }
             }
 
