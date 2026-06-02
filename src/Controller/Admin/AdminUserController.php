@@ -227,6 +227,7 @@ final class AdminUserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         EntrepriseRepository $entrepriseRepository,
+        UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
     ): Response {
         $clientEntreprises = $entrepriseRepository->findNonAgencyOrdered();
@@ -296,6 +297,7 @@ final class AdminUserController extends AbstractController
         User $user,
         EntityManagerInterface $entityManager,
         EntrepriseRepository $entrepriseRepository,
+        UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
     ): Response {
         $form = $this->createForm(AdminUserType::class, $user, [
