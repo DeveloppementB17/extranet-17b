@@ -133,6 +133,7 @@
                     Enregistrer
                 </button>
             {{ form_end(form) }}
+            <div id="upload-progress-global" class="mt-4 hidden rounded border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"></div>
         </div>
         </div>
     </div>
@@ -145,7 +146,11 @@
         const zone = document.querySelector('[data-dropzone]');
         const input = document.querySelector('[data-dropzone-input]');
         const list = document.getElementById('dropzone-file-list');
-        if (!zone || !input || !list) return;
+        const form = input ? input.closest('form') : null;
+        const progressGlobal = document.getElementById('upload-progress-global');
+        if (!zone || !input || !list || !form || !progressGlobal) return;
+        if (form.dataset.uploadProgressInit === '1') return;
+        form.dataset.uploadProgressInit = '1';
 
         function formatSize(bytes) {
             if (bytes < 1024) return bytes + ' o';
@@ -180,6 +185,53 @@
             list.innerHTML = html;
         }
 
+        function renderUploadProgress(files) {
+            if (files.length === 0) {
+                progressGlobal.classList.add('hidden');
+                progressGlobal.innerHTML = '';
+                return;
+            }
+            progressGlobal.classList.remove('hidden');
+            let html = '<div class="mb-3 font-semibold">Téléversement en cours…</div><div class="space-y-2">';
+            files.forEach(function (file, index) {
+                html += '<div>'
+                    + '<div class="mb-1 flex items-center justify-between gap-3 text-xs text-slate-600">'
+                    + '<span class="truncate">' + file.name + '</span>'
+                    + '<span id="upload-progress-label-' + index + '">0%</span>'
+                    + '</div>'
+                    + '<div class="h-2 w-full overflow-hidden rounded bg-slate-200">'
+                    + '<div id="upload-progress-bar-' + index + '" class="h-2 bg-brand-primary transition-all duration-150" style="width:0%"></div>'
+                    + '</div>'
+                    + '</div>';
+            });
+            html += '</div>';
+            progressGlobal.innerHTML = html;
+        }
+
+        function updatePerFileProgress(files, loaded, total) {
+            if (files.length === 0 || total <= 0) {
+                return;
+            }
+            const totalBytes = files.reduce(function (sum, f) { return sum + (f.size || 0); }, 0);
+            if (totalBytes <= 0) {
+                return;
+            }
+
+            const effectiveLoaded = Math.max(0, Math.min(totalBytes, Math.round((loaded / total) * totalBytes)));
+            let consumed = 0;
+            files.forEach(function (file, index) {
+                const size = Math.max(1, file.size || 1);
+                const progressForFile = Math.max(0, Math.min(size, effectiveLoaded - consumed));
+                const percent = Math.round((progressForFile / size) * 100);
+                consumed += size;
+
+                const bar = document.getElementById('upload-progress-bar-' + index);
+                const label = document.getElementById('upload-progress-label-' + index);
+                if (bar) bar.style.width = percent + '%';
+                if (label) label.textContent = percent + '%';
+            });
+        }
+
         input.addEventListener('change', function () {
             updateFileList(Array.from(this.files || []));
         });
@@ -205,6 +257,54 @@
             if (!dt || !dt.files || dt.files.length === 0) return;
             input.files = dt.files;
             updateFileList(Array.from(dt.files));
+        });
+
+        form.addEventListener('submit', function (e) {
+            const files = Array.from(input.files || []);
+            if (files.length === 0) {
+                return;
+            }
+
+            e.preventDefault();
+            renderUploadProgress(files);
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+                submitButton.textContent = 'Téléversement…';
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', form.action, true);
+
+            xhr.upload.addEventListener('progress', function (event) {
+                if (!event.lengthComputable) {
+                    return;
+                }
+                updatePerFileProgress(files, event.loaded, event.total);
+            });
+
+            xhr.onload = function () {
+                updatePerFileProgress(files, 1, 1);
+                if (xhr.responseURL) {
+                    window.location.href = xhr.responseURL;
+                    return;
+                }
+                window.location.reload();
+            };
+
+            xhr.onerror = function () {
+                progressGlobal.classList.remove('hidden');
+                progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Le téléversement a échoué. Veuillez réessayer.</div>';
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    submitButton.textContent = 'Enregistrer';
+                }
+            };
+
+            xhr.send(new FormData(form));
         });
     }
 
