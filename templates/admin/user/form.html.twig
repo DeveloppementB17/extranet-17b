@@ -35,10 +35,20 @@
             'data-admin-user-form-agency-entreprise-id-value': agency_entreprise_id|default('')
         } }) }}
             {{ adminForm.form_errors_all(form) }}
-            {% if form.plainPassword.vars.errors|length %}
+            {% set password_errors = [] %}
+            {% for error in form.plainPassword.vars.errors %}
+                {% set password_errors = password_errors|merge([error.message]) %}
+            {% endfor %}
+            {% for error in form.plainPassword.first.vars.errors %}
+                {% set password_errors = password_errors|merge([error.message]) %}
+            {% endfor %}
+            {% for error in form.plainPassword.second.vars.errors %}
+                {% set password_errors = password_errors|merge([error.message]) %}
+            {% endfor %}
+            {% if password_errors|length %}
                 <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
-                    {% for error in form.plainPassword.vars.errors %}
-                        <div>{{ error.message }}</div>
+                    {% for message in password_errors %}
+                        <div>{{ message }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
