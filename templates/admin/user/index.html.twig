@@ -48,53 +48,71 @@
             <input type="hidden" name="dir" value="{{ sort_direction }}">
         </form>
 
-        <form id="bulk-actions-form" method="post" action="{{ path('admin_user_bulk_update', app.request.query.all) }}" class="mt-6 space-y-4">
+        <form id="bulk-actions-form" method="post" action="{{ path('admin_user_bulk_update', app.request.query.all) }}" class="hidden" tabindex="-1" aria-hidden="true">
             <input type="hidden" name="_token" value="{{ csrf_token('admin_user_bulk_update') }}">
-            <div class="grid gap-3 border border-slate-200 bg-slate-50 p-4 md:grid-cols-4">
-                <select name="bulk_action" class="border border-dark px-3 py-2 text-sm" required>
-                    <option value="">Action en masse…</option>
-                    <option value="assign_managed_entreprise">Attribuer une entreprise gérée (utilisateurs 17b)</option>
-                    <option value="set_client_role">Modifier le rôle client</option>
-                    <option value="set_client_entreprise">Modifier la société cliente</option>
-                </select>
-                <select name="managed_entreprise_id" class="border border-dark px-3 py-2 text-sm">
-                    <option value="0">Entreprise à attribuer (17b user)</option>
-                    {% for entreprise in client_entreprises %}
-                        <option value="{{ entreprise.id }}">{{ entreprise.name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="client_role" class="border border-dark px-3 py-2 text-sm">
-                    <option value="">Rôle client cible</option>
-                    <option value="ROLE_CUSTOMER_ADMIN">Administrateur client</option>
-                    <option value="ROLE_CUSTOMER_USER">Utilisateur client</option>
-                </select>
-                <select name="client_entreprise_id" class="border border-dark px-3 py-2 text-sm">
-                    <option value="0">Société cliente cible</option>
-                    {% for entreprise in client_entreprises %}
-                        <option value="{{ entreprise.id }}">{{ entreprise.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="md:col-span-4 flex flex-wrap items-center justify-between gap-3">
+        </form>
+
+        <div class="mt-4 flex flex-wrap items-start gap-3" id="user-bulk-controls">
+            <button type="button" id="user-bulk-enter" class="cursor-pointer border border-black px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-neutral-50">
+                Sélection multiple
+            </button>
+            <div id="user-bulk-panel" class="hidden w-full min-w-0 flex-1 space-y-4 border border-slate-200 bg-slate-50 p-4">
+                <div class="grid gap-3 md:grid-cols-4">
+                    <select form="bulk-actions-form" name="bulk_action" class="border border-dark px-3 py-2 text-sm" required>
+                        <option value="">Action en masse…</option>
+                        <option value="assign_managed_entreprise">Attribuer une entreprise gérée (utilisateurs 17b)</option>
+                        <option value="set_client_role">Modifier le rôle client</option>
+                        <option value="set_client_entreprise">Modifier la société cliente</option>
+                    </select>
+                    <select form="bulk-actions-form" name="managed_entreprise_id" class="border border-dark px-3 py-2 text-sm">
+                        <option value="0">Entreprise à attribuer (17b user)</option>
+                        {% for entreprise in client_entreprises %}
+                            <option value="{{ entreprise.id }}">{{ entreprise.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select form="bulk-actions-form" name="client_role" class="border border-dark px-3 py-2 text-sm">
+                        <option value="">Rôle client cible</option>
+                        <option value="ROLE_CUSTOMER_ADMIN">Administrateur client</option>
+                        <option value="ROLE_CUSTOMER_USER">Utilisateur client</option>
+                    </select>
+                    <select form="bulk-actions-form" name="client_entreprise_id" class="border border-dark px-3 py-2 text-sm">
+                        <option value="0">Société cliente cible</option>
+                        {% for entreprise in client_entreprises %}
+                            <option value="{{ entreprise.id }}">{{ entreprise.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                         <input id="bulk-select-all" type="checkbox" class="h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary">
                         Tout sélectionner
                     </label>
-                    <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
-                        Appliquer l’action en masse
-                    </button>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button
+                            type="submit"
+                            form="bulk-actions-form"
+                            id="user-bulk-apply"
+                            class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled
+                        >
+                            Appliquer l’action en masse
+                        </button>
+                        <button type="button" id="user-bulk-cancel" class="cursor-pointer border border-black px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                            Annuler
+                        </button>
+                    </div>
                 </div>
             </div>
+        </div>
 
-        </form>
-
-        <div class="overflow-x-auto overflow-hidden ring-1 ring-slate-200">
+        <div class="mt-6 overflow-x-auto overflow-hidden ring-1 ring-slate-200">
             <table class="w-full min-w-[820px] text-left text-sm">
                 <thead class="bg-brand-card text-slate-600 h-[66px]">
                     <tr>
                         {% set nextEmailDir = sort_field == 'email' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextRoleDir = sort_field == 'role' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
-                        <th class="px-4 py-3 font-semibold text-black">
+                        <th class="user-bulk-col hidden w-10 px-4 py-3 font-semibold text-black" scope="col">
                             <span class="sr-only">Sélection</span>
                         </th>
                         <th class="px-4 py-3 font-semibold">
@@ -112,8 +130,15 @@
                 <tbody class="divide-y divide-slate-200 bg-white">
                     {% for u in users %}
                         <tr class="hover:bg-neutral-50">
-                            <td class="px-4 py-3">
-                                <input type="checkbox" form="bulk-actions-form" name="selected_ids[]" value="{{ u.id }}" class="bulk-user-checkbox h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary">
+                            <td class="user-bulk-col hidden px-4 py-3">
+                                <input
+                                    type="checkbox"
+                                    form="bulk-actions-form"
+                                    name="selected_ids[]"
+                                    value="{{ u.id }}"
+                                    class="bulk-user-checkbox h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary"
+                                    aria-label="Sélectionner {{ u.email }}"
+                                >
                             </td>
                             <td class="px-4 py-3 font-medium text-slate-900">{{ u.email }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ u.primaryStoredRole|role_label }}</td>
@@ -147,15 +172,67 @@
     </div>
     <script>
         (() => {
+            const enterBtn = document.getElementById('user-bulk-enter');
+            const panel = document.getElementById('user-bulk-panel');
+            const cancelBtn = document.getElementById('user-bulk-cancel');
             const selectAll = document.getElementById('bulk-select-all');
-            if (!selectAll) {
-                return;
-            }
-            const checkboxes = Array.from(document.querySelectorAll('.bulk-user-checkbox'));
-            selectAll.addEventListener('change', () => {
-                checkboxes.forEach((checkbox) => {
-                    checkbox.checked = selectAll.checked;
+            const applyBtn = document.getElementById('user-bulk-apply');
+            const bulkForm = document.getElementById('bulk-actions-form');
+            const bulkCols = Array.from(document.querySelectorAll('.user-bulk-col'));
+            const checkboxes = () => Array.from(document.querySelectorAll('.bulk-user-checkbox'));
+
+            const updateApplyButton = () => {
+                if (!applyBtn) {
+                    return;
+                }
+                applyBtn.disabled = checkboxes().every((cb) => !cb.checked);
+            };
+
+            const setBulkMode = (active) => {
+                enterBtn?.classList.toggle('hidden', active);
+                panel?.classList.toggle('hidden', !active);
+                bulkCols.forEach((cell) => cell.classList.toggle('hidden', !active));
+                if (!active) {
+                    checkboxes().forEach((cb) => {
+                        cb.checked = false;
+                    });
+                    if (selectAll) {
+                        selectAll.checked = false;
+                    }
+                    updateApplyButton();
+                }
+            };
+
+            enterBtn?.addEventListener('click', () => setBulkMode(true));
+            cancelBtn?.addEventListener('click', () => setBulkMode(false));
+
+            selectAll?.addEventListener('change', () => {
+                checkboxes().forEach((cb) => {
+                    cb.checked = selectAll.checked;
                 });
+                updateApplyButton();
+            });
+
+            document.addEventListener('change', (event) => {
+                if (event.target instanceof HTMLInputElement && event.target.classList.contains('bulk-user-checkbox')) {
+                    updateApplyButton();
+                    if (selectAll) {
+                        const boxes = checkboxes();
+                        selectAll.checked = boxes.length > 0 && boxes.every((cb) => cb.checked);
+                    }
+                }
+            });
+
+            bulkForm?.addEventListener('submit', (event) => {
+                const count = checkboxes().filter((cb) => cb.checked).length;
+                if (count === 0) {
+                    event.preventDefault();
+                    return;
+                }
+                const label = count === 1 ? '1 utilisateur' : `${count} utilisateurs`;
+                if (!window.confirm(`Appliquer l’action en masse à ${label} ?`)) {
+                    event.preventDefault();
+                }
             });
         })();
     </script>
