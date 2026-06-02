@@ -35,6 +35,13 @@
             'data-admin-user-form-agency-entreprise-id-value': agency_entreprise_id|default('')
         } }) }}
             {{ adminForm.form_errors_all(form) }}
+            {% if form.plainPassword.vars.errors|length %}
+                <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+                    {% for error in form.plainPassword.vars.errors %}
+                        <div>{{ error.message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             <div class="relative z-0 w-full group">
                 {{ form_widget(form.email, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
                 {{ form_label(form.email, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
