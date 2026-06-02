@@ -237,7 +237,7 @@ final class AdminUserController extends AbstractController
             'entreprise_choices' => $entrepriseRepository->findAllOrdered(),
             'client_entreprise_choices' => $clientEntreprises,
             'primary_role_data' => 'ROLE_CUSTOMER_USER',
-            'managed_entreprises_data' => $clientEntreprises,
+            'managed_entreprises_data' => [],
         ]);
         $form->handleRequest($request);
 
@@ -419,9 +419,6 @@ final class AdminUserController extends AbstractController
         }
 
         if ($primaryRole === 'ROLE_17B_USER') {
-            if ($managed === []) {
-                return 'Sélectionnez au moins une entreprise cliente gérée.';
-            }
             foreach ($managed as $e) {
                 if ($e->isAgency()) {
                     return 'Les entreprises gérées doivent être des entreprises clientes.';
