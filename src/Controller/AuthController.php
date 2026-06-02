@@ -64,7 +64,7 @@ final class AuthController extends AbstractController
             // Throttle simple (60s) pour éviter le spam.
             $last = $user->getLoginCodeRequestedAt();
             if ($last !== null && $last > $now->sub(new \DateInterval('PT60S'))) {
-                $this->addFlash('success', 'Un code a déjà été envoyé récemment. Vérifie ta boîte email.');
+                $this->addFlash('success', 'Un code a déjà été envoyé récemment. Vérifiez votre boîte email.');
 
                 return $this->redirectToRoute('auth_code_verify_form', ['email' => $email]);
             }
@@ -81,10 +81,10 @@ final class AuthController extends AbstractController
                     'Votre code de connexion 17b',
                     "Votre code de connexion : {$code}\n\nIl expire dans 10 minutes.",
                 );
-                $this->addFlash('success', 'Code envoyé. Vérifie ta boîte email.');
+                $this->addFlash('success', 'Code envoyé. Vérifiez votre boîte email.');
             } catch (\Throwable) {
                 if ($this->getParameter('kernel.debug')) {
-                    $this->addFlash('error', 'L’envoi du code par email a échoué. Réessaie dans un instant ou contacte l’administrateur.');
+                    $this->addFlash('error', 'L’envoi du code par email a échoué. Réessayez dans un instant ou contactez l’administrateur.');
                 }
             }
 

@@ -41,7 +41,7 @@ final class TimeCreditController extends AbstractController
         if ($actor->is17bStaff()) {
             $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($actor);
             if ($actor->is17bUser() && !$forcedEntreprise instanceof Entreprise && $actor->getManagedEntrepriseIds() === []) {
-                $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à ton compte.');
+                $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à votre compte.');
 
                 return $this->redirectToRoute('app_home');
             }
@@ -213,7 +213,7 @@ final class TimeCreditController extends AbstractController
 
         $selectedEntreprise = $managedClientContext->getSelectedManagedEntreprise($actor);
         if (!$selectedEntreprise instanceof Entreprise) {
-            $this->addFlash('error', 'Sélectionne d’abord une entreprise depuis le tableau de bord.');
+            $this->addFlash('error', 'Sélectionnez d’abord une entreprise depuis le tableau de bord.');
 
             return $this->redirectToRoute('app_home');
         }
@@ -234,7 +234,7 @@ final class TimeCreditController extends AbstractController
         $form->handleRequest($request);
 
         if (!$form->isSubmitted() || !$form->isValid()) {
-            $this->addFlash('error', 'Intervention invalide : vérifie les champs saisis.');
+            $this->addFlash('error', 'Intervention invalide : vérifiez les champs saisis.');
 
             return $this->redirect($this->resolveReturnPath($returnTo));
         }
@@ -283,7 +283,7 @@ final class TimeCreditController extends AbstractController
 
         $selectedEntreprise = $managedClientContext->getSelectedManagedEntreprise($actor);
         if ($actor->is17bUser() && !$selectedEntreprise instanceof Entreprise && $actor->getManagedEntrepriseIds() === []) {
-            $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à ton compte.');
+            $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à votre compte.');
 
             return $this->redirectToRoute('app_home');
         }

@@ -67,7 +67,7 @@ final class DocumentBatchUploadType extends AbstractType
             'required' => false,
             'multiple' => true,
             'help' => sprintf(
-                '20 Mo max par fichier. Extensions autorisées : %s. Sélectionne un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseigne une URL externe.',
+                '20 Mo max par fichier. Extensions autorisées : %s. Sélectionnez un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseignez une URL externe.',
                 DocumentUploadPolicy::extensionsLabel(),
             ),
             'help_attr' => ['class' => 'mt-2 text-sm text-slate-600'],

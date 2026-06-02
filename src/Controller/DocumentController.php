@@ -41,7 +41,7 @@ final class DocumentController extends AbstractController
         if ($user->is17bStaff()) {
             $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($user);
             if ($user->is17bUser() && !$forcedEntreprise instanceof Entreprise && $user->getManagedEntrepriseIds() === []) {
-                $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à ton compte.');
+                $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à votre compte.');
 
                 return $this->redirectToRoute('app_home');
             }

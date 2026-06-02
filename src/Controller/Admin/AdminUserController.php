@@ -111,7 +111,7 @@ final class AdminUserController extends AbstractController
         $selectedRaw = array_values($request->request->all('selected_ids'));
         $selectedIds = array_values(array_unique(array_filter(array_map('intval', $selectedRaw), static fn (int $id): bool => $id > 0)));
         if ($selectedIds === []) {
-            $this->addFlash('error', 'Sélectionne au moins un utilisateur.');
+            $this->addFlash('error', 'Sélectionnez au moins un utilisateur.');
 
             return $this->redirectToRoute('admin_user_index', $request->query->all());
         }
@@ -350,7 +350,7 @@ final class AdminUserController extends AbstractController
 
         $actor = $this->getUser();
         if (!$actor instanceof User || $actor->getId() === $user->getId()) {
-            $this->addFlash('error', 'Tu ne peux pas supprimer ton propre compte depuis cette interface.');
+            $this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte depuis cette interface.');
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -401,7 +401,7 @@ final class AdminUserController extends AbstractController
 
         if ($primaryRole === 'ROLE_17B_USER') {
             if ($managed === []) {
-                return 'Sélectionne au moins une entreprise cliente gérée.';
+                return 'Sélectionnez au moins une entreprise cliente gérée.';
             }
             foreach ($managed as $e) {
                 if ($e->isAgency()) {
