@@ -141,7 +141,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    function initDocumentDropzonePreview() {
         const zone = document.querySelector('[data-dropzone]');
         const input = document.querySelector('[data-dropzone-input]');
         const list = document.getElementById('dropzone-file-list');
@@ -206,6 +206,9 @@
             input.files = dt.files;
             updateFileList(Array.from(dt.files));
         });
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initDocumentDropzonePreview);
+    document.addEventListener('turbo:load', initDocumentDropzonePreview);
     </script>
 {% endblock %}
