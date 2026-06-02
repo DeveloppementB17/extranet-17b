@@ -2,12 +2,12 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Document;
 use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Form\Admin\AdminUserType;
 use App\Repository\EntrepriseRepository;
 use App\Repository\UserRepository;
+use App\Service\UserReferenceReassignment;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -360,9 +360,50 @@ final class AdminUserController extends AbstractController
         return $this->renderUserForm($form, 'Modifier l’utilisateur', $entrepriseRepository, $user);
     }
 
+    #[Route('/{id}/supprimer', name: 'admin_user_delete_confirm', methods: ['GET'])]
+    public function deleteConfirm(
+        User $user,
+        UserRepository $userRepository,
+        UserReferenceReassignment $referenceReassignment,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $actor = $this->getUser();
+        if (!$actor instanceof User || $actor->getId() === $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte depuis cette interface.');
+
+            return $this->redirectToRoute('admin_user_index');
+        }
+
+        $requiresSuccessor = $referenceReassignment->requiresSuccessor($user, $entityManager);
+        $successors = $userRepository->find17bStaffExcluding($user);
+
+        if ($requiresSuccessor && $successors === []) {
+            $this->addFlash(
+                'error',
+                'Impossible de supprimer cet utilisateur : aucun autre compte équipe 17b n’est disponible pour reprendre ses documents ou crédits temps.',
+            );
+
+            return $this->redirectToRoute('admin_user_index');
+        }
+
+        return $this->render('admin/user/delete_confirm.html.twig', [
+            'user' => $user,
+            'requires_successor' => $requiresSuccessor,
+            'document_count' => $referenceReassignment->countDocumentReferences($user, $entityManager),
+            'uploaded_document_count' => $referenceReassignment->countUploadedDocuments($user, $entityManager),
+            'time_credit_reference_count' => $referenceReassignment->countTimeCreditReferences($user, $entityManager),
+            'successors' => $successors,
+        ]);
+    }
+
     #[Route('/{id}/supprimer', name: 'admin_user_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
-    {
+    public function delete(
+        Request $request,
+        User $user,
+        UserRepository $userRepository,
+        UserReferenceReassignment $referenceReassignment,
+        EntityManagerInterface $entityManager,
+    ): Response {
         if (!$this->isCsrfTokenValid('delete_user'.$user->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
@@ -374,17 +415,16 @@ final class AdminUserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
-        $docCount = (int) $entityManager->createQueryBuilder()
-            ->select('COUNT(d.id)')
-            ->from(Document::class, 'd')
-            ->where('d.client = :u OR d.uploadedBy = :u')
-            ->setParameter('u', $user)
-            ->getQuery()
-            ->getSingleScalarResult();
-        if ($docCount > 0) {
-            $this->addFlash('error', 'Impossible de supprimer : des documents référencent encore cet utilisateur.');
+        if ($referenceReassignment->requiresSuccessor($user, $entityManager)) {
+            $successorId = (int) $request->request->get('successor_id', 0);
+            $successor = $successorId > 0 ? $userRepository->find($successorId) : null;
+            if (!$successor instanceof User || !$successor->is17bStaff()) {
+                $this->addFlash('error', 'Choisissez un compte équipe 17b pour reprendre les documents et crédits temps.');
 
-            return $this->redirectToRoute('admin_user_index');
+                return $this->redirectToRoute('admin_user_delete_confirm', ['id' => $user->getId()]);
+            }
+
+            $referenceReassignment->reassign($user, $successor, $entityManager);
         }
 
         $entityManager->remove($user);

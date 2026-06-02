@@ -149,12 +149,9 @@
                                         <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/></svg>
                                     </a>
                                     {% if app.user and app.user.id != u.id %}
-                                        <form class="inline-flex" method="post" action="{{ path('admin_user_delete', { id: u.id }) }}" onsubmit="return confirm('Supprimer cet utilisateur ?');">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_user' ~ u.id) }}">
-                                            <button type="submit" title="Supprimer" class="cursor-pointer text-red-700 hover:text-red-900">
-                                                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/></svg>
-                                            </button>
-                                        </form>
+                                        <a href="{{ path('admin_user_delete_confirm', { id: u.id }) }}" title="Supprimer" class="text-red-700 hover:text-red-900">
+                                            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/></svg>
+                                        </a>
                                     {% endif %}
                                 </div>
                             </td>

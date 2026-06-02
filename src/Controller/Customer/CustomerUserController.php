@@ -2,10 +2,10 @@
 
 namespace App\Controller\Customer;
 
-use App\Entity\Document;
 use App\Entity\User;
 use App\Form\Customer\CustomerUserType;
 use App\Repository\UserRepository;
+use App\Service\UserReferenceReassignment;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -150,9 +150,51 @@ final class CustomerUserController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/supprimer', name: 'customer_user_delete_confirm', methods: ['GET'])]
+    public function deleteConfirm(
+        User $user,
+        UserRepository $userRepository,
+        UserReferenceReassignment $referenceReassignment,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $actor = $this->getActor();
+        $this->denyCustomerUserAccess($actor, $user);
+
+        $entrepriseId = $user->getEntreprise()?->getId();
+        if ($entrepriseId === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $requiresSuccessor = $referenceReassignment->requiresSuccessor($user, $entityManager);
+        $successors = $userRepository->findCustomerActorsForEntrepriseExcluding($entrepriseId, $user);
+
+        if ($requiresSuccessor && $successors === []) {
+            $this->addFlash(
+                'error',
+                'Impossible de supprimer cet utilisateur : aucun autre compte client de la société n’est disponible pour reprendre ses documents ou crédits temps.',
+            );
+
+            return $this->redirectToRoute('customer_user_index');
+        }
+
+        return $this->render('customer_user/delete_confirm.html.twig', [
+            'user' => $user,
+            'requires_successor' => $requiresSuccessor,
+            'document_count' => $referenceReassignment->countDocumentReferences($user, $entityManager),
+            'uploaded_document_count' => $referenceReassignment->countUploadedDocuments($user, $entityManager),
+            'time_credit_reference_count' => $referenceReassignment->countTimeCreditReferences($user, $entityManager),
+            'successors' => $successors,
+        ]);
+    }
+
     #[Route('/{id}/supprimer', name: 'customer_user_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
-    {
+    public function delete(
+        Request $request,
+        User $user,
+        UserRepository $userRepository,
+        UserReferenceReassignment $referenceReassignment,
+        EntityManagerInterface $entityManager,
+    ): Response {
         $actor = $this->getActor();
         $this->denyCustomerUserAccess($actor, $user);
 
@@ -160,17 +202,25 @@ final class CustomerUserController extends AbstractController
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
 
-        $docCount = (int) $entityManager->createQueryBuilder()
-            ->select('COUNT(d.id)')
-            ->from(Document::class, 'd')
-            ->where('d.client = :u OR d.uploadedBy = :u')
-            ->setParameter('u', $user)
-            ->getQuery()
-            ->getSingleScalarResult();
-        if ($docCount > 0) {
-            $this->addFlash('error', 'Impossible de supprimer : des documents référencent encore cet utilisateur.');
+        $entrepriseId = $user->getEntreprise()?->getId();
+        if ($entrepriseId === null) {
+            throw $this->createAccessDeniedException();
+        }
 
-            return $this->redirectToRoute('customer_user_index');
+        if ($referenceReassignment->requiresSuccessor($user, $entityManager)) {
+            $successorId = (int) $request->request->get('successor_id', 0);
+            $successor = $successorId > 0 ? $userRepository->find($successorId) : null;
+            if (
+                !$successor instanceof User
+                || !$successor->isCustomerActor()
+                || $successor->getEntreprise()?->getId() !== $entrepriseId
+            ) {
+                $this->addFlash('error', 'Choisissez un compte client de la société pour reprendre les documents et crédits temps.');
+
+                return $this->redirectToRoute('customer_user_delete_confirm', ['id' => $user->getId()]);
+            }
+
+            $referenceReassignment->reassign($user, $successor, $entityManager);
         }
 
         $entityManager->remove($user);
