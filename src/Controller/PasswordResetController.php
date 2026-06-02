@@ -52,8 +52,7 @@ final class PasswordResetController extends AbstractController
                 $user->setPasswordResetRequestedAt($now);
                 $entityManager->flush();
 
-                $resetUrl = $this->generateUrl('auth_reset_password', ['token' => $token], 0);
-                $absoluteResetUrl = $request->getSchemeAndHttpHost().$resetUrl;
+                $absoluteResetUrl = $this->generateUrl('auth_reset_password', ['token' => $token], 0);
 
                 try {
                     $systemMailer->sendText(
@@ -63,7 +62,7 @@ final class PasswordResetController extends AbstractController
                     );
                 } catch (\Throwable) {
                     if ($this->getParameter('kernel.debug')) {
-                        $this->addFlash('error', 'L’envoi de l’email de réinitialisation a échoué. Réessaie dans un instant.');
+                        $this->addFlash('error', 'L’envoi de l’email de réinitialisation a échoué. Réessayez dans un instant.');
                     }
                 }
             }
@@ -112,7 +111,7 @@ final class PasswordResetController extends AbstractController
             $user->clearPasswordReset();
             $entityManager->flush();
 
-            $this->addFlash('success', 'Mot de passe mis à jour. Tu peux te connecter.');
+            $this->addFlash('success', 'Mot de passe mis à jour. Vous pouvez vous connecter.');
 
             return $this->redirectToRoute('app_login');
         }
