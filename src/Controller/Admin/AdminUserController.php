@@ -23,7 +23,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AdminUserController extends AbstractController
 {
     #[Route('', name: 'admin_user_index', methods: ['GET'])]
-    public function index(Request $request, UserRepository $userRepository): Response
+    public function index(
+        Request $request,
+        UserRepository $userRepository,
+        EntrepriseRepository $entrepriseRepository,
+    ): Response
     {
         $users = $userRepository->findAllForAdminOrdered();
         $search = trim((string) $request->query->get('q', ''));
@@ -88,7 +92,133 @@ final class AdminUserController extends AbstractController
             'sort_direction' => $direction,
             'available_entreprises' => $availableEntreprises,
             'available_roles' => User::assignableRoleValues(),
+            'client_entreprises' => $entrepriseRepository->findNonAgencyOrdered(),
         ]);
+    }
+
+    #[Route('/actions-masse', name: 'admin_user_bulk_update', methods: ['POST'])]
+    public function bulkUpdate(
+        Request $request,
+        UserRepository $userRepository,
+        EntrepriseRepository $entrepriseRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('admin_user_bulk_update', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        /** @var list<string> $selectedRaw */
+        $selectedRaw = array_values($request->request->all('selected_ids'));
+        $selectedIds = array_values(array_unique(array_filter(array_map('intval', $selectedRaw), static fn (int $id): bool => $id > 0)));
+        if ($selectedIds === []) {
+            $this->addFlash('error', 'Sélectionne au moins un utilisateur.');
+
+            return $this->redirectToRoute('admin_user_index', $request->query->all());
+        }
+
+        $action = (string) $request->request->get('bulk_action', '');
+        $users = $userRepository->findBy(['id' => $selectedIds]);
+        if ($users === []) {
+            $this->addFlash('error', 'Aucun utilisateur trouvé pour la sélection.');
+
+            return $this->redirectToRoute('admin_user_index', $request->query->all());
+        }
+
+        $updated = 0;
+        $skipped = 0;
+
+        if ($action === 'assign_managed_entreprise') {
+            $entrepriseId = (int) $request->request->get('managed_entreprise_id', 0);
+            $entreprise = $entrepriseRepository->find($entrepriseId);
+            if (!$entreprise instanceof Entreprise || $entreprise->isAgency()) {
+                $this->addFlash('error', 'Entreprise cliente invalide pour l’attribution.');
+
+                return $this->redirectToRoute('admin_user_index', $request->query->all());
+            }
+
+            foreach ($users as $user) {
+                if (!$user->is17bUser()) {
+                    ++$skipped;
+                    continue;
+                }
+                $before = \count($user->getManagedEntrepriseIds());
+                $user->addManagedEntreprise($entreprise);
+                $after = \count($user->getManagedEntrepriseIds());
+                if ($after > $before) {
+                    ++$updated;
+                } else {
+                    ++$skipped;
+                }
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', sprintf(
+                'Attribution entreprise 17b effectuée (%d modifiés, %d ignorés).',
+                $updated,
+                $skipped
+            ));
+
+            return $this->redirectToRoute('admin_user_index', $request->query->all());
+        }
+
+        if ($action === 'set_client_role') {
+            $role = (string) $request->request->get('client_role', '');
+            if (!\in_array($role, ['ROLE_CUSTOMER_ADMIN', 'ROLE_CUSTOMER_USER'], true)) {
+                $this->addFlash('error', 'Rôle client invalide.');
+
+                return $this->redirectToRoute('admin_user_index', $request->query->all());
+            }
+
+            foreach ($users as $user) {
+                if (!$user->isCustomerActor()) {
+                    ++$skipped;
+                    continue;
+                }
+                $user->setRoles([$role]);
+                ++$updated;
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', sprintf(
+                'Rôle client mis à jour (%d modifiés, %d ignorés).',
+                $updated,
+                $skipped
+            ));
+
+            return $this->redirectToRoute('admin_user_index', $request->query->all());
+        }
+
+        if ($action === 'set_client_entreprise') {
+            $entrepriseId = (int) $request->request->get('client_entreprise_id', 0);
+            $entreprise = $entrepriseRepository->find($entrepriseId);
+            if (!$entreprise instanceof Entreprise || $entreprise->isAgency()) {
+                $this->addFlash('error', 'Entreprise cliente invalide.');
+
+                return $this->redirectToRoute('admin_user_index', $request->query->all());
+            }
+
+            foreach ($users as $user) {
+                if (!$user->isCustomerActor()) {
+                    ++$skipped;
+                    continue;
+                }
+                $user->setEntreprise($entreprise);
+                ++$updated;
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', sprintf(
+                'Société cliente mise à jour (%d modifiés, %d ignorés).',
+                $updated,
+                $skipped
+            ));
+
+            return $this->redirectToRoute('admin_user_index', $request->query->all());
+        }
+
+        $this->addFlash('error', 'Action en masse inconnue.');
+
+        return $this->redirectToRoute('admin_user_index', $request->query->all());
     }
 
     #[Route('/nouveau', name: 'admin_user_new', methods: ['GET', 'POST'])]

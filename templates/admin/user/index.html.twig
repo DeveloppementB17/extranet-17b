@@ -48,13 +48,55 @@
             <input type="hidden" name="dir" value="{{ sort_direction }}">
         </form>
 
-        <div class="mt-6 overflow-x-auto overflow-hidden ring-1 ring-slate-200">
-            <table class="w-full min-w-[720px] text-left text-sm">
+        <form id="bulk-actions-form" method="post" action="{{ path('admin_user_bulk_update', app.request.query.all) }}" class="mt-6 space-y-4">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_user_bulk_update') }}">
+            <div class="grid gap-3 border border-slate-200 bg-slate-50 p-4 md:grid-cols-4">
+                <select name="bulk_action" class="border border-dark px-3 py-2 text-sm" required>
+                    <option value="">Action en masse…</option>
+                    <option value="assign_managed_entreprise">Attribuer une entreprise gérée (utilisateurs 17b)</option>
+                    <option value="set_client_role">Modifier le rôle client</option>
+                    <option value="set_client_entreprise">Modifier la société cliente</option>
+                </select>
+                <select name="managed_entreprise_id" class="border border-dark px-3 py-2 text-sm">
+                    <option value="0">Entreprise à attribuer (17b user)</option>
+                    {% for entreprise in client_entreprises %}
+                        <option value="{{ entreprise.id }}">{{ entreprise.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="client_role" class="border border-dark px-3 py-2 text-sm">
+                    <option value="">Rôle client cible</option>
+                    <option value="ROLE_CUSTOMER_ADMIN">Administrateur client</option>
+                    <option value="ROLE_CUSTOMER_USER">Utilisateur client</option>
+                </select>
+                <select name="client_entreprise_id" class="border border-dark px-3 py-2 text-sm">
+                    <option value="0">Société cliente cible</option>
+                    {% for entreprise in client_entreprises %}
+                        <option value="{{ entreprise.id }}">{{ entreprise.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="md:col-span-4 flex flex-wrap items-center justify-between gap-3">
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                        <input id="bulk-select-all" type="checkbox" class="h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary">
+                        Tout sélectionner
+                    </label>
+                    <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                        Appliquer l’action en masse
+                    </button>
+                </div>
+            </div>
+
+        </form>
+
+        <div class="overflow-x-auto overflow-hidden ring-1 ring-slate-200">
+            <table class="w-full min-w-[820px] text-left text-sm">
                 <thead class="bg-brand-card text-slate-600 h-[66px]">
                     <tr>
                         {% set nextEmailDir = sort_field == 'email' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextRoleDir = sort_field == 'role' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                         {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                        <th class="px-4 py-3 font-semibold text-black">
+                            <span class="sr-only">Sélection</span>
+                        </th>
                         <th class="px-4 py-3 font-semibold">
                             <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_user_index', app.request.query.all|merge({ sort: 'email', dir: nextEmailDir })) }}">Email</a>
                         </th>
@@ -70,6 +112,9 @@
                 <tbody class="divide-y divide-slate-200 bg-white">
                     {% for u in users %}
                         <tr class="hover:bg-neutral-50">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" form="bulk-actions-form" name="selected_ids[]" value="{{ u.id }}" class="bulk-user-checkbox h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary">
+                            </td>
                             <td class="px-4 py-3 font-medium text-slate-900">{{ u.email }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ u.primaryStoredRole|role_label }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ u.entreprise.name }}{% if u.entreprise.agency %} <span class="text-slate-500">(agence)</span>{% endif %}</td>
@@ -91,7 +136,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="4" class="px-4 py-6 text-slate-600">Aucun utilisateur.</td>
+                            <td colspan="5" class="px-4 py-6 text-slate-600">Aucun utilisateur.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -100,4 +145,18 @@
 
         
     </div>
+    <script>
+        (() => {
+            const selectAll = document.getElementById('bulk-select-all');
+            if (!selectAll) {
+                return;
+            }
+            const checkboxes = Array.from(document.querySelectorAll('.bulk-user-checkbox'));
+            selectAll.addEventListener('change', () => {
+                checkboxes.forEach((checkbox) => {
+                    checkbox.checked = selectAll.checked;
+                });
+            });
+        })();
+    </script>
 {% endblock %}
