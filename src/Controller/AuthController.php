@@ -2,13 +2,12 @@
 
 namespace App\Controller;
 
+use App\Mailer\SystemMailer;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -41,7 +40,7 @@ final class AuthController extends AbstractController
         CsrfTokenManagerInterface $csrfTokenManager,
         UserRepository $userRepository,
         EntityManagerInterface $entityManager,
-        MailerInterface $mailer,
+        SystemMailer $systemMailer,
     ): Response {
         if ($request->isMethod('POST')) {
             $email = mb_strtolower(trim((string) $request->request->get('email', '')));
@@ -72,13 +71,17 @@ final class AuthController extends AbstractController
                 $user->setLoginCodeRequestedAt($now);
                 $entityManager->flush();
 
-                $message = (new Email())
-                    ->from('no-reply@17b.test')
-                    ->to($user->getEmail())
-                    ->subject('Votre code de connexion 17b')
-                    ->text("Votre code de connexion : {$code}\n\nIl expire dans 10 minutes.");
-
-                $mailer->send($message);
+                try {
+                    $systemMailer->sendText(
+                        $user->getEmail(),
+                        'Votre code de connexion 17b',
+                        "Votre code de connexion : {$code}\n\nIl expire dans 10 minutes.",
+                    );
+                } catch (\Throwable) {
+                    if ($this->getParameter('kernel.debug')) {
+                        $this->addFlash('error', 'L’envoi du code par email a échoué. Réessaie dans un instant ou contacte l’administrateur.');
+                    }
+                }
             }
 
             return $this->redirectToRoute('auth_code_verify_form', ['email' => $email]);

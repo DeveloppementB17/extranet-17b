@@ -8,15 +8,7 @@
             Saisis le code à 6 chiffres reçu par email.
         </p>
 
-        {% if app.environment == 'dev' %}
-            <div class="mt-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <div class="font-semibold">Mode dev</div>
-                <div class="mt-1">
-                    Tu peux récupérer le code dans Mailhog/Mailpit :
-                    <a class="font-medium underline" href="http://127.0.0.1:8025" target="_blank" rel="noopener noreferrer">ouvrir l’interface email</a>.
-                </div>
-            </div>
-        {% endif %}
+        {{ include('auth/_dev_mail_notice.html.twig') }}
 
         {% for message in app.flashes('error') %}
             <div class="mt-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>

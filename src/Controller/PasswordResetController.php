@@ -2,13 +2,12 @@
 
 namespace App\Controller;
 
+use App\Mailer\SystemMailer;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -22,7 +21,7 @@ final class PasswordResetController extends AbstractController
         CsrfTokenManagerInterface $csrfTokenManager,
         UserRepository $userRepository,
         EntityManagerInterface $entityManager,
-        MailerInterface $mailer,
+        SystemMailer $systemMailer,
     ): Response {
         if ($request->isMethod('POST')) {
             $email = mb_strtolower(trim((string) $request->request->get('email', '')));
@@ -56,13 +55,17 @@ final class PasswordResetController extends AbstractController
                 $resetUrl = $this->generateUrl('auth_reset_password', ['token' => $token], 0);
                 $absoluteResetUrl = $request->getSchemeAndHttpHost().$resetUrl;
 
-                $message = (new Email())
-                    ->from('no-reply@17b.test')
-                    ->to($user->getEmail())
-                    ->subject('Réinitialisation de votre mot de passe')
-                    ->text("Pour réinitialiser votre mot de passe, utilisez ce lien :\n\n{$absoluteResetUrl}\n\nCe lien expire dans 30 minutes.");
-
-                $mailer->send($message);
+                try {
+                    $systemMailer->sendText(
+                        $user->getEmail(),
+                        'Réinitialisation de votre mot de passe',
+                        "Pour réinitialiser votre mot de passe, utilisez ce lien :\n\n{$absoluteResetUrl}\n\nCe lien expire dans 30 minutes.",
+                    );
+                } catch (\Throwable) {
+                    if ($this->getParameter('kernel.debug')) {
+                        $this->addFlash('error', 'L’envoi de l’email de réinitialisation a échoué. Réessaie dans un instant.');
+                    }
+                }
             }
 
             return $this->redirectToRoute('auth_forgot_password');

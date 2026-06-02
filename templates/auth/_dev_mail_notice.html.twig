@@ -1,0 +1,10 @@
+{% set mail_capture = 'null://' in mailer_dsn or 'mailhog' in mailer_dsn|lower or 'mailpit' in mailer_dsn|lower %}
+{% if app.environment == 'dev' and mail_capture %}
+    <div class="mt-6 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div class="font-semibold">Mode dev (capture locale)</div>
+        <div class="mt-1">
+            L’email n’est pas envoyé sur le réseau : récupère-le dans Mailhog/Mailpit
+            <a class="font-medium underline" href="http://127.0.0.1:8025" target="_blank" rel="noopener noreferrer">ouvrir l’interface email</a>.
+        </div>
+    </div>
+{% endif %}
