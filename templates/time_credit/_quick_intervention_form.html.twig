@@ -21,13 +21,15 @@
                 {% if form.timeCredit is defined and form.timeCredit.vars.attr.class|default('') != 'hidden' %}
                     <div>
                         {{ form_label(form.timeCredit, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                        {{ form_widget(form.timeCredit, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                        {{ form_widget(form.timeCredit, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0', 'data-intervention-credit-select': '1' } }) }}
                         {{ form_errors(form.timeCredit) }}
                     </div>
                 {% elseif form.timeCreditId is defined %}
                     {{ form_widget(form.timeCreditId) }}
                 {% endif %}
-                {% include 'time_credit/_intervention_form_fields.html.twig' %}
+                {% include 'time_credit/_intervention_form_fields.html.twig' with {
+                    max_duration_minutes: fixed_credit is defined and fixed_credit ? fixed_credit.remainingMinutes : 0
+                } %}
                 {% if form.returnTo is defined %}
                     {{ form_widget(form.returnTo) }}
                 {% endif %}

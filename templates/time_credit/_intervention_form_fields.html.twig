@@ -3,10 +3,14 @@
     {{ form_widget(form.occurredAt, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
     {{ form_errors(form.occurredAt) }}
 </div>
-<div>
+<div
+    data-intervention-duration
+    data-max-minutes="{{ max_duration_minutes|default(0) }}"
+    class="space-y-2"
+>
     {{ form_label(form.durationValue, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
     <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
-        {{ form_widget(form.durationValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+        {{ form_widget(form.durationValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0', 'data-intervention-duration-value': '1' } }) }}
         <div class="border border-black" data-duration-unit-switch>
             <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
                 Minutes
@@ -15,6 +19,12 @@
             </button>
         </div>
     </div>
+    <p
+        data-intervention-duration-warning
+        class="hidden rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900"
+        role="alert"
+        aria-live="polite"
+    ></p>
     {{ form_widget(form.durationMinutes) }}
     {{ form_widget(form.durationUnit) }}
     {{ form_errors(form.durationValue) }}

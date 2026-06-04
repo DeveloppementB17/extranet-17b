@@ -44,6 +44,9 @@ final class TimeCreditInterventionType extends AbstractType
                         $alternate
                     );
                 },
+                'choice_attr' => static function (TimeCredit $credit): array {
+                    return ['data-remaining-minutes' => (string) $credit->getRemainingMinutes()];
+                },
                 'label' => 'Crédit temps',
                 'placeholder' => '— Choisir un crédit —',
                 'mapped' => false,

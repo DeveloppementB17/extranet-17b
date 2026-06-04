@@ -2,10 +2,135 @@
     (() => {
         const valueField = document.getElementById('{{ form.durationValue.vars.id }}');
         const unitField = document.getElementById('{{ form.durationUnit.vars.id }}');
+        const minutesField = document.getElementById('{{ form.durationMinutes.vars.id }}');
         const switchRoot = document.querySelector('[data-duration-unit-switch]');
-        if (!valueField || !unitField || !switchRoot) {
+        const durationRoot = document.querySelector('[data-intervention-duration]');
+        const warningEl = document.querySelector('[data-intervention-duration-warning]');
+        const creditSelect = document.querySelector('[data-intervention-credit-select]');
+        const formEl = valueField?.closest('form');
+
+        if (!valueField || !unitField || !switchRoot || !durationRoot || !formEl) {
             return;
         }
+
+        const submitBtn = formEl.querySelector('button[type="submit"]');
+        const inputClassesDefault = 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0';
+        const inputClassesOverflow = inputClassesDefault + ' !border-amber-500 !border-b-2';
+
+        const getMaxMinutes = () => {
+            if (creditSelect instanceof HTMLSelectElement) {
+                const option = creditSelect.selectedOptions[0];
+                if (option) {
+                    const fromOption = parseInt(option.dataset.remainingMinutes || '', 10);
+                    if (!Number.isNaN(fromOption) && fromOption >= 0) {
+                        return fromOption;
+                    }
+                }
+            }
+
+            return parseInt(durationRoot.dataset.maxMinutes || '0', 10) || 0;
+        };
+
+        const toMinutes = () => {
+            const raw = parseFloat(String(valueField.value).replace(',', '.'));
+            if (Number.isNaN(raw) || raw <= 0) {
+                return 0;
+            }
+
+            return (unitField.value || 'minutes') === 'hours'
+                ? Math.round(raw * 60)
+                : Math.round(raw);
+        };
+
+        const formatLimitLabel = (maxMinutes) => {
+            if (maxMinutes > 180) {
+                return `${(maxMinutes / 60).toFixed(2)} h (${maxMinutes} min)`;
+            }
+
+            return `${maxMinutes} min`;
+        };
+
+        const syncMinutesHidden = (minutes) => {
+            if (minutesField) {
+                minutesField.value = String(Math.max(0, minutes));
+            }
+        };
+
+        const applyInputMax = () => {
+            const maxMinutes = getMaxMinutes();
+            if (maxMinutes <= 0) {
+                valueField.removeAttribute('max');
+                valueField.removeAttribute('step');
+
+                return;
+            }
+
+            if ((unitField.value || 'minutes') === 'hours') {
+                valueField.max = String(Math.round((maxMinutes / 60) * 100) / 100);
+                valueField.step = '0.25';
+            } else {
+                valueField.max = String(maxMinutes);
+                valueField.step = '1';
+            }
+        };
+
+        const validateDuration = () => {
+            const maxMinutes = getMaxMinutes();
+            const minutes = toMinutes();
+            syncMinutesHidden(minutes);
+
+            if (maxMinutes <= 0) {
+                if (minutes > 0) {
+                    if (warningEl) {
+                        warningEl.textContent = creditSelect
+                            ? 'Sélectionnez un crédit avec du solde disponible, ou réduisez la durée.'
+                            : 'Aucun solde disponible sur ce crédit temps.';
+                        warningEl.classList.remove('hidden');
+                    }
+                    valueField.className = inputClassesOverflow;
+                    valueField.setCustomValidity('Solde insuffisant.');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                    }
+
+                    return false;
+                }
+
+                warningEl?.classList.add('hidden');
+                valueField.className = inputClassesDefault;
+                if (submitBtn) {
+                    submitBtn.disabled = creditSelect instanceof HTMLSelectElement;
+                }
+                valueField.setCustomValidity('');
+
+                return !creditSelect;
+            }
+
+            if (minutes > maxMinutes) {
+                const limit = formatLimitLabel(maxMinutes);
+                const entered = minutes > 180 ? `${(minutes / 60).toFixed(2)} h` : `${minutes} min`;
+                if (warningEl) {
+                    warningEl.textContent = `La durée saisie (${entered}) dépasse le solde disponible (${limit}). Réduisez la durée pour enregistrer l’intervention.`;
+                    warningEl.classList.remove('hidden');
+                }
+                valueField.className = inputClassesOverflow;
+                valueField.setCustomValidity(`Durée maximale : ${limit}.`);
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+
+                return false;
+            }
+
+            warningEl?.classList.add('hidden');
+            valueField.className = inputClassesDefault;
+            valueField.setCustomValidity('');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+
+            return true;
+        };
 
         const buttons = switchRoot.querySelectorAll('.duration-unit-btn');
         const setActive = (unit) => {
@@ -36,9 +161,35 @@
                 convertValue(previousUnit, nextUnit);
                 unitField.value = nextUnit;
                 setActive(nextUnit);
+                applyInputMax();
+                validateDuration();
             });
         });
 
+        valueField.addEventListener('input', () => {
+            validateDuration();
+        });
+
+        valueField.addEventListener('change', () => {
+            validateDuration();
+        });
+
+        if (creditSelect) {
+            creditSelect.addEventListener('change', () => {
+                applyInputMax();
+                validateDuration();
+            });
+        }
+
+        formEl.addEventListener('submit', (event) => {
+            if (!validateDuration()) {
+                event.preventDefault();
+                valueField.focus();
+            }
+        });
+
         setActive(unitField.value || 'minutes');
+        applyInputMax();
+        validateDuration();
     })();
 </script>
