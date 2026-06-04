@@ -369,33 +369,32 @@ final class TimeCreditController extends AbstractController
         TimeCreditCategoryRepository $categoryRepository,
     ): Response {
         $this->denyAccessUnlessGranted(TimeCreditVoter::MANAGE, $credit);
-        if ($this->isCreditStarted($credit)) {
-            $this->addFlash('error', 'Ce crédit a déjà été entamé et ne peut plus être modifié.');
 
-            return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
-        }
-
-        $originalTotal = $credit->getTotalMinutes();
-        $originalRemaining = $credit->getRemainingMinutes();
+        $consumedMinutes = $credit->getTotalMinutes() - $credit->getRemainingMinutes();
 
         $form = $this->createForm(TimeCreditType::class, $credit, [
             'entreprise_choices' => [$credit->getEntreprise()],
             'category_choices' => $categoryRepository->findAllOrdered(),
             'allow_archive_field' => true,
-            'lock_total_field' => true,
+            'lock_total_field' => false,
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($credit->getTotalMinutes() !== $originalTotal) {
-                $this->addFlash('error', 'Le total initial ne peut pas être modifié en édition.');
-                $credit->setTotalMinutes($originalTotal);
-                $credit->setRemainingMinutes($originalRemaining);
+            $actor = $this->getUser();
+            if (!$actor instanceof User) {
+                throw $this->createAccessDeniedException();
+            }
+
+            $error = $this->applyTotalChange($credit, $actor, $credit->getTotalMinutes());
+            if ($error !== null) {
+                $this->addFlash('error', $error);
 
                 return $this->render('time_credit/form.html.twig', [
                     'form' => $form,
                     'title' => 'Modifier le crédit temps',
                     'edit_mode' => true,
+                    'consumed_minutes' => $consumedMinutes,
                 ]);
             }
 
@@ -409,6 +408,7 @@ final class TimeCreditController extends AbstractController
             'form' => $form,
             'title' => 'Modifier le crédit temps',
             'edit_mode' => true,
+            'consumed_minutes' => $consumedMinutes,
         ]);
     }
 
@@ -628,6 +628,53 @@ final class TimeCreditController extends AbstractController
     private function isCreditStarted(TimeCredit $credit): bool
     {
         return $credit->getRemainingMinutes() < $credit->getTotalMinutes();
+    }
+
+    private function applyTotalChange(
+        TimeCredit $credit,
+        User $actor,
+        int $newTotal,
+    ): ?string {
+        if ($newTotal <= 0) {
+            return 'Le total doit être strictement positif.';
+        }
+
+        $oldTotal = $credit->getTotalMinutes();
+        if ($newTotal === $oldTotal) {
+            return null;
+        }
+
+        $consumed = $oldTotal - $credit->getRemainingMinutes();
+        if ($newTotal < $consumed) {
+            return sprintf(
+                'Le total ne peut pas être inférieur au temps déjà consommé (%d min).',
+                $consumed,
+            );
+        }
+
+        $credit->setTotalMinutes($newTotal);
+        $credit->setRemainingMinutes($newTotal - $consumed);
+        $credit->setArchived($credit->getRemainingMinutes() <= 0);
+
+        if ($consumed === 0) {
+            foreach ($credit->getMovements() as $movement) {
+                if ($movement->getType() === TimeCreditMovement::TYPE_ALLOCATION) {
+                    $movement->setDeltaMinutes($newTotal);
+                    break;
+                }
+            }
+        } else {
+            $adjustment = (new TimeCreditMovement())
+                ->setTimeCredit($credit)
+                ->setCreatedBy($actor)
+                ->setType(TimeCreditMovement::TYPE_ADJUSTMENT)
+                ->setDeltaMinutes($newTotal - $oldTotal)
+                ->setDescription('Ajustement du total du crédit temps')
+                ->setOccurredAt(new \DateTimeImmutable());
+            $credit->addMovement($adjustment);
+        }
+
+        return null;
     }
 
     private function resolveReturnPath(string $path): string

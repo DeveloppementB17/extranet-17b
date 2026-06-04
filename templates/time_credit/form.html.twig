@@ -19,7 +19,12 @@
         <h1 class="text-5xl font-extrabold text-brand">{{ title }}</h1>
         <p class="mt-2 text-m text-slate-600">
             {% if edit_mode|default(false) %}
-                Le titre et le total initial restent historiques. L'archivage permet de fermer le crédit.
+                {% if consumed_minutes|default(0) > 0 %}
+                    Vous pouvez ajuster le total du crédit ; le temps déjà consommé ({{ consumed_minutes }} min) est conservé. Un ajustement sera enregistré dans l’historique (sans intervention).
+                {% else %}
+                    Aucune consommation pour l’instant : le total et le solde seront mis à jour ensemble.
+                {% endif %}
+                L’archivage permet de fermer le crédit.
             {% else %}
                 Le titre est généré automatiquement à la création (date/heure).
             {% endif %}
@@ -50,31 +55,21 @@
                 {{ form_errors(form.dossierNumber) }}
             </div>
             <div>
-                {% if edit_mode|default(false) %}
-                    {% set total_min = form.vars.data.totalMinutes %}
-                    <p class="block text-lg font-semibold text-brand mb-2">Total initial</p>
-                    <p class="text-lg text-heading">
-                        {{ total_min >= 60 ? (total_min / 60)|round(2) ~ ' h' : total_min ~ ' min' }}
-                        <span class="text-sm text-slate-500">({{ total_min >= 60 ? total_min ~ ' min' : (total_min / 60)|round(2) ~ ' h' }})</span>
-                    </p>
-                    {{ form_widget(form.totalMinutes) }}
-                {% else %}
-                    {{ form_label(form.totalValue, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                    <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
-                        {{ form_widget(form.totalValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                        <div class="border border-black" data-duration-unit-switch>
-                            <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
-                                Minutes
-                            </button><button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
-                                Heures
-                            </button>
-                        </div>
+                {{ form_label(form.totalValue, edit_mode|default(false) ? 'Total du crédit' : 'Total', { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                <div class="mt-2 grid gap-3 md:grid-cols-2 items-end">
+                    {{ form_widget(form.totalValue, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                    <div class="border border-black" data-duration-unit-switch>
+                        <button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="minutes">
+                            Minutes
+                        </button><button type="button" class="duration-unit-btn w-1/2 px-3 py-2 text-sm font-semibold text-slate-700" data-unit="hours">
+                            Heures
+                        </button>
                     </div>
-                    {{ form_widget(form.totalMinutes) }}
-                    {{ form_widget(form.totalUnit) }}
-                    {{ form_errors(form.totalValue) }}
-                    {{ form_errors(form.totalUnit) }}
-                {% endif %}
+                </div>
+                {{ form_widget(form.totalMinutes) }}
+                {{ form_widget(form.totalUnit) }}
+                {{ form_errors(form.totalValue) }}
+                {{ form_errors(form.totalUnit) }}
             </div>
             {% if form.archived is defined %}
                 <div class="rounded bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
@@ -90,7 +85,6 @@
     </div>
     </div>
     </div>
-    {% if not edit_mode|default(false) %}
     <script>
         (() => {
             const valueField = document.getElementById('{{ form.totalValue.vars.id }}');
@@ -135,5 +129,4 @@
             setActive(unitField.value || 'minutes');
         })();
     </script>
-    {% endif %}
 {% endblock %}
