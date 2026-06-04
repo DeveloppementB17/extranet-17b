@@ -59,4 +59,30 @@ class TimeCreditMovementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @return list<TimeCreditMovement>
+     */
+    public function findByCreditChronological(TimeCredit $credit): array
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.timeCredit = :tc')
+            ->setParameter('tc', $credit)
+            ->orderBy('m.occurredAt', 'ASC')
+            ->addOrderBy('m.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countAllocations(TimeCredit $credit): int
+    {
+        return (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->andWhere('m.timeCredit = :tc')
+            ->andWhere('m.type = :type')
+            ->setParameter('tc', $credit)
+            ->setParameter('type', TimeCreditMovement::TYPE_ALLOCATION)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

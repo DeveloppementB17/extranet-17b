@@ -12,6 +12,7 @@ use App\Repository\EntrepriseRepository;
 use App\Repository\TimeCreditCategoryRepository;
 use App\Repository\TimeCreditMovementRepository;
 use App\Repository\TimeCreditRepository;
+use App\Service\TimeCreditBalanceRecalculator;
 use App\Security\Voter\TimeCreditMovementVoter;
 use App\Security\Voter\TimeCreditVoter;
 use App\Tenant\ManagedClientContext;
@@ -372,6 +373,8 @@ final class TimeCreditController extends AbstractController
         return $this->render('time_credit/show.html.twig', [
             'credit' => $credit,
             'movements' => $movementRepository->findByCreditOrdered($credit),
+            'allocation_count' => $movementRepository->countAllocations($credit),
+            'intervention_count' => $movementRepository->countInterventions($credit),
         ]);
     }
 
@@ -469,12 +472,6 @@ final class TimeCreditController extends AbstractController
 
         if (!$this->isCsrfTokenValid('delete_time_credit'.$credit->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
-        }
-
-        if ($this->isCreditStarted($credit)) {
-            $this->addFlash('error', 'Ce crédit a déjà été entamé et ne peut pas être supprimé.');
-
-            return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
         }
 
         $entityManager->remove($credit);
@@ -596,6 +593,50 @@ final class TimeCreditController extends AbstractController
             'is_edit_mode' => true,
             'movement' => $movement,
         ]);
+    }
+
+    #[Route('/{id}/mouvement/{movementId}/supprimer', name: 'time_credit_movement_delete', requirements: ['movementId' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_17B_ADMIN')]
+    public function deleteMovement(
+        Request $request,
+        TimeCredit $credit,
+        int $movementId,
+        TimeCreditMovementRepository $movementRepository,
+        TimeCreditBalanceRecalculator $balanceRecalculator,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $this->denyAccessUnlessGranted(TimeCreditVoter::MANAGE, $credit);
+
+        $movement = $movementRepository->find($movementId);
+        if (
+            !$movement instanceof TimeCreditMovement
+            || $movement->getTimeCredit()?->getId() !== $credit->getId()
+            || $movement->getType() === TimeCreditMovement::TYPE_INTERVENTION
+        ) {
+            throw $this->createNotFoundException('Mouvement introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('delete_time_credit_movement'.$movement->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        if (
+            $movement->getType() === TimeCreditMovement::TYPE_ALLOCATION
+            && $movementRepository->countAllocations($credit) <= 1
+        ) {
+            $this->addFlash('error', 'Impossible de supprimer la seule ligne d’allocation du crédit.');
+
+            return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
+        }
+
+        $entityManager->remove($movement);
+        $entityManager->flush();
+        $balanceRecalculator->recalculate($credit);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Ligne d’historique supprimée. Total et solde ont été recalculés.');
+
+        return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
     }
 
     #[Route('/{id}/intervention/{movementId}/supprimer', name: 'time_credit_intervention_delete', requirements: ['movementId' => '\d+'], methods: ['POST'])]

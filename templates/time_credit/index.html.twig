@@ -231,8 +231,8 @@
                                             <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                                         </a>
                                     {% endif %}
-                                    {% if is_granted('ROLE_17B_ADMIN') and credit.remainingMinutes == credit.totalMinutes %}
-                                        <form class="inline-flex" method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm('Supprimer ce crédit temps ?');">
+                                    {% if is_granted('ROLE_17B_ADMIN') %}
+                                        <form class="inline-flex" method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm('Supprimer ce crédit temps ? Toutes les interventions associées seront perdues.');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete_time_credit' ~ credit.id) }}">
                                             <button type="submit" title="Supprimer" class="cursor-pointer text-red-700 hover:text-red-900">
                                                 <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/></svg>
