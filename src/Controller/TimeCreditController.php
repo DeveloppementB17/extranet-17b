@@ -247,13 +247,28 @@ final class TimeCreditController extends AbstractController
         }
 
         $this->denyAccessUnlessGranted(TimeCreditVoter::INTERVENE, $credit);
+        $entityManager->refresh($credit);
+
+        $duration = (int) $form->get('durationMinutes')->getData();
+        if ($duration > $credit->getRemainingMinutes()) {
+            $this->addFlash(
+                'error',
+                sprintf(
+                    'La durée saisie (%d min) dépasse le solde disponible (%d min). Réduisez la durée ou ajustez le total du crédit.',
+                    $duration,
+                    $credit->getRemainingMinutes(),
+                ),
+            );
+
+            return $this->redirect($this->resolveReturnPath($returnTo));
+        }
 
         $error = $this->registerIntervention(
             $entityManager,
             $actor,
             $credit,
             $form->get('occurredAt')->getData(),
-            (int) $form->get('durationMinutes')->getData(),
+            $duration,
             (string) $form->get('description')->getData(),
         );
         if ($error !== null) {
@@ -367,10 +382,13 @@ final class TimeCreditController extends AbstractController
         TimeCredit $credit,
         EntityManagerInterface $entityManager,
         TimeCreditCategoryRepository $categoryRepository,
+        TimeCreditMovementRepository $movementRepository,
     ): Response {
         $this->denyAccessUnlessGranted(TimeCreditVoter::MANAGE, $credit);
 
-        $consumedMinutes = $credit->getTotalMinutes() - $credit->getRemainingMinutes();
+        $originalTotal = $credit->getTotalMinutes();
+        $originalRemaining = $credit->getRemainingMinutes();
+        $consumedMinutes = max(0, $originalTotal - $originalRemaining);
 
         $form = $this->createForm(TimeCreditType::class, $credit, [
             'entreprise_choices' => [$credit->getEntreprise()],
@@ -386,7 +404,15 @@ final class TimeCreditController extends AbstractController
                 throw $this->createAccessDeniedException();
             }
 
-            $error = $this->applyTotalChange($credit, $actor, $credit->getTotalMinutes());
+            $newTotal = (int) $form->get('totalMinutes')->getData();
+            $error = $this->applyTotalChange(
+                $credit,
+                $actor,
+                $newTotal,
+                $originalTotal,
+                $originalRemaining,
+                $movementRepository,
+            );
             if ($error !== null) {
                 $this->addFlash('error', $error);
 
@@ -467,8 +493,11 @@ final class TimeCreditController extends AbstractController
         $returnTo = (string) ($request->query->get('return_to') ?? '');
         $cancelUrl = $returnTo !== '' ? $returnTo : $this->generateUrl('time_credit_show', ['id' => $credit->getId()]);
 
+        $entityManager->refresh($credit);
+
         $form = $this->createForm(TimeCreditInterventionType::class, null, [
             'return_to' => $returnTo !== '' ? $returnTo : null,
+            'time_credit_for_validation' => $credit,
         ]);
         $form->handleRequest($request);
 
@@ -523,10 +552,12 @@ final class TimeCreditController extends AbstractController
         $this->denyAccessUnlessGranted(TimeCreditMovementVoter::MANAGE_INTERVENTION, $movement);
 
         $cancelUrl = $this->generateUrl('time_credit_show', ['id' => $credit->getId()]);
+        $entityManager->refresh($credit);
         $availableMinutes = $credit->getRemainingMinutes() + abs($movement->getDeltaMinutes());
 
         $form = $this->createForm(TimeCreditInterventionType::class, null, [
             'initial_movement' => $movement,
+            'time_credit_for_validation' => $credit,
         ]);
         $form->handleRequest($request);
 
@@ -634,17 +665,19 @@ final class TimeCreditController extends AbstractController
         TimeCredit $credit,
         User $actor,
         int $newTotal,
+        int $originalTotal,
+        int $originalRemaining,
+        TimeCreditMovementRepository $movementRepository,
     ): ?string {
         if ($newTotal <= 0) {
             return 'Le total doit être strictement positif.';
         }
 
-        $oldTotal = $credit->getTotalMinutes();
-        if ($newTotal === $oldTotal) {
+        if ($newTotal === $originalTotal) {
             return null;
         }
 
-        $consumed = $oldTotal - $credit->getRemainingMinutes();
+        $consumed = max(0, $originalTotal - $originalRemaining);
         if ($newTotal < $consumed) {
             return sprintf(
                 'Le total ne peut pas être inférieur au temps déjà consommé (%d min).',
@@ -656,23 +689,24 @@ final class TimeCreditController extends AbstractController
         $credit->setRemainingMinutes($newTotal - $consumed);
         $credit->setArchived($credit->getRemainingMinutes() <= 0);
 
-        if ($consumed === 0) {
-            foreach ($credit->getMovements() as $movement) {
-                if ($movement->getType() === TimeCreditMovement::TYPE_ALLOCATION) {
-                    $movement->setDeltaMinutes($newTotal);
-                    break;
-                }
+        $hasInterventions = $movementRepository->countInterventions($credit) > 0;
+        if ($consumed === 0 && !$hasInterventions) {
+            $allocation = $movementRepository->findInitialAllocation($credit);
+            if ($allocation instanceof TimeCreditMovement) {
+                $allocation->setDeltaMinutes($newTotal);
             }
-        } else {
-            $adjustment = (new TimeCreditMovement())
-                ->setTimeCredit($credit)
-                ->setCreatedBy($actor)
-                ->setType(TimeCreditMovement::TYPE_ADJUSTMENT)
-                ->setDeltaMinutes($newTotal - $oldTotal)
-                ->setDescription('Ajustement du total du crédit temps')
-                ->setOccurredAt(new \DateTimeImmutable());
-            $credit->addMovement($adjustment);
+
+            return null;
         }
+
+        $adjustment = (new TimeCreditMovement())
+            ->setTimeCredit($credit)
+            ->setCreatedBy($actor)
+            ->setType(TimeCreditMovement::TYPE_ADJUSTMENT)
+            ->setDeltaMinutes($newTotal - $originalTotal)
+            ->setDescription('Ajustement du total du crédit temps')
+            ->setOccurredAt(new \DateTimeImmutable());
+        $credit->addMovement($adjustment);
 
         return null;
     }
@@ -737,6 +771,7 @@ final class TimeCreditController extends AbstractController
         ];
         if ($singleCredit instanceof TimeCredit) {
             $formOptions['fixed_time_credit'] = $singleCredit;
+            $formOptions['time_credit_for_validation'] = $singleCredit;
         } else {
             $formOptions['show_credit_selector'] = true;
             $formOptions['time_credit_choices'] = $choices;
@@ -789,8 +824,15 @@ final class TimeCreditController extends AbstractController
             return 'La durée doit être supérieure à 0 minute.';
         }
 
-        if ($duration > $credit->getRemainingMinutes()) {
-            return 'La durée dépasse le solde disponible du crédit.';
+        $entityManager->refresh($credit);
+
+        $remaining = $credit->getRemainingMinutes();
+        if ($duration > $remaining) {
+            return sprintf(
+                'La durée saisie (%d min) dépasse le solde disponible (%d min). Réduisez la durée ou ajustez le total du crédit.',
+                $duration,
+                $remaining,
+            );
         }
 
         if (!$occurredAt instanceof \DateTimeImmutable) {
@@ -830,7 +872,11 @@ final class TimeCreditController extends AbstractController
 
         $maxAllowed = $credit->getRemainingMinutes() + $previousDuration;
         if ($newDuration > $maxAllowed) {
-            return 'La durée dépasse le solde disponible du crédit.';
+            return sprintf(
+                'La durée saisie (%d min) dépasse le solde disponible (%d min). Réduisez la durée ou ajustez le total du crédit.',
+                $newDuration,
+                $maxAllowed,
+            );
         }
 
         if (!$occurredAt instanceof \DateTimeImmutable) {

@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -118,6 +119,31 @@ final class TimeCreditInterventionType extends AbstractType
             $event->setData($data);
         });
 
+        $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event) use ($options): void {
+            $credit = $options['time_credit_for_validation'];
+            if (!$credit instanceof TimeCredit) {
+                return;
+            }
+
+            $form = $event->getForm();
+            if (!$form->isSubmitted()) {
+                return;
+            }
+
+            $duration = (int) $form->get('durationMinutes')->getData();
+            $remaining = $credit->getRemainingMinutes();
+            if ($options['initial_movement'] instanceof TimeCreditMovement) {
+                $remaining += abs($options['initial_movement']->getDeltaMinutes());
+            }
+            if ($duration > $remaining) {
+                $form->get('durationValue')->addError(new FormError(sprintf(
+                    'La durée saisie (%d min) dépasse le solde disponible (%d min). Réduisez la durée ou ajustez le total du crédit.',
+                    $duration,
+                    $remaining,
+                )));
+            }
+        });
+
         if ($options['initial_movement'] instanceof TimeCreditMovement) {
             $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event) use ($options): void {
                 $movement = $options['initial_movement'];
@@ -144,6 +170,7 @@ final class TimeCreditInterventionType extends AbstractType
             'fixed_time_credit' => null,
             'initial_movement' => null,
             'return_to' => null,
+            'time_credit_for_validation' => null,
         ]);
         $resolver->setAllowedTypes('show_credit_selector', 'bool');
         $resolver->setAllowedTypes('time_credit_choices', 'array');
@@ -151,5 +178,6 @@ final class TimeCreditInterventionType extends AbstractType
         $resolver->setAllowedTypes('fixed_time_credit', ['null', TimeCredit::class]);
         $resolver->setAllowedTypes('initial_movement', ['null', TimeCreditMovement::class]);
         $resolver->setAllowedTypes('return_to', ['null', 'string']);
+        $resolver->setAllowedTypes('time_credit_for_validation', ['null', TimeCredit::class]);
     }
 }

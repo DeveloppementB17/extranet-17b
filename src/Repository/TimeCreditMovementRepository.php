@@ -32,4 +32,31 @@ class TimeCreditMovementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findInitialAllocation(TimeCredit $credit): ?TimeCreditMovement
+    {
+        $movements = $this->createQueryBuilder('m')
+            ->andWhere('m.timeCredit = :tc')
+            ->andWhere('m.type = :type')
+            ->setParameter('tc', $credit)
+            ->setParameter('type', TimeCreditMovement::TYPE_ALLOCATION)
+            ->orderBy('m.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+
+        return $movements[0] ?? null;
+    }
+
+    public function countInterventions(TimeCredit $credit): int
+    {
+        return (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->andWhere('m.timeCredit = :tc')
+            ->andWhere('m.type = :type')
+            ->setParameter('tc', $credit)
+            ->setParameter('type', TimeCreditMovement::TYPE_INTERVENTION)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
