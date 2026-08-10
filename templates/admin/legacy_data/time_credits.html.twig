@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Anciens crédits temps{% endblock %}
+
+{% block body %}
+<nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+    <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_dashboard') }}" class="hover:underline">Administration</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_legacy_data') }}" class="hover:underline">Anciennes données</a>
+    <span class="text-neutral-400"> / </span>
+    <span class="font-medium" aria-current="page">Crédits temps</span>
+</nav>
+
+<p class="mt-6 text-m">
+    <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('admin_legacy_data') }}">← Retour aux anciennes données</a>
+</p>
+
+<div class="panel py-8">
+    <h1 class="text-5xl font-extrabold text-brand">Crédits temps (ancien site)</h1>
+    <p class="mt-2 max-w-3xl text-m text-slate-600">
+        Consultez le détail puis importez avec les précisions souhaitées (titre, catégorie, dossier, URL).
+    </p>
+
+    {% for message in app.flashes('success') %}
+        <div class="mt-4 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <form method="get" class="mt-6 flex flex-wrap gap-2">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher une entreprise…" class="border border-black px-3 py-2 text-sm min-w-[240px]">
+        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+        <a href="{{ path('admin_legacy_data_time_credits') }}" class="border border-black px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+    </form>
+
+    <div class="mt-6 overflow-x-auto ring-1 ring-slate-200">
+        <table class="w-full min-w-[960px] text-left text-sm">
+            <thead class="bg-brand-card text-slate-600 h-[66px]">
+                <tr>
+                    <th class="px-4 py-3 font-semibold text-black">Entreprise</th>
+                    <th class="px-4 py-3 font-semibold text-black">Date crédit</th>
+                    <th class="px-4 py-3 font-semibold text-black">Total</th>
+                    <th class="px-4 py-3 font-semibold text-black">Utilisé</th>
+                    <th class="px-4 py-3 font-semibold text-black">Reste</th>
+                    <th class="px-4 py-3 font-semibold text-black">Interventions</th>
+                    <th class="px-4 py-3 font-semibold text-black">État</th>
+                    <th class="px-4 py-3 font-semibold text-black text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                {% for row in rows %}
+                    <tr class="hover:bg-neutral-50">
+                        <td class="px-4 py-3 font-medium text-slate-900">{{ row.entrepriseName }}</td>
+                        <td class="px-4 py-3 text-slate-700">{{ row.creditedAt|date('d/m/Y') }}</td>
+                        <td class="px-4 py-3 text-slate-700">{{ row.totalMinutes }} min</td>
+                        <td class="px-4 py-3 text-slate-700">{{ row.usedMinutes }} min</td>
+                        <td class="px-4 py-3 text-slate-700">{{ row.remainingMinutes }} min</td>
+                        <td class="px-4 py-3 text-slate-700">{{ row.interventionCount }}</td>
+                        <td class="px-4 py-3">
+                            {% if row.status == 'imported' %}
+                                <span class="border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-800">Importé</span>
+                            {% elseif row.status == 'entreprise_missing' %}
+                                <span class="border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">Entreprise à importer</span>
+                            {% else %}
+                                <span class="border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">Disponible</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            {% if row.status == 'imported' and row.matchedCredit %}
+                                <a class="text-brand underline underline-offset-2" href="{{ path('time_credit_show', { id: row.matchedCredit.id }) }}">Voir</a>
+                            {% else %}
+                                <a class="bg-brand-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_legacy_data_time_credit_show', { legacySourceId: row.legacySourceId }) }}">Détail / importer</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="px-4 py-6 text-slate-600">Aucun crédit.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

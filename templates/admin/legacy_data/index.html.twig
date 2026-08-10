@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% import 'admin/_form_macros.html.twig' as adminForm %}
+
+{% block title %}Anciennes données{% endblock %}
+
+{% block body %}
+<nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+    <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_dashboard') }}" class="hover:underline">Administration</a>
+    <span class="text-neutral-400"> / </span>
+    <span class="font-medium" aria-current="page">Anciennes données</span>
+</nav>
+
+<p class="mt-6 text-m">
+    <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('admin_dashboard') }}">← Retour à l’administration</a>
+</p>
+
+<div class="panel py-8">
+    <h1 class="text-5xl font-extrabold text-brand">Anciennes données</h1>
+    <p class="mt-2 max-w-3xl text-m text-slate-600">
+        Parcourez le catalogue de l’ancien extranet et importez manuellement chaque entreprise ou crédit temps dans le nouveau site.
+    </p>
+
+    {% for message in app.flashes('success') %}
+        <div class="mt-4 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+        <article class="border-2 border-black p-6">
+            <h2 class="text-xl font-extrabold text-brand">Entreprises</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                {% if has_entreprises %}Catalogue chargé.{% else %}Aucun catalogue chargé.{% endif %}
+            </p>
+            {% if has_entreprises %}
+                <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                   href="{{ path('admin_legacy_data_entreprises') }}">
+                    Voir les entreprises
+                </a>
+            {% endif %}
+        </article>
+        <article class="border-2 border-black p-6">
+            <h2 class="text-xl font-extrabold text-brand">Crédits temps</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                {% if has_time_credits %}Catalogue chargé.{% else %}Aucun catalogue chargé.{% endif %}
+            </p>
+            {% if has_time_credits %}
+                <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                   href="{{ path('admin_legacy_data_time_credits') }}">
+                    Voir les crédits temps
+                </a>
+            {% endif %}
+        </article>
+    </div>
+
+    <section class="mt-10 border-2 border-black p-6">
+        <h2 class="text-xl font-extrabold text-brand">Charger les catalogues JSON</h2>
+        <p class="mt-2 text-sm text-slate-600">
+            Fichiers générés depuis le dump : <code class="text-xs">legacy-entreprises.json</code> et
+            <code class="text-xs">legacy-time-credits.json</code>.
+        </p>
+        {{ form_start(form, { attr: { class: 'mt-6 space-y-4', enctype: 'multipart/form-data' } }) }}
+            {{ adminForm.form_errors_all(form) }}
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    {{ form_label(form.entreprisesFile, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                    {{ form_widget(form.entreprisesFile, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
+                    {{ adminForm.field_errors(form.entreprisesFile) }}
+                </div>
+                <div>
+                    {{ form_label(form.timeCreditsFile, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                    {{ form_widget(form.timeCreditsFile, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
+                    {{ adminForm.field_errors(form.timeCreditsFile) }}
+                </div>
+            </div>
+            <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                Enregistrer le(s) catalogue(s)
+            </button>
+        {{ form_end(form) }}
+    </section>
+</div>
+{% endblock %}

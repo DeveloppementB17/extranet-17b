@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TimeCreditRepository::class)]
 #[ORM\Table(name: 'time_credit')]
+#[ORM\UniqueConstraint(name: 'uniq_time_credit_legacy_source_id', columns: ['legacy_source_id'])]
 class TimeCredit implements EntrepriseOwnedInterface
 {
     use EntrepriseOwnedTrait;
@@ -38,6 +39,12 @@ class TimeCredit implements EntrepriseOwnedInterface
 
     #[ORM\Column(options: ['default' => false])]
     private bool $archived = false;
+
+    /**
+     * Identifiant EXTRANETB17_MAINTENANCE_CREDIT.id (réimport idempotent).
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $legacySourceId = null;
 
     #[ORM\ManyToOne(targetEntity: TimeCreditCategory::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -142,6 +149,18 @@ class TimeCredit implements EntrepriseOwnedInterface
     public function setArchived(bool $archived): self
     {
         $this->archived = $archived;
+
+        return $this;
+    }
+
+    public function getLegacySourceId(): ?int
+    {
+        return $this->legacySourceId;
+    }
+
+    public function setLegacySourceId(?int $legacySourceId): self
+    {
+        $this->legacySourceId = $legacySourceId;
 
         return $this;
     }

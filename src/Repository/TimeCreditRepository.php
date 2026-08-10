@@ -95,4 +95,22 @@ class TimeCreditRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findOneByLegacySourceId(int $legacySourceId): ?TimeCredit
+    {
+        return $this->createQueryBuilder('tc')
+            ->andWhere('tc.legacySourceId = :legacySourceId')
+            ->setParameter('legacySourceId', $legacySourceId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function countWithLegacySource(): int
+    {
+        return (int) $this->createQueryBuilder('tc')
+            ->select('COUNT(tc.id)')
+            ->andWhere('tc.legacySourceId IS NOT NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

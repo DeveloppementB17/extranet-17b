@@ -37,22 +37,29 @@ class EntrepriseRepository extends ServiceEntityRepository
 
     public function existsByName(string $name, ?int $excludeEntrepriseId = null): bool
     {
+        return $this->findOneByName($name, $excludeEntrepriseId) !== null;
+    }
+
+    public function findOneByName(string $name, ?int $excludeEntrepriseId = null): ?Entreprise
+    {
         $normalized = mb_strtolower(trim($name));
         if ($normalized === '') {
-            return false;
+            return null;
         }
 
         $qb = $this->createQueryBuilder('e')
-            ->select('COUNT(e.id)')
             ->andWhere('LOWER(e.name) = :name')
-            ->setParameter('name', $normalized);
+            ->setParameter('name', $normalized)
+            ->setMaxResults(1);
 
         if ($excludeEntrepriseId !== null) {
             $qb->andWhere('e.id != :excludeId')
                 ->setParameter('excludeId', $excludeEntrepriseId);
         }
 
-        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+        $result = $qb->getQuery()->getOneOrNullResult();
+
+        return $result instanceof Entreprise ? $result : null;
     }
 
     /**

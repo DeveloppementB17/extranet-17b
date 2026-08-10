@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% import 'admin/_form_macros.html.twig' as adminForm %}
+
+{% block title %}Importer un crédit temps{% endblock %}
+
+{% block body %}
+<nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+    <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_dashboard') }}" class="hover:underline">Administration</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_legacy_data') }}" class="hover:underline">Anciennes données</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_legacy_data_time_credits') }}" class="hover:underline">Crédits temps</a>
+    <span class="text-neutral-400"> / </span>
+    <span class="font-medium" aria-current="page">#{{ item.legacySourceId }}</span>
+</nav>
+
+<p class="mt-6 text-m">
+    <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('admin_legacy_data_time_credits') }}">← Retour aux crédits</a>
+</p>
+
+<div class="panel py-8">
+    <h1 class="text-4xl font-extrabold text-brand">Crédit #{{ item.legacySourceId }} — {{ entreprise_name }}</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="mt-4 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="mt-6 grid gap-4 md:grid-cols-4 text-sm">
+        <div class="border border-slate-200 p-4">
+            <p class="text-slate-500">Date crédit</p>
+            <p class="mt-1 text-lg font-semibold">{{ item.creditedAt|date('d/m/Y') }}</p>
+        </div>
+        <div class="border border-slate-200 p-4">
+            <p class="text-slate-500">Total</p>
+            <p class="mt-1 text-lg font-semibold">{{ item.totalMinutes }} min</p>
+        </div>
+        <div class="border border-slate-200 p-4">
+            <p class="text-slate-500">Utilisé</p>
+            <p class="mt-1 text-lg font-semibold">{{ used_minutes }} min</p>
+        </div>
+        <div class="border border-slate-200 p-4">
+            <p class="text-slate-500">Reste estimé</p>
+            <p class="mt-1 text-lg font-semibold">{{ remaining_minutes }} min</p>
+        </div>
+    </div>
+
+    {% if matched_entreprise %}
+        <p class="mt-4 text-sm text-slate-600">Entreprise liée dans le nouveau site : <strong>{{ matched_entreprise.name }}</strong> (#{{ matched_entreprise.id }}).</p>
+    {% else %}
+        <p class="mt-4 text-sm text-amber-800 border border-amber-200 bg-amber-50 px-4 py-3">
+            L’entreprise source n’est pas encore importée. Choisissez une entreprise cible ci-dessous, ou importez d’abord l’entreprise.
+        </p>
+    {% endif %}
+
+    <h2 class="mt-8 text-xl font-extrabold text-brand">Interventions ({{ item.interventions|length }})</h2>
+    <div class="mt-4 max-h-80 overflow-y-auto ring-1 ring-slate-200">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-brand-card sticky top-0">
+                <tr>
+                    <th class="px-3 py-2 font-semibold">Date</th>
+                    <th class="px-3 py-2 font-semibold">Durée</th>
+                    <th class="px-3 py-2 font-semibold">Description</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                {% for intervention in item.interventions %}
+                    <tr>
+                        <td class="px-3 py-2 whitespace-nowrap">{{ intervention.occurredAt|date('d/m/Y') }}</td>
+                        <td class="px-3 py-2 whitespace-nowrap">{{ intervention.minutes }} min</td>
+                        <td class="px-3 py-2">{{ intervention.description|default('—') }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" class="px-3 py-4 text-slate-600">Aucune intervention.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if existing_credit %}
+        <div class="mt-8 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            Déjà importé :
+            <a class="font-semibold underline" href="{{ path('time_credit_show', { id: existing_credit.id }) }}">{{ existing_credit.title }}</a>
+        </div>
+    {% else %}
+        <h2 class="mt-8 text-xl font-extrabold text-brand">Précisions avant import</h2>
+        {{ form_start(form, { attr: { class: 'mt-4 max-w-xl space-y-5' } }) }}
+            {{ adminForm.form_errors_all(form) }}
+            <div>
+                {{ form_label(form.title, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                {{ form_widget(form.title, { attr: { class: 'mt-2 block w-full border border-black px-3 py-2 text-sm' } }) }}
+                {{ adminForm.field_errors(form.title) }}
+            </div>
+            <div>
+                {{ form_label(form.category, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                {{ form_widget(form.category, { attr: { class: 'mt-2 block w-full border border-black px-3 py-2 text-sm' } }) }}
+                {{ adminForm.field_errors(form.category) }}
+            </div>
+            <div>
+                {{ form_label(form.dossierNumber, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                {{ form_widget(form.dossierNumber, { attr: { class: 'mt-2 block w-full border border-black px-3 py-2 text-sm' } }) }}
+                {{ adminForm.field_errors(form.dossierNumber) }}
+            </div>
+            <div>
+                {{ form_label(form.siteUrl, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                {{ form_widget(form.siteUrl, { attr: { class: 'mt-2 block w-full border border-black px-3 py-2 text-sm' } }) }}
+                {{ adminForm.field_errors(form.siteUrl) }}
+            </div>
+            {% if require_entreprise_choice and form.entreprise is defined %}
+                <div>
+                    {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                    {{ form_widget(form.entreprise, { attr: { class: 'mt-2 block w-full border border-black px-3 py-2 text-sm' } }) }}
+                    {{ adminForm.field_errors(form.entreprise) }}
+                </div>
+            {% endif %}
+            <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                Importer ce crédit temps
+            </button>
+        {{ form_end(form) }}
+    {% endif %}
+</div>
+{% endblock %}

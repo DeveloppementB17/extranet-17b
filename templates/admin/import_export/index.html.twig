@@ -20,8 +20,8 @@
 <div class="panel py-8">
     <h1 class="text-5xl font-extrabold text-brand">Import / Export</h1>
     <p class="mt-2 max-w-3xl text-m text-slate-600">
-        Échange des entreprises issues de l’ancien extranet (flag « Ancienne »). Elles restent masquées par défaut ;
-        cochez « Afficher anciennes données » dans la liste des entreprises pour les voir.
+        Données issues de l’ancien extranet. Importez d’abord les entreprises, puis les crédits temps.
+        Les entreprises restent masquées par défaut (« Afficher anciennes données »).
     </p>
 
     {% for message in app.flashes('success') %}
@@ -31,41 +31,80 @@
         <div class="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
     {% endfor %}
 
-    <div class="mt-8 grid gap-8 lg:grid-cols-2">
-        <section class="border-2 border-black p-6">
-            <h2 class="text-xl font-extrabold text-brand">Exporter</h2>
-            <p class="mt-2 text-sm text-slate-600">
-                Télécharge un fichier JSON des entreprises actuellement marquées « Ancienne » en base
-                ({{ legacy_count }}).
-            </p>
-            <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
-               href="{{ path('admin_import_export_legacy_entreprises') }}">
-                Télécharger l’export JSON
-            </a>
+    <div class="mt-10 space-y-10">
+        <section>
+            <h2 class="text-2xl font-extrabold text-brand">Entreprises</h2>
+            <div class="mt-4 grid gap-8 lg:grid-cols-2">
+                <div class="border-2 border-black p-6">
+                    <h3 class="text-lg font-extrabold text-brand">Exporter</h3>
+                    <p class="mt-2 text-sm text-slate-600">
+                        JSON des entreprises « Ancienne » en base ({{ legacy_entreprise_count }}).
+                    </p>
+                    <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                       href="{{ path('admin_import_export_legacy_entreprises') }}">
+                        Télécharger l’export entreprises
+                    </a>
+                </div>
+                <div class="border-2 border-black p-6">
+                    <h3 class="text-lg font-extrabold text-brand">Importer</h3>
+                    <p class="mt-2 text-sm text-slate-600">
+                        Format <code class="text-xs">extranet-17b-legacy-entreprises</code>.
+                    </p>
+                    {{ form_start(entreprise_form, { attr: { class: 'mt-6 space-y-4', enctype: 'multipart/form-data' } }) }}
+                        {{ adminForm.form_errors_all(entreprise_form) }}
+                        <div>
+                            {{ form_label(entreprise_form.file, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                            {{ form_widget(entreprise_form.file, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
+                            {{ adminForm.field_errors(entreprise_form.file) }}
+                        </div>
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                            {{ form_widget(entreprise_form.includeArchived) }}
+                            {{ form_label(entreprise_form.includeArchived) }}
+                        </label>
+                        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            Importer les entreprises
+                        </button>
+                    {{ form_end(entreprise_form) }}
+                </div>
+            </div>
         </section>
 
-        <section class="border-2 border-black p-6">
-            <h2 class="text-xl font-extrabold text-brand">Importer</h2>
+        <section>
+            <h2 class="text-2xl font-extrabold text-brand">Crédits temps</h2>
             <p class="mt-2 text-sm text-slate-600">
-                Importe un fichier au format <code class="text-xs">extranet-17b-legacy-entreprises</code>.
-                Réimport idempotent via l’identifiant source de l’ancien site.
+                Chaque crédit est rattaché à une entreprise via son identifiant source.
+                Les interventions deviennent l’historique (allocation + interventions).
             </p>
-
-            {{ form_start(form, { attr: { class: 'mt-6 space-y-4', enctype: 'multipart/form-data' } }) }}
-                {{ adminForm.form_errors_all(form) }}
-                <div>
-                    {{ form_label(form.file, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
-                    {{ form_widget(form.file, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
-                    {{ adminForm.field_errors(form.file) }}
+            <div class="mt-4 grid gap-8 lg:grid-cols-2">
+                <div class="border-2 border-black p-6">
+                    <h3 class="text-lg font-extrabold text-brand">Exporter</h3>
+                    <p class="mt-2 text-sm text-slate-600">
+                        JSON des crédits déjà importés ({{ legacy_time_credit_count }}).
+                    </p>
+                    <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                       href="{{ path('admin_import_export_legacy_time_credits') }}">
+                        Télécharger l’export crédits temps
+                    </a>
                 </div>
-                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                    {{ form_widget(form.includeArchived) }}
-                    {{ form_label(form.includeArchived) }}
-                </label>
-                <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
-                    Importer le fichier
-                </button>
-            {{ form_end(form) }}
+                <div class="border-2 border-black p-6">
+                    <h3 class="text-lg font-extrabold text-brand">Importer</h3>
+                    <p class="mt-2 text-sm text-slate-600">
+                        Format <code class="text-xs">extranet-17b-legacy-time-credits</code>.
+                        Réimport idempotent (crédits déjà présents ignorés).
+                    </p>
+                    {{ form_start(time_credit_form, { attr: { class: 'mt-6 space-y-4', enctype: 'multipart/form-data' } }) }}
+                        {{ adminForm.form_errors_all(time_credit_form) }}
+                        <div>
+                            {{ form_label(time_credit_form.file, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                            {{ form_widget(time_credit_form.file, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
+                            {{ adminForm.field_errors(time_credit_form.file) }}
+                        </div>
+                        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            Importer les crédits temps
+                        </button>
+                    {{ form_end(time_credit_form) }}
+                </div>
+            </div>
         </section>
     </div>
 </div>
