@@ -22,6 +22,11 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+        monitor_api:
+            pattern: ^/api/monitor
+            stateless: true
+            custom_authenticators:
+                - App\Security\Authenticator\MonitorApiAuthenticator
         main:
             lazy: true
             provider: app_user_provider
@@ -45,6 +50,7 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/api/monitor, roles: ROLE_MONITOR_API }
         - { path: ^/recette, roles: PUBLIC_ACCESS }
         - { path: ^/(login|login-code|forgot-password|reset-password), roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }

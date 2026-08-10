@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Document\DocumentUploadPolicy;
+use App\Document\ExternalDocumentUrlChecker;
 use App\Entity\Entreprise;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -24,6 +25,11 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class DocumentBatchUploadType extends AbstractType
 {
+    public function __construct(
+        private readonly ExternalDocumentUrlChecker $externalDocumentUrlChecker,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('title', TextType::class, [
@@ -67,7 +73,7 @@ final class DocumentBatchUploadType extends AbstractType
             'required' => false,
             'multiple' => true,
             'help' => sprintf(
-                '20 Mo max par fichier. Extensions autorisées : %s. Sélectionnez un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseignez une URL externe.',
+                '20 Mo max par fichier. Extensions autorisées : %s. Sélectionnez un ou plusieurs fichiers (Ctrl/Cmd + clic), ou renseignez une URL externe https.',
                 DocumentUploadPolicy::extensionsLabel(),
             ),
             'help_attr' => ['class' => 'mt-2 text-sm text-slate-600'],
@@ -79,6 +85,7 @@ final class DocumentBatchUploadType extends AbstractType
                 new All(constraints: [
                     new File(
                         maxSize: '20M',
+                        maxSizeMessage: 'Le fichier est trop volumineux ({{ size }} {{ suffix }}). La taille maximale autorisée est de {{ limit }} {{ suffix }}.',
                         extensions: DocumentUploadPolicy::extensions(),
                         extensionsMessage: 'Extension non autorisée. Formats acceptés : {{ extensions }}.',
                     ),
@@ -87,7 +94,7 @@ final class DocumentBatchUploadType extends AbstractType
         ]);
 
         $builder->add('externalUrl', UrlType::class, [
-            'label' => 'URL externe (optionnel)',
+            'label' => 'URL externe https (optionnel)',
             'mapped' => false,
             'required' => false,
             'default_protocol' => 'https',
@@ -117,12 +124,16 @@ final class DocumentBatchUploadType extends AbstractType
                 }
                 if ($file->getError() === \UPLOAD_ERR_INI_SIZE || $file->getError() === \UPLOAD_ERR_FORM_SIZE) {
                     $hasUploadErrors = true;
-                    $form->addError(new FormError('Un ou plusieurs fichiers dépassent la taille autorisée. Réduisez la taille des fichiers puis réessayez.'));
+                    $message = 'Un ou plusieurs fichiers dépassent la taille maximale autorisée (20 Mo). Réduisez la taille puis réessayez.';
+                    $form->addError(new FormError($message));
+                    $form->get('files')->addError(new FormError($message));
                     break;
                 }
                 if ($file->getError() !== \UPLOAD_ERR_OK) {
                     $hasUploadErrors = true;
-                    $form->addError(new FormError('Un ou plusieurs fichiers n’ont pas pu être téléversés correctement.'));
+                    $message = 'Un ou plusieurs fichiers n’ont pas pu être téléversés correctement.';
+                    $form->addError(new FormError($message));
+                    $form->get('files')->addError(new FormError($message));
                     break;
                 }
             }
@@ -139,28 +150,24 @@ final class DocumentBatchUploadType extends AbstractType
             $url = \is_string($urlRaw) ? trim($urlRaw) : '';
 
             if ($validFiles !== [] && $url !== '') {
-                $form->addError(new FormError('Indique soit des fichiers, soit une URL externe, pas les deux.'));
+                $message = 'Indiquez soit des fichiers, soit une URL externe, pas les deux.';
+                $form->addError(new FormError($message));
+                $form->get('files')->addError(new FormError($message));
+                $form->get('externalUrl')->addError(new FormError($message));
 
                 return;
             }
 
             if ($validFiles === [] && $url === '') {
-                $form->addError(new FormError('Ajoute au moins un fichier ou une URL externe.'));
+                $form->addError(new FormError('Ajoutez au moins un fichier ou une URL externe.'));
 
                 return;
             }
 
             if ($url !== '') {
-                if (!filter_var($url, \FILTER_VALIDATE_URL)) {
-                    $form->get('externalUrl')->addError(new FormError('URL invalide.'));
-
-                    return;
-                }
-
-                $parsed = parse_url($url);
-                $scheme = isset($parsed['scheme']) ? strtolower((string) $parsed['scheme']) : '';
-                if (!\in_array($scheme, ['http', 'https'], true)) {
-                    $form->get('externalUrl')->addError(new FormError('L’URL doit commencer par http:// ou https://.'));
+                $urlError = $this->externalDocumentUrlChecker->validate($url);
+                if ($urlError !== null) {
+                    $form->get('externalUrl')->addError(new FormError($urlError));
                 }
             }
         });

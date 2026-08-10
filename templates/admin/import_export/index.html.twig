@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% import 'admin/_form_macros.html.twig' as adminForm %}
+
+{% block title %}Import / Export{% endblock %}
+
+{% block body %}
+<nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
+    <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
+    <span class="text-neutral-400"> / </span>
+    <a href="{{ path('admin_dashboard') }}" class="hover:underline">Administration</a>
+    <span class="text-neutral-400"> / </span>
+    <span class="font-medium" aria-current="page">Import / Export</span>
+</nav>
+
+<p class="mt-6 text-m">
+    <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('admin_dashboard') }}">← Retour à l’administration</a>
+</p>
+
+<div class="panel py-8">
+    <h1 class="text-5xl font-extrabold text-brand">Import / Export</h1>
+    <p class="mt-2 max-w-3xl text-m text-slate-600">
+        Échange des entreprises issues de l’ancien extranet (flag « Ancienne »). Elles restent masquées par défaut ;
+        cochez « Afficher anciennes données » dans la liste des entreprises pour les voir.
+    </p>
+
+    {% for message in app.flashes('success') %}
+        <div class="mt-4 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% endfor %}
+
+    <div class="mt-8 grid gap-8 lg:grid-cols-2">
+        <section class="border-2 border-black p-6">
+            <h2 class="text-xl font-extrabold text-brand">Exporter</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                Télécharge un fichier JSON des entreprises actuellement marquées « Ancienne » en base
+                ({{ legacy_count }}).
+            </p>
+            <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+               href="{{ path('admin_import_export_legacy_entreprises') }}">
+                Télécharger l’export JSON
+            </a>
+        </section>
+
+        <section class="border-2 border-black p-6">
+            <h2 class="text-xl font-extrabold text-brand">Importer</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                Importe un fichier au format <code class="text-xs">extranet-17b-legacy-entreprises</code>.
+                Réimport idempotent via l’identifiant source de l’ancien site.
+            </p>
+
+            {{ form_start(form, { attr: { class: 'mt-6 space-y-4', enctype: 'multipart/form-data' } }) }}
+                {{ adminForm.form_errors_all(form) }}
+                <div>
+                    {{ form_label(form.file, null, { label_attr: { class: 'block text-sm font-semibold text-brand' } }) }}
+                    {{ form_widget(form.file, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
+                    {{ adminForm.field_errors(form.file) }}
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    {{ form_widget(form.includeArchived) }}
+                    {{ form_label(form.includeArchived) }}
+                </label>
+                <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                    Importer le fichier
+                </button>
+            {{ form_end(form) }}
+        </section>
+    </div>
+</div>
+{% endblock %}

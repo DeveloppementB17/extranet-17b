@@ -35,7 +35,10 @@ APP_DEBUG=0
 APP_SECRET=change-me
 
 DATABASE_URL="mysql://db_user:db_pass@db_host:3306/db_name?serverVersion=8.0&charset=utf8mb4"
-MAILER_DSN="smtp://user:pass@smtp.provider.tld:587"
+
+# Même transport Brevo que 17b-email (SMTP TLS 587) — ne pas committer le secret
+MAILER_DSN="smtp://<login>%40smtp-brevo.com:<smtp-key>@smtp-relay.brevo.com:587?encryption=tls&auth_mode=login"
+MAILER_FROM=no-reply@agence-b17.dev
 
 STORAGE_PATH="/home/<login>/www/storage/uploads"
 ```

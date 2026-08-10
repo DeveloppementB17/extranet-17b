@@ -20,10 +20,13 @@
         <form class="mt-8 space-y-6" action="{{ path('auth_code') }}" method="post">
             <div class="relative z-0 w-full mb-5 group">
                 <input class="block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer"
-                       type="email" id="email" name="email" autocomplete="email" required placeholder=" ">
+                       type="email" id="email" name="email" autocomplete="email" required
+                       inputmode="email" maxlength="180" placeholder=" "
+                       pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+                       title="Saisissez une adresse email valide (ex. prenom@exemple.com)">
                 <label class="absolute z-10 text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2
                  peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
-                       for="email">Identifiant</label>
+                       for="email">Email</label>
             </div>
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">

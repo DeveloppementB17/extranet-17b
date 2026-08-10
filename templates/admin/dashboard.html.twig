@@ -82,6 +82,17 @@
                     </a>
                 </div>
             </article>
+            <article class="border-2 border-black flex flex-col p-6">
+                <h2 class="text-xl font-extrabold text-brand">Import / Export</h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Importer ou exporter les entreprises de l’ancien extranet (données « Ancienne »).
+                </p>
+                <div class="mt-6 flex flex-col gap-3">
+                    <a class="inline-flex w-fit items-center bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_import_export') }}">
+                        Ouvrir Import / Export
+                    </a>
+                </div>
+            </article>
         </div>
     </div>
 {% endblock %}

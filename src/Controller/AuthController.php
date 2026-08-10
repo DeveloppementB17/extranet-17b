@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class AuthController extends AbstractController
 {
@@ -41,6 +43,7 @@ final class AuthController extends AbstractController
         UserRepository $userRepository,
         EntityManagerInterface $entityManager,
         SystemMailer $systemMailer,
+        ValidatorInterface $validator,
     ): Response {
         if ($request->isMethod('POST')) {
             $email = mb_strtolower(trim((string) $request->request->get('email', '')));
@@ -48,6 +51,12 @@ final class AuthController extends AbstractController
 
             if (!$csrfTokenManager->isTokenValid(new CsrfToken('login_code_request', $csrf))) {
                 $this->addFlash('error', 'Jeton CSRF invalide.');
+
+                return $this->redirectToRoute('auth_code');
+            }
+
+            if (!$this->isValidEmailAddress($email, $validator)) {
+                $this->addFlash('error', 'Veuillez saisir une adresse email valide.');
 
                 return $this->redirectToRoute('auth_code');
             }
@@ -109,6 +118,21 @@ final class AuthController extends AbstractController
     public function verifyCodeSubmit(): void
     {
         throw new \LogicException('This code should never be reached.');
+    }
+
+    private function isValidEmailAddress(string $email, ValidatorInterface $validator): bool
+    {
+        if ($email === '') {
+            return false;
+        }
+
+        $violations = $validator->validate($email, [
+            new Assert\NotBlank(),
+            new Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT),
+            new Assert\Length(max: 180),
+        ]);
+
+        return $violations->count() === 0;
     }
 }
 

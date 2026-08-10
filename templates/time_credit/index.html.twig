@@ -62,7 +62,7 @@
                     <select name="status" class="border border-dark px-3 py-2 text-sm">
                         <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
                         <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>Actifs</option>
-                        <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Archivés</option>
+                        <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Terminés</option>
                     </select>
                 </div>
                 <div class="flex gap-2 justify-end">
@@ -211,7 +211,7 @@
                             </td>
                             <td class="px-4 py-3">
                                 {% if credit.archived %}
-                                    <span class="bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">Archivé</span>
+                                    <span class="bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">Terminé</span>
                                 {% else %}
                                     <span class="bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Actif</span>
                                 {% endif %}

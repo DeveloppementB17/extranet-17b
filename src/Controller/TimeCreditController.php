@@ -452,14 +452,14 @@ final class TimeCreditController extends AbstractController
         }
 
         if ($credit->isArchived()) {
-            $this->addFlash('success', 'Ce crédit temps est déjà archivé.');
+            $this->addFlash('success', 'Ce crédit temps est déjà terminé.');
 
             return $this->redirectToRoute('time_credit_index');
         }
 
         $credit->setArchived(true);
         $entityManager->flush();
-        $this->addFlash('success', 'Crédit temps archivé.');
+        $this->addFlash('success', 'Crédit temps marqué comme terminé.');
 
         return $this->redirectToRoute('time_credit_index');
     }

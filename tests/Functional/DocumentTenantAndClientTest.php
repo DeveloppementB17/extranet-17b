@@ -159,6 +159,70 @@ final class DocumentTenantAndClientTest extends DocumentWebTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    public function testCustomerCannotPreviewDocumentFromAnotherCompany(): void
+    {
+        $browser = static::createClient();
+
+        $em = static::getContainer()->get('doctrine')->getManager();
+        $clientNord = $em->getRepository(User::class)->findOneBy(['email' => 'admin-nord@clients.test']);
+        $clientSud = $em->getRepository(User::class)->findOneBy(['email' => 'admin-sud@clients.test']);
+        self::assertNotNull($clientNord);
+        self::assertNotNull($clientSud);
+
+        $sudDoc = $em->getRepository(Document::class)->findOneBy(['client' => $clientSud]);
+        self::assertNotNull($sudDoc);
+
+        $browser->loginUser($clientNord);
+        $browser->request('GET', '/documents/'.$sudDoc->getId().'/preview');
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function test17bManagedUserCannotPreviewOtherManagedCompanyWhenNordSelected(): void
+    {
+        $browser = static::createClient();
+
+        $em = static::getContainer()->get('doctrine')->getManager();
+        $manager = $em->getRepository(User::class)->findOneBy(['email' => 'staff-partial@17b.test']);
+        $nord = $em->getRepository(Entreprise::class)->findOneBy(['slug' => 'demo-nord']);
+        $sud = $em->getRepository(Entreprise::class)->findOneBy(['slug' => 'demo-sud']);
+        $sudDoc = $em->getRepository(Document::class)->createQueryBuilder('d')
+            ->join('d.entreprise', 'e')
+            ->andWhere('e.slug = :slug')
+            ->setParameter('slug', 'demo-sud')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        self::assertNotNull($manager);
+        self::assertNotNull($nord);
+        self::assertNotNull($sud);
+        self::assertNotNull($sudDoc);
+
+        // Simule un staff multi-clients (Nord + Sud) : sans fix voter, le preview Sud
+        // passait même avec Nord sélectionné.
+        $manager->addManagedEntreprise($sud);
+        $em->flush();
+
+        $browser->loginUser($manager);
+        $crawler = $browser->request('GET', '/');
+        $token = $crawler
+            ->filter('form[action="/staff/client/'.$nord->getId().'/select"] input[name="_token"]')
+            ->attr('value');
+        self::assertNotFalse($token);
+
+        $browser->request('POST', '/staff/client/'.$nord->getId().'/select', [
+            '_token' => $token,
+        ]);
+        self::assertResponseRedirects('/');
+
+        $browser->request('GET', '/documents/'.$sudDoc->getId().'/preview');
+        self::assertResponseStatusCodeSame(403);
+
+        $browser->request('GET', '/documents/'.$sudDoc->getId().'/download');
+        self::assertResponseStatusCodeSame(403);
+    }
+
     public function testCustomerCanDownloadPeerDocumentSameCompany(): void
     {
         $browser = static::createClient();

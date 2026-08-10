@@ -32,6 +32,10 @@ class TimeCredit implements EntrepriseOwnedInterface
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $dossierNumber = null;
 
+    /** URL du site web lié (17b-monitor), pour rapprocher les interventions. */
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $siteUrl = null;
+
     #[ORM\Column(options: ['default' => false])]
     private bool $archived = false;
 
@@ -108,6 +112,24 @@ class TimeCredit implements EntrepriseOwnedInterface
     public function setDossierNumber(?string $dossierNumber): self
     {
         $this->dossierNumber = $dossierNumber !== null && trim($dossierNumber) !== '' ? trim($dossierNumber) : null;
+
+        return $this;
+    }
+
+    public function getSiteUrl(): ?string
+    {
+        return $this->siteUrl;
+    }
+
+    public function setSiteUrl(?string $siteUrl): self
+    {
+        if ($siteUrl === null || trim($siteUrl) === '') {
+            $this->siteUrl = null;
+
+            return $this;
+        }
+
+        $this->siteUrl = rtrim(trim($siteUrl), '/');
 
         return $this;
     }

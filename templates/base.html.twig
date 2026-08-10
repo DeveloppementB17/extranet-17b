@@ -127,16 +127,18 @@
                 <div class="flex min-h-screen">
                     {% include '_dashboard_sidebar.html.twig' %}
                     <div class="relative flex min-h-screen min-w-0 flex-1 flex-col bg-white">
-                        <button data-drawer-target="dashboard-sidebar" data-drawer-toggle="dashboard-sidebar" aria-controls="dashboard-sidebar" type="button"
-                                class="inline-flex items-center p-2 mt-4 ms-4 text-black rounded-lg lg:hidden hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-200">
-                            <span class="sr-only">Ouvrir la navigation</span>
-                            <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                                <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"/>
-                            </svg>
-                        </button>
+                        <div class="flex items-center gap-3 px-4 pt-4 lg:hidden">
+                            <button data-drawer-target="dashboard-sidebar" data-drawer-toggle="dashboard-sidebar" aria-controls="dashboard-sidebar" type="button"
+                                    class="inline-flex items-center rounded-lg p-2 text-black hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-200">
+                                <span class="sr-only">Ouvrir la navigation</span>
+                                <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"/>
+                                </svg>
+                            </button>
+                        </div>
                         {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
                             {% set headerSelectedClient = managed_selected_client() %}
-                            <div class="pointer-events-none absolute right-8 top-6 z-20 lg:right-14 xl:right-24">
+                            <div class="pointer-events-none absolute right-8 top-6 z-20 hidden lg:block lg:right-14 xl:right-24">
                                 {% if headerSelectedClient %}
                                     <span class="inline-flex items-center rounded-full border border-brand/30 bg-brand/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-brand shadow-sm">
                                         Entreprise active : {{ headerSelectedClient.name }}
@@ -148,7 +150,7 @@
                                 {% endif %}
                             </div>
                         {% endif %}
-                        <main class="relative z-10 flex-1 px-8 pb-16 pt-10 lg:px-14 xl:pr-24">
+                        <main class="relative z-10 flex-1 px-8 pb-16 pt-6 lg:px-14 lg:pt-10 xl:pr-24">
             {% else %}
                 <main class="mx-auto max-w-6xl px-6 py-2">
             {% endif %}

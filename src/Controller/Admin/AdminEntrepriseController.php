@@ -29,6 +29,7 @@ final class AdminEntrepriseController extends AbstractController
         $entreprises = $entrepriseRepository->findAllOrdered();
         $search = trim((string) $request->query->get('q', ''));
         $typeFilter = (string) $request->query->get('type', 'all');
+        $showLegacy = $request->query->getBoolean('legacy');
         $sort = (string) $request->query->get('sort', 'name');
         $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
@@ -40,7 +41,12 @@ final class AdminEntrepriseController extends AbstractController
             $typeFilter = 'all';
         }
 
-        $entreprises = array_values(array_filter($entreprises, static function (Entreprise $entreprise) use ($search, $typeFilter): bool {
+        $legacyCount = $entrepriseRepository->countLegacy();
+
+        $entreprises = array_values(array_filter($entreprises, static function (Entreprise $entreprise) use ($search, $typeFilter, $showLegacy): bool {
+            if (!$showLegacy && $entreprise->isLegacy()) {
+                return false;
+            }
             if ($typeFilter === 'agency' && !$entreprise->isAgency()) {
                 return false;
             }
@@ -69,6 +75,8 @@ final class AdminEntrepriseController extends AbstractController
             'entreprises' => $entreprises,
             'search_query' => $search,
             'filter_type' => $typeFilter,
+            'show_legacy' => $showLegacy,
+            'legacy_count' => $legacyCount,
             'sort_field' => $sort,
             'sort_direction' => $direction,
         ]);
@@ -89,6 +97,8 @@ final class AdminEntrepriseController extends AbstractController
             $entreprise->setName(trim($entreprise->getName()));
             $entreprise->setSlug($slugGenerator->generateUniqueSlug($entreprise->getName()));
             $entreprise->setAgency(false);
+            $entreprise->setLegacy(false);
+            $entreprise->setLegacySourceId(null);
             $entityManager->persist($entreprise);
             try {
                 $entityManager->flush();

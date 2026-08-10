@@ -17,6 +17,8 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class EmailCodeAuthenticator extends AbstractAuthenticator
 {
@@ -25,6 +27,7 @@ final class EmailCodeAuthenticator extends AbstractAuthenticator
         private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
+        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -45,6 +48,14 @@ final class EmailCodeAuthenticator extends AbstractAuthenticator
 
         if ($email === '' || $code === '') {
             throw new CustomUserMessageAuthenticationException('Email et code requis.');
+        }
+
+        $emailViolations = $this->validator->validate($email, [
+            new Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT),
+            new Assert\Length(max: 180),
+        ]);
+        if ($emailViolations->count() > 0) {
+            throw new CustomUserMessageAuthenticationException('Veuillez saisir une adresse email valide.');
         }
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('login_code_verify', $csrf))) {

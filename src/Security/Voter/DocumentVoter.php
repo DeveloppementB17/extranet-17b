@@ -3,6 +3,7 @@
 namespace App\Security\Voter;
 
 use App\Entity\Document;
+use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Tenant\ManagedClientContext;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -51,9 +52,9 @@ final class DocumentVoter extends Voter
         }
 
         if ($user->is17bUser()) {
-            $selectedEntreprise = $this->managedClientContext->getSelectedManagedEntreprise($user);
-            if ($selectedEntreprise instanceof Entreprise) {
-                return $selectedEntreprise->getId() === $docEntreprise->getId();
+            $selected = $this->managedClientContext->getSelectedManagedEntreprise($user);
+            if (!$selected instanceof Entreprise || $selected->getId() !== $docEntreprise->getId()) {
+                return false;
             }
 
             return $user->managesEntreprise($docEntreprise);

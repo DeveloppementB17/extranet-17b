@@ -26,6 +26,15 @@ class EntrepriseRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findOneByLegacySourceId(int $legacySourceId): ?Entreprise
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.legacySourceId = :legacySourceId')
+            ->setParameter('legacySourceId', $legacySourceId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function existsByName(string $name, ?int $excludeEntrepriseId = null): bool
     {
         $normalized = mb_strtolower(trim($name));
@@ -47,7 +56,7 @@ class EntrepriseRepository extends ServiceEntityRepository
     }
 
     /**
-     * Entreprises clientes sélectionnables dans le switcher staff 17b.
+     * Entreprises clientes sélectionnables dans le switcher staff 17b (hors legacy).
      *
      * @return list<Entreprise>
      */
@@ -63,14 +72,19 @@ class EntrepriseRepository extends ServiceEntityRepository
     /**
      * @return list<Entreprise>
      */
-    public function findNonAgencyOrdered(): array
+    public function findNonAgencyOrdered(bool $includeLegacy = false): array
     {
-        return $this->createQueryBuilder('e')
+        $qb = $this->createQueryBuilder('e')
             ->andWhere('e.agency = :fa')
             ->setParameter('fa', false)
-            ->orderBy('e.name', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('e.name', 'ASC');
+
+        if (!$includeLegacy) {
+            $qb->andWhere('e.legacy = :legacy')
+                ->setParameter('legacy', false);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -89,13 +103,18 @@ class EntrepriseRepository extends ServiceEntityRepository
     /**
      * @return list<Entreprise>
      */
-    public function findAllOrdered(): array
+    public function findAllOrdered(bool $includeLegacy = true): array
     {
-        return $this->createQueryBuilder('e')
+        $qb = $this->createQueryBuilder('e')
             ->orderBy('e.agency', 'DESC')
-            ->addOrderBy('e.name', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('e.name', 'ASC');
+
+        if (!$includeLegacy) {
+            $qb->andWhere('e.legacy = :legacy')
+                ->setParameter('legacy', false);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -103,20 +122,34 @@ class EntrepriseRepository extends ServiceEntityRepository
      *
      * @return list<Entreprise>
      */
-    public function findNonAgencyByIdsOrdered(array $ids): array
+    public function findNonAgencyByIdsOrdered(array $ids, bool $includeLegacy = false): array
     {
         if ($ids === []) {
             return [];
         }
 
-        return $this->createQueryBuilder('e')
+        $qb = $this->createQueryBuilder('e')
             ->andWhere('e.agency = :fa')
             ->andWhere('e.id IN (:ids)')
             ->setParameter('fa', false)
             ->setParameter('ids', $ids)
-            ->orderBy('e.name', 'ASC')
+            ->orderBy('e.name', 'ASC');
+
+        if (!$includeLegacy) {
+            $qb->andWhere('e.legacy = :legacy')
+                ->setParameter('legacy', false);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countLegacy(): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->andWhere('e.legacy = :legacy')
+            ->setParameter('legacy', true)
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
     }
 }
-

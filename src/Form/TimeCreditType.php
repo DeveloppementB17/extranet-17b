@@ -52,6 +52,16 @@ final class TimeCreditType extends AbstractType
                     'maxlength' => 120,
                 ],
             ])
+            ->add('siteUrl', TextType::class, [
+                'required' => false,
+                'label' => 'URL du site (monitor)',
+                'help' => 'Optionnel — lie ce crédit au site dans 17b-monitor pour afficher les interventions.',
+                'attr' => [
+                    'class' => 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary',
+                    'maxlength' => 500,
+                    'placeholder' => 'https://www.exemple.fr',
+                ],
+            ])
             ->add('totalValue', NumberType::class, [
                 'label' => 'Total',
                 'mapped' => false,
@@ -74,7 +84,8 @@ final class TimeCreditType extends AbstractType
         if ($options['allow_archive_field']) {
             $builder->add('archived', CheckboxType::class, [
                 'required' => false,
-                'label' => 'Archivé',
+                'label' => 'Terminé',
+                'help' => 'Un crédit terminé n’accepte plus de nouvelles interventions.',
             ]);
         }
 

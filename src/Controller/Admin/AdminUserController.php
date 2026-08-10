@@ -234,7 +234,7 @@ final class AdminUserController extends AbstractController
         $user = new User();
         $form = $this->createForm(AdminUserType::class, $user, [
             'require_password' => true,
-            'entreprise_choices' => $entrepriseRepository->findAllOrdered(),
+            'entreprise_choices' => $entrepriseRepository->findAllOrdered(includeLegacy: false),
             'client_entreprise_choices' => $clientEntreprises,
             'primary_role_data' => 'ROLE_CUSTOMER_USER',
             'managed_entreprises_data' => [],
@@ -302,7 +302,7 @@ final class AdminUserController extends AbstractController
     ): Response {
         $form = $this->createForm(AdminUserType::class, $user, [
             'require_password' => false,
-            'entreprise_choices' => $entrepriseRepository->findAllOrdered(),
+            'entreprise_choices' => $entrepriseRepository->findAllOrdered(includeLegacy: false),
             'client_entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(),
             'primary_role_data' => $user->getPrimaryStoredRole(),
             'managed_entreprises_data' => $user->getManagedEntreprises()->toArray(),

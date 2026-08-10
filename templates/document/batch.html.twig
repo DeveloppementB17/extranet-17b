@@ -261,6 +261,33 @@
 
         form.addEventListener('submit', function (e) {
             const files = Array.from(input.files || []);
+            const urlField = form.querySelector('[name$="[externalUrl]"]');
+            const urlValue = urlField ? String(urlField.value || '').trim() : '';
+            const maxBytes = 20 * 1024 * 1024;
+
+            if (files.length > 0 && urlValue !== '') {
+                e.preventDefault();
+                progressGlobal.classList.remove('hidden');
+                progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Indiquez soit des fichiers, soit une URL externe, pas les deux.</div>';
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].size > maxBytes) {
+                    e.preventDefault();
+                    progressGlobal.classList.remove('hidden');
+                    progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Le fichier « ' + files[i].name + ' » dépasse 20 Mo. Réduisez sa taille puis réessayez.</div>';
+                    return;
+                }
+            }
+
+            if (urlValue !== '' && urlValue.toLowerCase().startsWith('http://')) {
+                e.preventDefault();
+                progressGlobal.classList.remove('hidden');
+                progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Seules les URL en https:// sont acceptées.</div>';
+                return;
+            }
+
             if (files.length === 0) {
                 return;
             }
@@ -287,8 +314,19 @@
 
             xhr.onload = function () {
                 updatePerFileProgress(files, 1, 1);
-                if (xhr.responseURL) {
-                    window.location.href = xhr.responseURL;
+                const finalUrl = xhr.responseURL || '';
+                const stayedOnUpload = finalUrl.indexOf('/documents/ajouter') !== -1;
+
+                // Validation échouée : Symfony renvoie le formulaire (200) sans redirection.
+                if (xhr.status >= 200 && xhr.status < 300 && stayedOnUpload && xhr.responseText) {
+                    document.open();
+                    document.write(xhr.responseText);
+                    document.close();
+                    return;
+                }
+
+                if (finalUrl) {
+                    window.location.href = finalUrl;
                     return;
                 }
                 window.location.reload();
