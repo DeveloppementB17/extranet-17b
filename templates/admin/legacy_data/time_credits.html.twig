@@ -32,21 +32,45 @@
 
     <form method="get" class="mt-6 flex flex-wrap gap-2">
         <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher une entreprise…" class="border border-black px-3 py-2 text-sm min-w-[240px]">
+        <input type="hidden" name="sort" value="{{ sort_field }}">
+        <input type="hidden" name="dir" value="{{ sort_direction }}">
         <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
         <a href="{{ path('admin_legacy_data_time_credits') }}" class="border border-black px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
     </form>
+
+    {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextDateDir = sort_field == 'date' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextTotalDir = sort_field == 'total' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextUsedDir = sort_field == 'used' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextRemainingDir = sort_field == 'remaining' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextInterventionsDir = sort_field == 'interventions' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextStatusDir = sort_field == 'status' and sort_direction == 'asc' ? 'desc' : 'asc' %}
 
     <div class="mt-6 overflow-x-auto ring-1 ring-slate-200">
         <table class="w-full min-w-[960px] text-left text-sm">
             <thead class="bg-brand-card text-slate-600 h-[66px]">
                 <tr>
-                    <th class="px-4 py-3 font-semibold text-black">Entreprise</th>
-                    <th class="px-4 py-3 font-semibold text-black">Date crédit</th>
-                    <th class="px-4 py-3 font-semibold text-black">Total</th>
-                    <th class="px-4 py-3 font-semibold text-black">Utilisé</th>
-                    <th class="px-4 py-3 font-semibold text-black">Reste</th>
-                    <th class="px-4 py-3 font-semibold text-black">Interventions</th>
-                    <th class="px-4 py-3 font-semibold text-black">État</th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">Entreprise</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'date', dir: nextDateDir })) }}">Date crédit</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'total', dir: nextTotalDir })) }}">Total</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'used', dir: nextUsedDir })) }}">Utilisé</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'remaining', dir: nextRemainingDir })) }}">Reste</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'interventions', dir: nextInterventionsDir })) }}">Interventions</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_time_credits', app.request.query.all|merge({ sort: 'status', dir: nextStatusDir })) }}">État</a>
+                    </th>
                     <th class="px-4 py-3 font-semibold text-black text-right">Action</th>
                 </tr>
             </thead>

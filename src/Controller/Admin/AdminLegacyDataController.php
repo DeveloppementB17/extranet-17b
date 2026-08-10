@@ -89,10 +89,31 @@ final class AdminLegacyDataController extends AbstractController
         }
 
         $search = trim((string) $request->query->get('q', ''));
+        $sort = (string) $request->query->get('sort', 'name');
+        $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['name', 'source', 'status'];
+        if (!\in_array($sort, $allowedSorts, true)) {
+            $sort = 'name';
+        }
+
+        $rows = $importer->listEntreprises($search !== '' ? $search : null);
+        $statusOrder = ['available' => 0, 'name_conflict' => 1, 'imported' => 2];
+        usort($rows, static function (array $left, array $right) use ($sort, $direction, $statusOrder): int {
+            $result = match ($sort) {
+                'source' => $left['legacySourceId'] <=> $right['legacySourceId'],
+                'status' => ($statusOrder[$left['status']] ?? 99) <=> ($statusOrder[$right['status']] ?? 99)
+                    ?: strcasecmp($left['name'], $right['name']),
+                default => strcasecmp($left['name'], $right['name']),
+            };
+
+            return $direction === 'asc' ? $result : -$result;
+        });
 
         return $this->render('admin/legacy_data/entreprises.html.twig', [
-            'rows' => $importer->listEntreprises($search !== '' ? $search : null),
+            'rows' => $rows,
             'search_query' => $search,
+            'sort_field' => $sort,
+            'sort_direction' => $direction,
         ]);
     }
 
@@ -113,16 +134,16 @@ final class AdminLegacyDataController extends AbstractController
         } catch (\RuntimeException $e) {
             $this->addFlash('error', $e->getMessage());
 
-            return $this->redirectToRoute('admin_legacy_data_entreprises', $this->searchQuery($request));
+            return $this->redirectToRoute('admin_legacy_data_entreprises', $this->listQuery($request));
         } catch (\Throwable $e) {
             $this->addFlash('error', 'Import impossible : '.$e->getMessage());
 
-            return $this->redirectToRoute('admin_legacy_data_entreprises', $this->searchQuery($request));
+            return $this->redirectToRoute('admin_legacy_data_entreprises', $this->listQuery($request));
         }
 
         $this->addFlash('success', sprintf('Entreprise « %s » importée / liée.', $entreprise->getName()));
 
-        return $this->redirectToRoute('admin_legacy_data_entreprises', $this->searchQuery($request));
+        return $this->redirectToRoute('admin_legacy_data_entreprises', $this->listQuery($request));
     }
 
     #[Route('/credits-temps', name: 'admin_legacy_data_time_credits', methods: ['GET'])]
@@ -135,10 +156,35 @@ final class AdminLegacyDataController extends AbstractController
         }
 
         $search = trim((string) $request->query->get('q', ''));
+        $sort = (string) $request->query->get('sort', 'entreprise');
+        $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['entreprise', 'date', 'total', 'used', 'remaining', 'interventions', 'status'];
+        if (!\in_array($sort, $allowedSorts, true)) {
+            $sort = 'entreprise';
+        }
+
+        $rows = $importer->listTimeCredits($search !== '' ? $search : null);
+        $statusOrder = ['available' => 0, 'entreprise_missing' => 1, 'imported' => 2];
+        usort($rows, static function (array $left, array $right) use ($sort, $direction, $statusOrder): int {
+            $result = match ($sort) {
+                'date' => strcmp($left['creditedAt'], $right['creditedAt']),
+                'total' => $left['totalMinutes'] <=> $right['totalMinutes'],
+                'used' => $left['usedMinutes'] <=> $right['usedMinutes'],
+                'remaining' => $left['remainingMinutes'] <=> $right['remainingMinutes'],
+                'interventions' => $left['interventionCount'] <=> $right['interventionCount'],
+                'status' => ($statusOrder[$left['status']] ?? 99) <=> ($statusOrder[$right['status']] ?? 99)
+                    ?: strcasecmp($left['entrepriseName'], $right['entrepriseName']),
+                default => strcasecmp($left['entrepriseName'], $right['entrepriseName']),
+            };
+
+            return $direction === 'asc' ? $result : -$result;
+        });
 
         return $this->render('admin/legacy_data/time_credits.html.twig', [
-            'rows' => $importer->listTimeCredits($search !== '' ? $search : null),
+            'rows' => $rows,
             'search_query' => $search,
+            'sort_field' => $sort,
+            'sort_direction' => $direction,
         ]);
     }
 
@@ -249,13 +295,34 @@ final class AdminLegacyDataController extends AbstractController
     /**
      * @return array<string, scalar>
      */
-    private function searchQuery(Request $request): array
+    private function listQuery(Request $request): array
     {
+        $params = [];
+
         $q = trim((string) $request->query->get('q', ''));
         if ($q === '') {
             $q = trim((string) $request->request->get('q', ''));
         }
+        if ($q !== '') {
+            $params['q'] = $q;
+        }
 
-        return $q !== '' ? ['q' => $q] : [];
+        $sort = (string) $request->query->get('sort', '');
+        if ($sort === '') {
+            $sort = (string) $request->request->get('sort', '');
+        }
+        if ($sort !== '') {
+            $params['sort'] = $sort;
+        }
+
+        $dir = strtolower((string) $request->query->get('dir', ''));
+        if ($dir === '') {
+            $dir = strtolower((string) $request->request->get('dir', ''));
+        }
+        if (\in_array($dir, ['asc', 'desc'], true)) {
+            $params['dir'] = $dir;
+        }
+
+        return $params;
     }
 }

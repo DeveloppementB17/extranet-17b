@@ -32,17 +32,29 @@
 
     <form method="get" class="mt-6 flex flex-wrap gap-2">
         <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher…" class="border border-black px-3 py-2 text-sm min-w-[240px]">
+        <input type="hidden" name="sort" value="{{ sort_field }}">
+        <input type="hidden" name="dir" value="{{ sort_direction }}">
         <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
         <a href="{{ path('admin_legacy_data_entreprises') }}" class="border border-black px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
     </form>
+
+    {% set nextNameDir = sort_field == 'name' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextSourceDir = sort_field == 'source' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+    {% set nextStatusDir = sort_field == 'status' and sort_direction == 'asc' ? 'desc' : 'asc' %}
 
     <div class="mt-6 overflow-x-auto ring-1 ring-slate-200">
         <table class="w-full min-w-[800px] text-left text-sm">
             <thead class="bg-brand-card text-slate-600 h-[66px]">
                 <tr>
-                    <th class="px-4 py-3 font-semibold text-black">Nom</th>
-                    <th class="px-4 py-3 font-semibold text-black">Source</th>
-                    <th class="px-4 py-3 font-semibold text-black">État</th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_entreprises', app.request.query.all|merge({ sort: 'name', dir: nextNameDir })) }}">Nom</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_entreprises', app.request.query.all|merge({ sort: 'source', dir: nextSourceDir })) }}">Source</a>
+                    </th>
+                    <th class="px-4 py-3 font-semibold">
+                        <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('admin_legacy_data_entreprises', app.request.query.all|merge({ sort: 'status', dir: nextStatusDir })) }}">État</a>
+                    </th>
                     <th class="px-4 py-3 font-semibold text-black text-right">Action</th>
                 </tr>
             </thead>
@@ -69,16 +81,20 @@
                             {% if row.status == 'imported' %}
                                 <a class="text-brand underline underline-offset-2" href="{{ path('admin_entreprise_edit', { id: row.matchedEntreprise.id }) }}">Voir</a>
                             {% elseif row.status == 'name_conflict' %}
-                                <form method="post" action="{{ path('admin_legacy_data_entreprise_import', { legacySourceId: row.legacySourceId }|merge(search_query ? { q: search_query } : {})) }}" class="inline" onsubmit="return confirm('Lier l’entreprise existante « {{ row.matchedEntreprise.name|e('js') }} » à cette source ancienne ?');">
+                                <form method="post" action="{{ path('admin_legacy_data_entreprise_import', app.request.query.all|merge({ legacySourceId: row.legacySourceId })) }}" class="inline" onsubmit="return confirm('Lier l’entreprise existante « {{ row.matchedEntreprise.name|e('js') }} » à cette source ancienne ?');">
                                     <input type="hidden" name="_token" value="{{ csrf_token('legacy_import_entreprise' ~ row.legacySourceId) }}">
                                     <input type="hidden" name="overwrite" value="1">
                                     {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                                    <input type="hidden" name="sort" value="{{ sort_field }}">
+                                    <input type="hidden" name="dir" value="{{ sort_direction }}">
                                     <button type="submit" class="cursor-pointer bg-amber-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-800">Lier / écraser</button>
                                 </form>
                             {% else %}
-                                <form method="post" action="{{ path('admin_legacy_data_entreprise_import', { legacySourceId: row.legacySourceId }|merge(search_query ? { q: search_query } : {})) }}" class="inline">
+                                <form method="post" action="{{ path('admin_legacy_data_entreprise_import', app.request.query.all|merge({ legacySourceId: row.legacySourceId })) }}" class="inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('legacy_import_entreprise' ~ row.legacySourceId) }}">
                                     {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                                    <input type="hidden" name="sort" value="{{ sort_field }}">
+                                    <input type="hidden" name="dir" value="{{ sort_direction }}">
                                     <button type="submit" class="cursor-pointer bg-brand-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">Importer</button>
                                 </form>
                             {% endif %}
