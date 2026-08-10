@@ -14,7 +14,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-final class LegacyTimeCreditImportType extends AbstractType
+final class LegacyTimeCreditImportFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
