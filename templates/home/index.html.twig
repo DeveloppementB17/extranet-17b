@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Accueil{% endblock %}
 
@@ -25,10 +26,12 @@
                 </h2>
                 {% if is_granted('ROLE_17B_USER') and not selected_client %}
                     <div class="mt-6 flex flex-1 flex-col gap-3">
-                        <a href="{{ path('document_index') }}" class="rounded-sm border border-dark px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                        <a href="{{ path('document_index') }}" class="flex items-center justify-center gap-2 rounded-sm border border-dark px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                            {{ icons.icon('list') }}
                             Tous les fichiers
                         </a>
-                        <a href="{{ path('document_batch_upload') }}" class="rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                        <a href="{{ path('document_batch_upload') }}" class="flex items-center justify-center gap-2 rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            {{ icons.icon('upload') }}
                             Ajouter un fichier
                         </a>
                     </div>
@@ -115,10 +118,12 @@
                 </h2>
                 {% if is_granted('ROLE_17B_USER') and not selected_client %}
                     <div class="mt-6 flex flex-1 flex-col gap-3">
-                        <a href="{{ path('time_credit_index') }}" class="rounded-sm border border-dark px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                        <a href="{{ path('time_credit_index') }}" class="flex items-center justify-center gap-2 rounded-sm border border-dark px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                            {{ icons.icon('list') }}
                             Tous les crédits temps
                         </a>
-                        <a href="{{ path('time_credit_new') }}" class="rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                        <a href="{{ path('time_credit_new') }}" class="flex items-center justify-center gap-2 rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            {{ icons.icon('plus') }}
                             Ajouter un crédit temps
                         </a>
                     </div>

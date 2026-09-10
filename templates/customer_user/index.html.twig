@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Utilisateurs clients{% endblock %}
 
@@ -19,7 +20,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 <h1 class="text-5xl font-extrabold text-brand">Utilisateurs de mon entreprise</h1>
             </div>
-            <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('customer_user_new') }}">Nouvel utilisateur</a>
+            <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('customer_user_new') }}">{{ icons.icon('plus') }}Nouvel utilisateur</a>
         </div>
 
         {% for message in app.flashes('success') %}

@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Anciens crédits temps{% endblock %}
 
@@ -34,8 +35,8 @@
         <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher une entreprise…" class="border border-black px-3 py-2 text-sm min-w-[240px]">
         <input type="hidden" name="sort" value="{{ sort_field }}">
         <input type="hidden" name="dir" value="{{ sort_direction }}">
-        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
-        <a href="{{ path('admin_legacy_data_time_credits') }}" class="border border-black px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
+        <a href="{{ path('admin_legacy_data_time_credits') }}" class="inline-flex items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
     </form>
 
     {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
@@ -96,7 +97,7 @@
                             {% if row.status == 'imported' and row.matchedCredit %}
                                 <a class="text-brand underline underline-offset-2" href="{{ path('time_credit_show', { id: row.matchedCredit.id }) }}">Voir</a>
                             {% else %}
-                                <a class="bg-brand-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_legacy_data_time_credit_show', { legacySourceId: row.legacySourceId }) }}">Détail / importer</a>
+                                <a class="inline-flex items-center gap-1.5 bg-brand-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_legacy_data_time_credit_show', { legacySourceId: row.legacySourceId }) }}">{{ icons.icon('eye', 'h-4 w-4 shrink-0') }}Détail / importer</a>
                             {% endif %}
                         </td>
                     </tr>

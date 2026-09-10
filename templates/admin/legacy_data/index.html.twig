@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% import 'admin/_form_macros.html.twig' as adminForm %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Anciennes données{% endblock %}
 
@@ -37,8 +38,9 @@
                 {% if has_entreprises %}Catalogue chargé.{% else %}Aucun catalogue chargé.{% endif %}
             </p>
             {% if has_entreprises %}
-                <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                <a class="mt-6 inline-flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
                    href="{{ path('admin_legacy_data_entreprises') }}">
+                    {{ icons.icon('building') }}
                     Voir les entreprises
                 </a>
             {% endif %}
@@ -49,8 +51,9 @@
                 {% if has_time_credits %}Catalogue chargé.{% else %}Aucun catalogue chargé.{% endif %}
             </p>
             {% if has_time_credits %}
-                <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                <a class="mt-6 inline-flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
                    href="{{ path('admin_legacy_data_time_credits') }}">
+                    {{ icons.icon('clock') }}
                     Voir les crédits temps
                 </a>
             {% endif %}
@@ -77,7 +80,8 @@
                     {{ adminForm.field_errors(form.timeCreditsFile) }}
                 </div>
             </div>
-            <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+            <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                {{ icons.icon('check') }}
                 Enregistrer le(s) catalogue(s)
             </button>
         {{ form_end(form) }}

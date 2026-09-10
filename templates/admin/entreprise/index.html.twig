@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Entreprises{% endblock %}
 
@@ -15,7 +16,7 @@
     <div class="panel py-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-5xl font-extrabold text-brand">Entreprises</h1>
-            <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_entreprise_new') }}">Nouvelle entreprise</a>
+            <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_entreprise_new') }}">{{ icons.icon('plus') }}Nouvelle entreprise</a>
         </div>
 
         {% for message in app.flashes('success') %}
@@ -33,9 +34,9 @@
                 <option value="client" {{ filter_type == 'client' ? 'selected' : '' }}>Cliente</option>
             </select>
             <div class="flex gap-2">
-                <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
 
-                <a href="{{ path('admin_entreprise_index') }}" class="border border-dark px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+                <a href="{{ path('admin_entreprise_index') }}" class="inline-flex items-center gap-2 border border-dark px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
             </div>
             <label class="md:col-span-4 inline-flex items-center gap-2 text-sm text-slate-700">
                 <input type="checkbox" name="legacy" value="1" class="border border-dark" {{ show_legacy ? 'checked' : '' }} onchange="this.form.submit()">

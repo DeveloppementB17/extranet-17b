@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% import 'admin/_form_macros.html.twig' as adminForm %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Importer un crédit temps{% endblock %}
 
@@ -118,7 +119,8 @@
                     {{ adminForm.field_errors(form.entreprise) }}
                 </div>
             {% endif %}
-            <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+            <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                {{ icons.icon('upload') }}
                 Importer ce crédit temps
             </button>
         {{ form_end(form) }}

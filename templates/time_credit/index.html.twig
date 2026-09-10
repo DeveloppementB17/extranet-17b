@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Crédits temps{% endblock %}
 
@@ -31,11 +32,13 @@
             {% set selected_client = managed_selected_client() %}
             {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
                 <div class="flex flex-wrap items-center gap-3">
-                    <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
+                    <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_new') }}">
+                        {{ icons.icon('plus') }}
                         Nouveau crédit
                     </a>
                     {% if selected_client %}
-                        <a class="border border-dark px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="{{ path('time_credit_intervention_quick_page', { return_to: app.request.requestUri }) }}">
+                        <a class="inline-flex items-center gap-2 border border-dark px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="{{ path('time_credit_intervention_quick_page', { return_to: app.request.requestUri }) }}">
+                            {{ icons.icon('plus-circle') }}
                             Déclarer une intervention
                         </a>
                     {% endif %}
@@ -66,9 +69,9 @@
                     </select>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
 
-                    <a href="{{ path('time_credit_index') }}" class="border border-dark px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+                    <a href="{{ path('time_credit_index') }}" class="inline-flex items-center gap-2 border border-dark px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
                 </div>
                 <input type="hidden" name="sort" value="{{ sort_field }}">
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
@@ -176,7 +179,9 @@
                 <tbody class="divide-y divide-slate-200 bg-white">
                     {% for credit in credits %}
                         <tr class="hover:bg-neutral-50">
-                            <td class="px-4 py-3 font-medium text-slate-900">{{ credit.title }}</td>
+                            <td class="px-4 py-3 font-medium text-slate-900">
+                                <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit.title }}</a>
+                            </td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.entreprise.name }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.category ? credit.category.name : '—' }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.dossierNumber ?: '—' }}</td>
@@ -195,7 +200,7 @@
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                            <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
                                 <span
                                     class="cursor-help"
                                     data-tooltip-target="tc-index-remaining-{{ credit.id }}"

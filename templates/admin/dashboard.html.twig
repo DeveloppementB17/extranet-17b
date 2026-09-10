@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Administration{% endblock %}
 
@@ -23,10 +24,12 @@
                     Créer et maintenir les sociétés (agence ou clientes) et les comptes pour tous les rôles.
                 </p>
                 <div class="mt-6 flex flex-col gap-3">
-                    <a class="inline-flex w-fit items-center bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_entreprise_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_entreprise_index') }}">
+                        {{ icons.icon('building') }}
                         Gérer les entreprises
                     </a>
-                    <a class="inline-flex w-fit items-center border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('admin_user_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('admin_user_index') }}">
+                        {{ icons.icon('users') }}
                         Gérer les utilisateurs
                     </a>
                 </div>
@@ -38,13 +41,16 @@
                     Arborescence des dossiers, bibliothèque de fichiers et dépôt groupé pour le staff 17b.
                 </p>
                 <div class="mt-6 flex flex-col gap-3">
-                    <a class="inline-flex w-fit items-center bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_category_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_category_index') }}">
+                        {{ icons.icon('folder') }}
                         Gérer les dossiers
                     </a>
-                    <a class="inline-flex w-fit items-center border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('document_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('document_index') }}">
+                        {{ icons.icon('document') }}
                         Voir les documents
                     </a>
-                    <a class="inline-flex w-fit items-center border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('document_batch_upload') }}">
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('document_batch_upload') }}">
+                        {{ icons.icon('upload') }}
                         Ajouter des documents
                     </a>
                 </div>
@@ -56,10 +62,12 @@
                     Module, rôles et tableau des droits — document de référence pour les chefs de projet et l’équipe.
                 </p>
                 <div class="mt-6 flex flex-col gap-3">
-                    <a class="inline-flex w-fit items-center bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_extranet_presentation') }}">
+                    <a class="inline-flex w-fit items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_extranet_presentation') }}">
+                        {{ icons.icon('book') }}
                         Voir la présentation
                     </a>
-                    <a class="inline-flex w-fit items-center border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('recette_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('recette_index') }}">
+                        {{ icons.icon('clipboard-check') }}
                         Ouvrir la recette
                     </a>
                 </div>
@@ -71,13 +79,16 @@
                     Suivre les enveloppes minutes par entreprise, déclarer des interventions et consulter l’historique.
                 </p>
                 <div class="mt-6 flex flex-col gap-3">
-                    <a class="inline-flex w-fit items-center bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_index') }}">
+                        {{ icons.icon('clock') }}
                         Gérer les crédits temps
                     </a>
-                    <a class="inline-flex w-fit items-center border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('time_credit_intervention_quick_page', { return_to: path('admin_dashboard') }) }}">
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('time_credit_intervention_quick_page', { return_to: path('admin_dashboard') }) }}">
+                        {{ icons.icon('plus-circle') }}
                         Déclarer une intervention
                     </a>
-                    <a class="inline-flex w-fit items-center border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('time_credit_category_index') }}">
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('time_credit_category_index') }}">
+                        {{ icons.icon('tag') }}
                         Gérer les catégories
                     </a>
                 </div>
@@ -88,7 +99,8 @@
                     Parcourir l’ancien extranet et importer manuellement entreprises et crédits temps.
                 </p>
                 <div class="mt-6 flex flex-col gap-3">
-                    <a class="inline-flex w-fit items-center bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_legacy_data') }}">
+                    <a class="inline-flex w-fit items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_legacy_data') }}">
+                        {{ icons.icon('archive') }}
                         Ouvrir Anciennes données
                     </a>
                 </div>

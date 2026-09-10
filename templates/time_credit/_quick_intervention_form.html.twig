@@ -1,3 +1,4 @@
+{% import '_icon_macros.html.twig' as icons %}
 {% set wrapper_class = embedded|default(false) ? 'panel-muted border-2 border-black rounded-sm p-5' : 'panel border-2 border-black mx-auto max-w-xl px-8 py-8' %}
 {% set title_tag = embedded|default(false) ? 'h2' : 'h1' %}
 {% set title_class = embedded|default(false) ? 'text-lg font-extrabold text-brand' : 'text-3xl font-extrabold text-brand' %}
@@ -35,11 +36,12 @@
                 {% endif %}
 
                 <div class="flex flex-wrap gap-3">
-                    <button type="submit" class="ml-auto block bg-brand-primary px-6 py-2 text-xl font-bold text-white hover:bg-brand-primary-hover button">
+                    <button type="submit" class="ml-auto inline-flex items-center gap-2 bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover button">
+                        {{ icons.icon('check') }}
                         Enregistrer l'intervention
                     </button>
                     {% if cancel_url is defined and not embedded|default(false) %}
-                        <a class="border border-slate-200 px-6 py-2 text-xl font-bold text-slate-700 hover:bg-slate-50" href="{{ cancel_url }}">Annuler</a>
+                        <a class="inline-flex items-center gap-2 border border-slate-200 px-6 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" href="{{ cancel_url }}">{{ icons.icon('x') }}Annuler</a>
                     {% endif %}
                 </div>
             {{ form_end(form) }}

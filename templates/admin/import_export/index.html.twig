@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% import 'admin/_form_macros.html.twig' as adminForm %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Import / Export{% endblock %}
 
@@ -40,8 +41,9 @@
                     <p class="mt-2 text-sm text-slate-600">
                         JSON des entreprises « Ancienne » en base ({{ legacy_entreprise_count }}).
                     </p>
-                    <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                    <a class="mt-6 inline-flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
                        href="{{ path('admin_import_export_legacy_entreprises') }}">
+                        {{ icons.icon('download') }}
                         Télécharger l’export entreprises
                     </a>
                 </div>
@@ -61,7 +63,8 @@
                             {{ form_widget(entreprise_form.includeArchived) }}
                             {{ form_label(entreprise_form.includeArchived) }}
                         </label>
-                        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            {{ icons.icon('upload') }}
                             Importer les entreprises
                         </button>
                     {{ form_end(entreprise_form) }}
@@ -81,8 +84,9 @@
                     <p class="mt-2 text-sm text-slate-600">
                         JSON des crédits déjà importés ({{ legacy_time_credit_count }}).
                     </p>
-                    <a class="mt-6 inline-flex bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+                    <a class="mt-6 inline-flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover"
                        href="{{ path('admin_import_export_legacy_time_credits') }}">
+                        {{ icons.icon('download') }}
                         Télécharger l’export crédits temps
                     </a>
                 </div>
@@ -99,7 +103,8 @@
                             {{ form_widget(time_credit_form.file, { attr: { class: 'mt-2 block w-full text-sm' } }) }}
                             {{ adminForm.field_errors(time_credit_form.file) }}
                         </div>
-                        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            {{ icons.icon('upload') }}
                             Importer les crédits temps
                         </button>
                     {{ form_end(time_credit_form) }}

@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Ajouter des documents{% endblock %}
 
@@ -129,7 +130,8 @@
                     {% endif %}
                 </div>
 
-                <button class="ml-auto block bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover button" type="submit" {% if not has_entreprises %}disabled{% endif %}>
+                <button class="ml-auto inline-flex items-center gap-2 bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover button" type="submit" {% if not has_entreprises %}disabled{% endif %}>
+                    {{ icons.icon('check') }}
                     Enregistrer
                 </button>
             {{ form_end(form) }}

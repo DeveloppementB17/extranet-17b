@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Mon compte{% endblock %}
 
@@ -58,7 +59,8 @@
                 {{ form_errors(password_form.plainPassword) }}
 
                 <div class="pt-2">
-                    <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                        {{ icons.icon('check') }}
                         Enregistrer le nouveau mot de passe
                     </button>
                 </div>

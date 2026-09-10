@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 {% import 'document/_tree.html.twig' as doc_tree %}
 {% import 'document/_preview_macros.html.twig' as doc_preview %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Documents{% endblock %}
 
@@ -26,7 +27,8 @@
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-5xl font-extrabold text-brand">Fichiers</h1>
             {% if can_upload %}
-                <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_batch_upload') }}">
+                <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_batch_upload') }}">
+                    {{ icons.icon('upload') }}
                     Ajouter un document
                 </a>
             {% endif %}
@@ -48,9 +50,9 @@
                     {% endfor %}
                 </select>
                 <div class="flex gap-2 justify-end">
-                    <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
 
-                    <a href="{{ path('document_index') }}" class="border border-black px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+                    <a href="{{ path('document_index') }}" class="inline-flex items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
                 </div>
                 <input type="hidden" name="sort" value="{{ sort_field }}">
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
@@ -73,12 +75,14 @@
                             type="submit"
                             form="doc-bulk-form"
                             id="doc-bulk-delete"
-                            class="cursor-pointer bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="inline-flex cursor-pointer items-center gap-2 bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled
                         >
+                            {{ icons.icon('trash') }}
                             Supprimer la sélection
                         </button>
-                        <button type="button" id="doc-bulk-cancel" class="cursor-pointer border border-black px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                        <button type="button" id="doc-bulk-cancel" class="inline-flex cursor-pointer items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                            {{ icons.icon('x') }}
                             Annuler
                         </button>
                     </div>

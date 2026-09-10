@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Utilisateurs{% endblock %}
 
@@ -15,7 +16,7 @@
     <div class="panel py-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-5xl font-extrabold text-brand">Utilisateurs</h1>
-            <a class="bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_user_new') }}">Nouvel utilisateur</a>
+            <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('admin_user_new') }}">{{ icons.icon('plus') }}Nouvel utilisateur</a>
         </div>
 
         {% for message in app.flashes('success') %}
@@ -40,9 +41,9 @@
                 {% endfor %}
             </select>
             <div class="flex gap-2 md:col-span-2 justify-end">
-                <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
+                <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
 
-                <a href="{{ path('admin_user_index') }}" class="border border-dark px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+                <a href="{{ path('admin_user_index') }}" class="inline-flex items-center gap-2 border border-dark px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
             </div>
             <input type="hidden" name="sort" value="{{ sort_field }}">
             <input type="hidden" name="dir" value="{{ sort_direction }}">
@@ -92,12 +93,14 @@
                             type="submit"
                             form="bulk-actions-form"
                             id="user-bulk-apply"
-                            class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                             disabled
                         >
+                            {{ icons.icon('check') }}
                             Appliquer l’action en masse
                         </button>
-                        <button type="button" id="user-bulk-cancel" class="cursor-pointer border border-black px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                        <button type="button" id="user-bulk-cancel" class="inline-flex cursor-pointer items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                            {{ icons.icon('x') }}
                             Annuler
                         </button>
                     </div>

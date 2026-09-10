@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}Anciennes entreprises{% endblock %}
 
@@ -34,8 +35,8 @@
         <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher…" class="border border-black px-3 py-2 text-sm min-w-[240px]">
         <input type="hidden" name="sort" value="{{ sort_field }}">
         <input type="hidden" name="dir" value="{{ sort_direction }}">
-        <button type="submit" class="cursor-pointer bg-brand-primary px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
-        <a href="{{ path('admin_legacy_data_entreprises') }}" class="border border-black px-4 py-2 text-sm font-semibold text-slate-700">Réinitialiser</a>
+        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
+        <a href="{{ path('admin_legacy_data_entreprises') }}" class="inline-flex items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
     </form>
 
     {% set nextNameDir = sort_field == 'name' and sort_direction == 'asc' ? 'desc' : 'asc' %}
@@ -95,7 +96,7 @@
                                     {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
                                     <input type="hidden" name="sort" value="{{ sort_field }}">
                                     <input type="hidden" name="dir" value="{{ sort_direction }}">
-                                    <button type="submit" class="cursor-pointer bg-brand-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">Importer</button>
+                                    <button type="submit" class="inline-flex cursor-pointer items-center gap-1.5 bg-brand-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-primary-hover">{{ icons.icon('upload', 'h-4 w-4 shrink-0') }}Importer</button>
                                 </form>
                             {% endif %}
                         </td>

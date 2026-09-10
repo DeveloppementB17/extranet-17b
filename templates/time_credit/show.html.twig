@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_icon_macros.html.twig' as icons %}
 
 {% block title %}{{ credit.title }}{% endblock %}
 
@@ -61,7 +62,7 @@
             </div>
             <div class="col-span-1 p-4 ring-1 ring-black">
                 <div class="text-xs uppercase tracking-wide text-slate-500">Disponible</div>
-                <div class="mt-1 text-lg font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                <div class="mt-1 text-lg font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
                     {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
                     <span
                         class="cursor-help"
@@ -93,17 +94,17 @@
         <div class=" mt-6">
 
         <div class="flex flex-wrap gap-2">
+                {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                    <a class="inline-flex items-center gap-2 bg-brand-primary px-3 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_intervention_new', { id: credit.id }) }}">{{ icons.icon('plus-circle') }}Nouvelle intervention</a>
+                {% endif %}
                 {% if is_granted('TIME_CREDIT_MANAGE', credit) %}
-                    <a class="border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_edit', { id: credit.id }) }}">Modifier</a>
+                    <a class="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ path('time_credit_edit', { id: credit.id }) }}">{{ icons.icon('pencil') }}Modifier</a>
                 {% endif %}
                 {% if is_granted('ROLE_17B_ADMIN') %}
                     <form method="post" action="{{ path('time_credit_delete', { id: credit.id }) }}" onsubmit="return confirm({{ intervention_count > 0 ? "'Supprimer ce crédit temps et toutes ses interventions ?'" : "'Supprimer ce crédit temps ?'" }});">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete_time_credit' ~ credit.id) }}">
-                        <button type="submit" class="border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Supprimer le crédit</button>
+                        <button type="submit" class="inline-flex items-center gap-2 border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">{{ icons.icon('trash') }}Supprimer le crédit</button>
                     </form>
-                {% endif %}
-                {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
-                    <a class="bg-brand-primary px-3 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('time_credit_intervention_new', { id: credit.id }) }}">Nouvelle intervention</a>
                 {% endif %}
             </div>
             
@@ -234,7 +235,7 @@
                     </div>
                     <div class="bg-white px-3 py-2 ring-1 ring-slate-200">
                         <div class="text-slate-500">Disponible</div>
-                        <div class="mt-1 font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                        <div class="mt-1 font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
                             {% set remaining_detail_display_in_hours = credit.remainingMinutes > 180 %}
                             <span
                                 class="cursor-help"
