@@ -77,6 +77,33 @@ const destroyStaffClientSwitcher = () => {
     });
 };
 
+const dismissFlashMessage = (message) => {
+    if (!message || message.dataset.flashDismissing === '1') {
+        return;
+    }
+
+    message.dataset.flashDismissing = '1';
+    message.classList.add('opacity-0');
+    window.setTimeout(() => message.remove(), 300);
+};
+
+const initFlashMessages = () => {
+    document.querySelectorAll('[data-flash-message]').forEach((message) => {
+        if (message.dataset.flashInitialized === '1') {
+            return;
+        }
+
+        const dismissButton = message.querySelector('[data-flash-dismiss]');
+        dismissButton?.addEventListener('click', () => dismissFlashMessage(message));
+
+        if (message.hasAttribute('data-flash-auto-dismiss')) {
+            window.setTimeout(() => dismissFlashMessage(message), 7000);
+        }
+
+        message.dataset.flashInitialized = '1';
+    });
+};
+
 const initTimeCreditDonutChart = () => {
     const chartElements = document.querySelectorAll('[data-time-credit-donut-chart]');
     if (chartElements.length === 0) {
@@ -149,7 +176,11 @@ const initTimeCreditDonutChart = () => {
 };
 
 document.addEventListener('turbo:load', () => {
+    initFlashMessages();
     initStaffClientSwitcher();
     initTimeCreditDonutChart();
+});
+document.addEventListener('turbo:before-cache', () => {
+    document.querySelectorAll('[data-flash-message]').forEach((message) => message.remove());
 });
 document.addEventListener('turbo:before-cache', destroyStaffClientSwitcher);

@@ -1,7 +1,7 @@
 {% set routeName = app.request.attributes.get('_route') %}
 {% set sidebarActiveClient = managed_selected_client() %}
 <aside id="dashboard-sidebar"
-       class="fixed top-0 left-0 z-40 flex h-dvh max-h-dvh w-[285px] shrink-0 -translate-x-full flex-col overflow-hidden border-r border-neutral-200 bg-[#f8f8f8] pt-8 transition-transform lg:static lg:z-auto lg:h-auto lg:max-h-none lg:translate-x-0 lg:overflow-visible"
+       class="fixed top-0 left-0 z-40 flex h-dvh max-h-dvh w-[285px] shrink-0 -translate-x-full flex-col overflow-hidden border-r border-neutral-200 bg-[#f8f8f8] pt-8 transition-transform lg:static lg:z-auto lg:translate-x-0 lg:overflow-visible"
        aria-label="Navigation">
     <a href="{{ path('app_home') }}" class="mb-8 block shrink-0 px-7 lg:mb-12">
         <img src="{{ asset('images/logo-b17-communication.png') }}" alt="B17 communication" width="78" height="58" class="h-[58px] w-auto max-w-[120px] object-contain object-left">
