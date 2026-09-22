@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -12,8 +13,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AdminDashboardController extends AbstractController
 {
     #[Route('', name: 'admin_dashboard', methods: ['GET'])]
-    public function __invoke(): Response
-    {
-        return $this->render('admin/dashboard.html.twig');
+    public function __invoke(
+        #[Autowire(param: 'recette.enabled')]
+        bool $recetteEnabled,
+    ): Response {
+        return $this->render('admin/dashboard.html.twig', [
+            'recette_enabled' => $recetteEnabled,
+        ]);
     }
 }

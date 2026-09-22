@@ -63,7 +63,7 @@ class EntrepriseRepository extends ServiceEntityRepository
     }
 
     /**
-     * Entreprises clientes sélectionnables dans le switcher staff 17b (hors legacy).
+     * Entreprises clientes sélectionnables dans le switcher staff 17b.
      *
      * @return list<Entreprise>
      */
@@ -79,7 +79,7 @@ class EntrepriseRepository extends ServiceEntityRepository
     /**
      * @return list<Entreprise>
      */
-    public function findNonAgencyOrdered(bool $includeLegacy = false): array
+    public function findNonAgencyOrdered(bool $includeLegacy = true): array
     {
         $qb = $this->createQueryBuilder('e')
             ->andWhere('e.agency = :fa')
@@ -129,7 +129,7 @@ class EntrepriseRepository extends ServiceEntityRepository
      *
      * @return list<Entreprise>
      */
-    public function findNonAgencyByIdsOrdered(array $ids, bool $includeLegacy = false): array
+    public function findNonAgencyByIdsOrdered(array $ids, bool $includeLegacy = true): array
     {
         if ($ids === []) {
             return [];

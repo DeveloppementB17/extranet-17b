@@ -36,9 +36,16 @@ APP_SECRET=change-me
 
 DATABASE_URL="mysql://db_user:db_pass@db_host:3306/db_name?serverVersion=8.0&charset=utf8mb4"
 
-# Même transport Brevo que 17b-email (SMTP TLS 587) — ne pas committer le secret
-MAILER_DSN="smtp://<login>%40smtp-brevo.com:<smtp-key>@smtp-relay.brevo.com:587?encryption=tls&auth_mode=login"
-MAILER_FROM=no-reply@agence-b17.dev
+# --- Emails (Brevo API) ---
+MAILER_PHP_MAIL=0
+MAILER_DSN="brevo+api://<api-key>@default"
+MAILER_FROM=no-reply@17b.fr
+# Note mutualisé OVH : la sortie vers api.brevo.com peut être bloquée (Connection refused).
+
+# Alt. mail() hébergement (nécessite droit sendmail OVH + souvent une boîte locale) :
+# MAILER_PHP_MAIL=1
+# MAILER_DSN=null://null
+# MAILER_FROM=no-reply@extranet.17b.fr
 
 STORAGE_PATH="/home/<login>/www/storage/uploads"
 ```

@@ -66,10 +66,12 @@
                         {{ icons.icon('book') }}
                         Voir la présentation
                     </a>
-                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('recette_index') }}">
-                        {{ icons.icon('clipboard-check') }}
-                        Ouvrir la recette
-                    </a>
+                    {% if recette_enabled %}
+                        <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('recette_index') }}">
+                            {{ icons.icon('clipboard-check') }}
+                            Ouvrir la recette
+                        </a>
+                    {% endif %}
                 </div>
             </article>
 
@@ -93,6 +95,7 @@
                     </a>
                 </div>
             </article>
+            {% if app.environment != 'prod' %}
             <article class="border-2 border-black flex flex-col p-6">
                 <h2 class="text-xl font-extrabold text-brand">Anciennes données</h2>
                 <p class="mt-2 text-sm text-slate-600">
@@ -105,6 +108,7 @@
                     </a>
                 </div>
             </article>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

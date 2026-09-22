@@ -29,7 +29,6 @@ final class AdminEntrepriseController extends AbstractController
         $entreprises = $entrepriseRepository->findAllOrdered();
         $search = trim((string) $request->query->get('q', ''));
         $typeFilter = (string) $request->query->get('type', 'all');
-        $showLegacy = $request->query->getBoolean('legacy');
         $sort = (string) $request->query->get('sort', 'name');
         $direction = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
@@ -41,12 +40,7 @@ final class AdminEntrepriseController extends AbstractController
             $typeFilter = 'all';
         }
 
-        $legacyCount = $entrepriseRepository->countLegacy();
-
-        $entreprises = array_values(array_filter($entreprises, static function (Entreprise $entreprise) use ($search, $typeFilter, $showLegacy): bool {
-            if (!$showLegacy && $entreprise->isLegacy()) {
-                return false;
-            }
+        $entreprises = array_values(array_filter($entreprises, static function (Entreprise $entreprise) use ($search, $typeFilter): bool {
             if ($typeFilter === 'agency' && !$entreprise->isAgency()) {
                 return false;
             }
@@ -75,8 +69,6 @@ final class AdminEntrepriseController extends AbstractController
             'entreprises' => $entreprises,
             'search_query' => $search,
             'filter_type' => $typeFilter,
-            'show_legacy' => $showLegacy,
-            'legacy_count' => $legacyCount,
             'sort_field' => $sort,
             'sort_direction' => $direction,
         ]);
