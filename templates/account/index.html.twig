@@ -10,7 +10,7 @@
         <span class="font-medium" aria-current="page">Mon compte</span>
     </nav>
 
-    <div class="panel mx-auto max-w-lg px-8 py-8">
+    <div class="panel mx-auto max-w-5xl px-8 py-8">
         <h1 class="text-5xl font-extrabold text-brand">Mon compte</h1>
         <p class="mt-2 text-sm text-slate-600">Informations liées à votre session sur l’extranet.</p>
 
@@ -21,94 +21,103 @@
             <div class="mt-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
-        <dl class="mt-8 space-y-6 text-sm">
-            <div>
-                <dt class="font-semibold text-slate-600">Email</dt>
-                <dd class="mt-1 text-slate-900">{{ user.email }}</dd>
+        <div class="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-12">
+            <div class="min-w-0 space-y-10">
+                <section aria-labelledby="account-info-heading">
+                    <h2 id="account-info-heading" class="text-xl font-bold text-brand">Informations</h2>
+                    <dl class="mt-6 space-y-6 text-sm">
+                        <div>
+                            <dt class="font-semibold text-slate-600">Email</dt>
+                            <dd class="mt-1 text-slate-900">{{ user.email }}</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-600">Entreprise</dt>
+                            <dd class="mt-1 text-slate-900">
+                                {{ user.entreprise.name }}
+                                <span class="text-slate-500">({{ user.entreprise.slug }})</span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-600">Rôles</dt>
+                            <dd class="mt-2">
+                                <ul class="list-inside list-disc space-y-1 text-slate-900">
+                                    {% for role in display_roles %}
+                                        <li><span class="font-mono text-xs text-slate-500">{{ role }}</span> — {{ role|role_label }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <p class="mt-3 text-xs text-slate-500">Les libellés correspondent aux droits dans l’application.</p>
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="border-t border-slate-200 pt-8" aria-labelledby="account-password-heading">
+                    <h2 id="account-password-heading" class="text-xl font-bold text-brand">Mot de passe</h2>
+                    <p class="mt-2 text-sm text-slate-600">
+                        Modifiez votre mot de passe de connexion (formulaire email / mot de passe).
+                    </p>
+
+                    {{ form_start(password_form, { attr: { class: 'mt-6 space-y-5' } }) }}
+                        <input type="hidden" name="_account_form" value="password">
+                        {{ form_row(password_form.currentPassword) }}
+                        {{ form_row(password_form.plainPassword.first) }}
+                        {{ form_row(password_form.plainPassword.second) }}
+                        {{ form_errors(password_form.plainPassword) }}
+
+                        <div class="pt-2">
+                            <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                                {{ icons.icon('check') }}
+                                Enregistrer le nouveau mot de passe
+                            </button>
+                        </div>
+                    {{ form_end(password_form) }}
+
+                    <p class="mt-4 text-xs text-slate-500">
+                        Mot de passe oublié ?
+                        <a class="font-medium text-brand underline" href="{{ path('auth_forgot_password') }}">Réinitialiser par email</a>
+                    </p>
+                </section>
             </div>
-            <div>
-                <dt class="font-semibold text-slate-600">Entreprise</dt>
-                <dd class="mt-1 text-slate-900">
-                    {{ user.entreprise.name }}
-                    <span class="text-slate-500">({{ user.entreprise.slug }})</span>
-                </dd>
+
+            <div class="min-w-0">
+                {% if preferred_clients_form %}
+                    <section class="lg:border-l lg:border-slate-200 lg:pl-12" aria-labelledby="account-preferred-clients-heading">
+                        <h2 id="account-preferred-clients-heading" class="text-xl font-bold text-brand">Mes clients</h2>
+                        <p class="mt-2 text-sm text-slate-600">
+                            Rattachez les entreprises que vous suivez au quotidien. Utilisez ensuite
+                            <strong class="font-semibold">Mes clients</strong> dans le sélecteur du menu pour filtrer rapidement,
+                            tout en gardant <strong class="font-semibold">Tous les clients</strong> disponible.
+                        </p>
+
+                        {{ form_start(preferred_clients_form, { attr: { class: 'mt-6 space-y-4' } }) }}
+                            <input type="hidden" name="_account_form" value="preferred_clients">
+                            {{ form_label(preferred_clients_form.managedEntreprises) }}
+                            <ul class="max-h-[28rem] space-y-2 overflow-y-auto bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
+                                {% for choice in preferred_clients_form.managedEntreprises %}
+                                    <li>
+                                        <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-800">
+                                            {{ form_widget(choice, { attr: { class: 'h-4 w-4 shrink-0 rounded border-slate-400 text-brand-primary focus:ring-brand-primary' } }) }}
+                                            <span>{{ choice.vars.label }}</span>
+                                        </label>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            {{ form_help(preferred_clients_form.managedEntreprises) }}
+                            {{ form_errors(preferred_clients_form.managedEntreprises) }}
+
+                            <div class="pt-2">
+                                <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                                    {{ icons.icon('check') }}
+                                    Enregistrer mes clients
+                                </button>
+                            </div>
+                        {{ form_end(preferred_clients_form) }}
+                    </section>
+                {% endif %}
             </div>
-            <div>
-                <dt class="font-semibold text-slate-600">Rôles</dt>
-                <dd class="mt-2">
-                    <ul class="list-inside list-disc space-y-1 text-slate-900">
-                        {% for role in display_roles %}
-                            <li><span class="font-mono text-xs text-slate-500">{{ role }}</span> — {{ role|role_label }}</li>
-                        {% endfor %}
-                    </ul>
-                    <p class="mt-3 text-xs text-slate-500">Les libellés correspondent aux droits dans l’application.</p>
-                </dd>
-            </div>
-        </dl>
+        </div>
 
-        {% if preferred_clients_form %}
-            <section class="mt-10 border-t border-slate-200 pt-8" aria-labelledby="account-preferred-clients-heading">
-                <h2 id="account-preferred-clients-heading" class="text-xl font-bold text-brand">Mes clients</h2>
-                <p class="mt-2 text-sm text-slate-600">
-                    Rattachez les entreprises que vous suivez au quotidien. Utilisez ensuite
-                    <strong class="font-semibold">Mes clients</strong> dans le sélecteur du menu pour filtrer rapidement,
-                    tout en gardant <strong class="font-semibold">Tous les clients</strong> disponible.
-                </p>
-
-                {{ form_start(preferred_clients_form, { attr: { class: 'mt-6 space-y-4' } }) }}
-                    <input type="hidden" name="_account_form" value="preferred_clients">
-                    {{ form_label(preferred_clients_form.managedEntreprises) }}
-                    <ul class="max-h-72 space-y-2 overflow-y-auto bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
-                        {% for choice in preferred_clients_form.managedEntreprises %}
-                            <li>
-                                <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-800">
-                                    {{ form_widget(choice, { attr: { class: 'h-4 w-4 shrink-0 rounded border-slate-400 text-brand-primary focus:ring-brand-primary' } }) }}
-                                    <span>{{ choice.vars.label }}</span>
-                                </label>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    {{ form_help(preferred_clients_form.managedEntreprises) }}
-                    {{ form_errors(preferred_clients_form.managedEntreprises) }}
-
-                    <div class="pt-2">
-                        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
-                            {{ icons.icon('check') }}
-                            Enregistrer mes clients
-                        </button>
-                    </div>
-                {{ form_end(preferred_clients_form) }}
-            </section>
-        {% endif %}
-
-        <section class="mt-10 border-t border-slate-200 pt-8" aria-labelledby="account-password-heading">
-            <h2 id="account-password-heading" class="text-xl font-bold text-brand">Mot de passe</h2>
-            <p class="mt-2 text-sm text-slate-600">
-                Modifiez votre mot de passe de connexion (formulaire email / mot de passe).
-            </p>
-
-            {{ form_start(password_form, { attr: { class: 'mt-6 space-y-5' } }) }}
-                <input type="hidden" name="_account_form" value="password">
-                {{ form_row(password_form.currentPassword) }}
-                {{ form_row(password_form.plainPassword.first) }}
-                {{ form_row(password_form.plainPassword.second) }}
-                {{ form_errors(password_form.plainPassword) }}
-
-                <div class="pt-2">
-                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
-                        {{ icons.icon('check') }}
-                        Enregistrer le nouveau mot de passe
-                    </button>
-                </div>
-            {{ form_end(password_form) }}
-
-            <p class="mt-4 text-xs text-slate-500">
-                Mot de passe oublié ?
-                <a class="font-medium text-brand underline" href="{{ path('auth_forgot_password') }}">Réinitialiser par email</a>
-            </p>
-        </section>
-
-        <p class="mt-8 text-sm">
+        <p class="mt-10 text-sm">
             <a class="font-medium text-brand underline" href="{{ path('app_home') }}">← Retour à l’accueil</a>
         </p>
     </div>
