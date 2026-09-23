@@ -54,7 +54,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Entreprise $entreprise = null;
 
     /**
-     * Entreprises clientes gérées par un ROLE_17B_USER (pas utilisé pour ROLE_17B_ADMIN).
+     * Entreprises clientes gérées / préférées.
+     * - ROLE_17B_USER : périmètre d’accès (ACL)
+     * - ROLE_17B_ADMIN : préférences « mes clients » (filtre rapide, sans restreindre l’accès)
      *
      * @var Collection<int, Entreprise>
      */

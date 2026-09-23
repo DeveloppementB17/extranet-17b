@@ -14,7 +14,7 @@ export default class extends Controller {
     toggle() {
         const role = this.roleSelectTarget.value;
         const is17bStaff = role === 'ROLE_17B_ADMIN' || role === 'ROLE_17B_USER';
-        const showManaged = role === 'ROLE_17B_USER';
+        const showManaged = is17bStaff;
 
         this.managedBlockTarget.classList.toggle('hidden', !showManaged);
 

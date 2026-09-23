@@ -38,16 +38,23 @@ final class DocumentController extends AbstractController
         }
 
         $forcedEntreprise = null;
+        $forcedEntrepriseIds = null;
         if ($user->is17bStaff()) {
             $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($user);
+            $forcedEntrepriseIds = $managedClientContext->getForcedEntrepriseIds($user);
             if ($user->is17bUser() && !$forcedEntreprise instanceof Entreprise && $user->getManagedEntrepriseIds() === []) {
                 $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à votre compte.');
 
                 return $this->redirectToRoute('app_home');
             }
+            if ($user->is17bAdmin() && $managedClientContext->isMineScope($user) && $user->getManagedEntrepriseIds() === []) {
+                $this->addFlash('error', 'Aucun client rattaché. Configurez-les dans Mon compte.');
+
+                return $this->redirectToRoute('app_account');
+            }
         }
 
-        $documents = $documentRepository->findAccessibleForUser($user, $forcedEntreprise);
+        $documents = $documentRepository->findAccessibleForUser($user, $forcedEntreprise, $forcedEntrepriseIds);
         $availableEntreprises = [];
         $availableCategories = [];
         foreach ($documents as $document) {

@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\Account\AccountPreferredClientsType;
 use App\Form\AccountPasswordChangeType;
+use App\Repository\EntrepriseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -19,6 +21,7 @@ final class AccountController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
+        EntrepriseRepository $entrepriseRepository,
     ): Response {
         $user = $this->getUser();
         if (!$user instanceof User) {
@@ -34,21 +37,50 @@ final class AccountController extends AbstractController
         });
 
         $passwordForm = $this->createForm(AccountPasswordChangeType::class);
-        $passwordForm->handleRequest($request);
+        $preferredClientsForm = null;
 
-        if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
-            $currentPassword = (string) $passwordForm->get('currentPassword')->getData();
-            if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
-                $passwordForm->get('currentPassword')->addError(
-                    new FormError('Le mot de passe actuel est incorrect.'),
-                );
-            } else {
-                $newPassword = (string) $passwordForm->get('plainPassword')->getData();
-                $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
-                $user->clearPasswordReset();
+        if ($user->is17bAdmin()) {
+            $preferredClientsForm = $this->createForm(AccountPreferredClientsType::class, $user, [
+                'client_entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(),
+            ]);
+        }
+
+        $submittedForm = (string) $request->request->get('_account_form', '');
+
+        if ($submittedForm === 'password') {
+            $passwordForm->handleRequest($request);
+
+            if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
+                $currentPassword = (string) $passwordForm->get('currentPassword')->getData();
+                if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                    $passwordForm->get('currentPassword')->addError(
+                        new FormError('Le mot de passe actuel est incorrect.'),
+                    );
+                } else {
+                    $newPassword = (string) $passwordForm->get('plainPassword')->getData();
+                    $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+                    $user->clearPasswordReset();
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Votre mot de passe a été mis à jour.');
+
+                    return $this->redirectToRoute('app_account');
+                }
+            }
+        }
+
+        if ($submittedForm === 'preferred_clients' && $preferredClientsForm !== null) {
+            $preferredClientsForm->handleRequest($request);
+
+            if ($preferredClientsForm->isSubmitted() && $preferredClientsForm->isValid()) {
+                foreach ($user->getManagedEntreprises()->toArray() as $entreprise) {
+                    if ($entreprise->isAgency()) {
+                        $user->removeManagedEntreprise($entreprise);
+                    }
+                }
                 $entityManager->flush();
 
-                $this->addFlash('success', 'Votre mot de passe a été mis à jour.');
+                $this->addFlash('success', 'Vos clients rattachés ont été mis à jour.');
 
                 return $this->redirectToRoute('app_account');
             }
@@ -58,6 +90,7 @@ final class AccountController extends AbstractController
             'user' => $user,
             'display_roles' => $roles,
             'password_form' => $passwordForm,
+            'preferred_clients_form' => $preferredClientsForm,
         ]);
     }
 }

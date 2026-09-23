@@ -56,8 +56,8 @@ final class AdminUserType extends AbstractType
             'expanded' => true,
             'required' => false,
             'data' => $options['managed_entreprises_data'],
-            'label' => 'Entreprises clientes gérées',
-            'help' => 'Uniquement pour le rôle « Utilisateur 17b (périmètre limité) ».',
+            'label' => 'Entreprises clientes rattachées',
+            'help' => 'Utilisateur 17b : périmètre d’accès. Administrateur 17b : préférences « mes clients » (filtre rapide, accès total conservé).',
             'choice_label' => 'name',
         ]);
 

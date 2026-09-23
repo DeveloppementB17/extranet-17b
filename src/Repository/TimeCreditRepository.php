@@ -19,10 +19,15 @@ class TimeCreditRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<int>|null $forcedEntrepriseIds Filtre multi-entreprises (ex. scope « mes clients » admin)
+     *
      * @return list<TimeCredit>
      */
-    public function findAccessibleForUser(User $user, ?Entreprise $forcedEntreprise = null): array
-    {
+    public function findAccessibleForUser(
+        User $user,
+        ?Entreprise $forcedEntreprise = null,
+        ?array $forcedEntrepriseIds = null,
+    ): array {
         $qb = $this->createQueryBuilder('tc')
             ->join('tc.entreprise', 'e')
             ->leftJoin('tc.category', 'cat')
@@ -36,6 +41,12 @@ class TimeCreditRepository extends ServiceEntityRepository
             if ($forcedEntreprise !== null) {
                 $qb->andWhere('tc.entreprise = :forced')
                     ->setParameter('forced', $forcedEntreprise);
+            } elseif ($forcedEntrepriseIds !== null) {
+                if ($forcedEntrepriseIds === []) {
+                    return [];
+                }
+                $qb->andWhere('tc.entreprise IN (:forcedIds)')
+                    ->setParameter('forcedIds', $forcedEntrepriseIds);
             }
 
             return $qb->getQuery()->getResult();

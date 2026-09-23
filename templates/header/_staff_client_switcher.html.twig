@@ -1,4 +1,4 @@
-{% if managed_clients is not empty %}
+{% if managed_clients is not empty or (is_admin and preferred_clients is not empty) %}
     <form method="post" action="{{ path('staff_client_activate_switcher') }}" class="w-full">
         <input type="hidden" name="_token" value="{{ csrf_token('activate_client_switcher') }}">
         <input type="hidden" name="return_to" value="{{ return_to }}">
@@ -9,16 +9,42 @@
             class="w-full rounded-base border border-default bg-white px-3 py-2 text-sm text-slate-900"
             data-staff-client-switcher
         >
-            <option value="" {{ selected_client ? '' : 'selected' }}>— Aucun client —</option>
-            {% for client in managed_clients %}
-                <option value="{{ client.id }}" {{ selected_client and selected_client.id == client.id ? 'selected' : '' }}>
-                    {{ client.name }}
-                </option>
-            {% endfor %}
+            <option value="" {{ not selected_client and not mine_scope ? 'selected' : '' }}>— Tous les clients —</option>
+            {% if is_admin and preferred_clients is not empty %}
+                <option value="__mine__" {{ mine_scope ? 'selected' : '' }}>— Mes clients —</option>
+            {% endif %}
+            {% if is_admin and preferred_clients is not empty %}
+                <optgroup label="Mes clients">
+                    {% for client in preferred_clients %}
+                        <option value="{{ client.id }}" {{ selected_client and selected_client.id == client.id ? 'selected' : '' }}>
+                            {{ client.name }}
+                        </option>
+                    {% endfor %}
+                </optgroup>
+                {% if other_clients is not empty %}
+                    <optgroup label="Autres clients">
+                        {% for client in other_clients %}
+                            <option value="{{ client.id }}" {{ selected_client and selected_client.id == client.id ? 'selected' : '' }}>
+                                {{ client.name }}
+                            </option>
+                        {% endfor %}
+                    </optgroup>
+                {% endif %}
+            {% else %}
+                {% for client in managed_clients %}
+                    <option value="{{ client.id }}" {{ selected_client and selected_client.id == client.id ? 'selected' : '' }}>
+                        {{ client.name }}
+                    </option>
+                {% endfor %}
+            {% endif %}
         </select>
     </form>
 {% else %}
     <span class="inline-flex items-center rounded-base border border-default bg-white px-3 py-2 text-xs text-slate-600">
-        Aucun client attribué
+        {% if is_admin %}
+            Aucun client dans le référentiel
+        {% else %}
+            Aucun client attribué
+        {% endif %}
     </span>
 {% endif %}

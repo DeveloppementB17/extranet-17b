@@ -20,10 +20,15 @@ class DocumentRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<int>|null $forcedEntrepriseIds Filtre multi-entreprises (ex. scope « mes clients » admin)
+     *
      * @return list<Document>
      */
-    public function findAccessibleForUser(User $user, ?Entreprise $forcedEntreprise = null): array
-    {
+    public function findAccessibleForUser(
+        User $user,
+        ?Entreprise $forcedEntreprise = null,
+        ?array $forcedEntrepriseIds = null,
+    ): array {
         $qb = $this->createQueryBuilder('d')
             ->orderBy('d.createdAt', 'DESC');
 
@@ -34,6 +39,12 @@ class DocumentRepository extends ServiceEntityRepository
             if ($forcedEntreprise instanceof Entreprise) {
                 $qb->andWhere('d.entreprise = :forcedEntreprise')
                     ->setParameter('forcedEntreprise', $forcedEntreprise);
+            } elseif ($forcedEntrepriseIds !== null) {
+                if ($forcedEntrepriseIds === []) {
+                    return [];
+                }
+                $qb->andWhere('d.entreprise IN (:forcedIds)')
+                    ->setParameter('forcedIds', $forcedEntrepriseIds);
             }
 
             return $qb->getQuery()->getResult();

@@ -39,17 +39,24 @@ final class TimeCreditController extends AbstractController
         }
 
         $forcedEntreprise = null;
+        $forcedEntrepriseIds = null;
         if ($actor->is17bStaff()) {
             $forcedEntreprise = $managedClientContext->getSelectedManagedEntreprise($actor);
+            $forcedEntrepriseIds = $managedClientContext->getForcedEntrepriseIds($actor);
             if ($actor->is17bUser() && !$forcedEntreprise instanceof Entreprise && $actor->getManagedEntrepriseIds() === []) {
                 $this->addFlash('error', 'Aucune entreprise cliente n’est attribuée à votre compte.');
 
                 return $this->redirectToRoute('app_home');
             }
+            if ($actor->is17bAdmin() && $managedClientContext->isMineScope($actor) && $actor->getManagedEntrepriseIds() === []) {
+                $this->addFlash('error', 'Aucun client rattaché. Configurez-les dans Mon compte.');
+
+                return $this->redirectToRoute('app_account');
+            }
         }
 
         $isAdminListView = $actor->is17bStaff() || $actor->isCustomerActor();
-        $credits = $timeCreditRepository->findAccessibleForUser($actor, $forcedEntreprise);
+        $credits = $timeCreditRepository->findAccessibleForUser($actor, $forcedEntreprise, $forcedEntrepriseIds);
         $availableEntreprises = [];
         $availableCategories = [];
         foreach ($credits as $credit) {
