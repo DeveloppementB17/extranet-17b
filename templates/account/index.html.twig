@@ -89,29 +89,48 @@
                             tout en gardant <strong class="font-semibold">Tous les clients</strong> disponible.
                         </p>
 
-                        {{ form_start(preferred_clients_form, { attr: { class: 'mt-6 space-y-4' } }) }}
-                            <input type="hidden" name="_account_form" value="preferred_clients">
-                            {{ form_label(preferred_clients_form.managedEntreprises) }}
-                            <ul class="max-h-[28rem] space-y-2 overflow-y-auto bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
-                                {% for choice in preferred_clients_form.managedEntreprises %}
-                                    <li>
-                                        <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-800">
-                                            {{ form_widget(choice, { attr: { class: 'h-4 w-4 shrink-0 rounded border-slate-400 text-brand-primary focus:ring-brand-primary' } }) }}
-                                            <span>{{ choice.vars.label }}</span>
-                                        </label>
+                        <div class="mt-6 space-y-4" data-controller="checklist-filter">
+                            {{ form_start(preferred_clients_form, { attr: { class: 'space-y-4' } }) }}
+                                <input type="hidden" name="_account_form" value="preferred_clients">
+                                {{ form_label(preferred_clients_form.managedEntreprises) }}
+                                <div>
+                                    <label class="sr-only" for="preferred-clients-search">Rechercher un client</label>
+                                    <input
+                                        id="preferred-clients-search"
+                                        type="search"
+                                        placeholder="Rechercher un client…"
+                                        autocomplete="off"
+                                        class="w-full border border-dark px-3 py-2 text-sm"
+                                        data-checklist-filter-target="query"
+                                        data-action="input->checklist-filter#filter"
+                                    >
+                                </div>
+                                <ul class="max-h-[28rem] space-y-2 overflow-y-auto bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
+                                    {% for choice in preferred_clients_form.managedEntreprises %}
+                                        <li data-checklist-filter-target="item" data-label="{{ choice.vars.label }}">
+                                            <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-800">
+                                                {{ form_widget(choice, { attr: { class: 'h-4 w-4 shrink-0 rounded border-slate-400 text-brand-primary focus:ring-brand-primary' } }) }}
+                                                <span>{{ choice.vars.label }}</span>
+                                            </label>
+                                        </li>
+                                    {% else %}
+                                        <li class="text-sm text-slate-500">Aucun client disponible.</li>
+                                    {% endfor %}
+                                    <li class="hidden text-sm text-slate-500" data-checklist-filter-target="empty">
+                                        Aucun client ne correspond à votre recherche.
                                     </li>
-                                {% endfor %}
-                            </ul>
-                            {{ form_help(preferred_clients_form.managedEntreprises) }}
-                            {{ form_errors(preferred_clients_form.managedEntreprises) }}
+                                </ul>
+                                {{ form_help(preferred_clients_form.managedEntreprises) }}
+                                {{ form_errors(preferred_clients_form.managedEntreprises) }}
 
-                            <div class="pt-2">
-                                <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
-                                    {{ icons.icon('check') }}
-                                    Enregistrer mes clients
-                                </button>
-                            </div>
-                        {{ form_end(preferred_clients_form) }}
+                                <div class="pt-2">
+                                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                                        {{ icons.icon('check') }}
+                                        Enregistrer mes clients
+                                    </button>
+                                </div>
+                            {{ form_end(preferred_clients_form) }}
+                        </div>
                     </section>
                 {% endif %}
             </div>
