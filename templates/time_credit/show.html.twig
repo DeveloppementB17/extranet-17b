@@ -138,7 +138,7 @@
                                     Ajustement
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 font-medium {{ m.deltaMinutes < 0 ? 'text-red-700' : 'text-green-700' }}">
+                            <td class="px-4 py-3 font-medium text-black">
                                 {% set delta_display_in_hours = m.deltaMinutes|abs > 180 %}
                                 <span
                                     class="cursor-help"
@@ -214,7 +214,7 @@
                 <div class="space-y-3 text-sm">
                     <div class="bg-white px-3 py-2 ring-1 ring-slate-200">
                         <div class="text-slate-500">Consommé</div>
-                        <div class="mt-1 font-semibold text-red-700">
+                        <div class="mt-1 font-semibold text-black">
                             {% set consumed_display_in_hours = consumed_minutes > 180 %}
                             <span
                                 class="cursor-help"

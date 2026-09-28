@@ -115,11 +115,6 @@ final class HeaderStaffClientSwitcherController extends AbstractController
 
     private function redirectAfterActivate(Request $request): Response
     {
-        $returnTo = (string) $request->request->get('return_to', '');
-        if ($returnTo !== '' && str_starts_with($returnTo, '/')) {
-            return $this->redirect($returnTo);
-        }
-
         return $this->redirectToRoute('app_home');
     }
 }

@@ -123,7 +123,7 @@ const initTimeCreditDonutChart = () => {
         const chart = new ApexCharts(chartElement, {
             series: [consumedMinutes, remainingMinutes],
             labels: ['Consommé', 'Disponible'],
-            colors: ['#000000', '#D9D9D9'],
+            colors: ['#000000', '#0FAC71'],
             chart: {
                 height: chartHeight,
                 type: 'donut',

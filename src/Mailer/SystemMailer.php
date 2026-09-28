@@ -23,9 +23,22 @@ final class SystemMailer
 
     public function sendText(string $to, string $subject, string $body): void
     {
+        $this->send($to, $subject, $body, null);
+    }
+
+    /**
+     * Envoi multipart : HTML (lien cliquable) + texte brut (clients mail sans HTML).
+     */
+    public function sendHtml(string $to, string $subject, string $textBody, string $htmlBody): void
+    {
+        $this->send($to, $subject, $textBody, $htmlBody);
+    }
+
+    private function send(string $to, string $subject, string $textBody, ?string $htmlBody): void
+    {
         try {
             if ($this->usePhpMail) {
-                $this->sendViaPhpMail($to, $subject, $body);
+                $this->sendViaPhpMail($to, $subject, $textBody, $htmlBody);
 
                 return;
             }
@@ -34,7 +47,11 @@ final class SystemMailer
                 ->from($this->fromAddress)
                 ->to($to)
                 ->subject($subject)
-                ->text($body);
+                ->text($textBody);
+
+            if ($htmlBody !== null && $htmlBody !== '') {
+                $message->html($htmlBody);
+            }
 
             $this->mailer->send($message);
         } catch (\Throwable $exception) {
@@ -53,18 +70,39 @@ final class SystemMailer
      * Envoi via mail() de l’hébergement (mutualisé OVH).
      * L’expéditeur doit idéalement être une adresse créée sur l’hébergement.
      */
-    private function sendViaPhpMail(string $to, string $subject, string $body): void
+    private function sendViaPhpMail(string $to, string $subject, string $textBody, ?string $htmlBody = null): void
     {
-        $headers = implode("\r\n", [
-            'From: '.$this->fromAddress,
-            'Reply-To: '.$this->fromAddress,
-            'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
-            'Content-Transfer-Encoding: 8bit',
-            'X-Mailer: extranet-17b',
-        ]);
-
         $encodedSubject = '=?UTF-8?B?'.base64_encode($subject).'?=';
+
+        if ($htmlBody !== null && $htmlBody !== '') {
+            $boundary = 'b_'.bin2hex(random_bytes(8));
+            $headers = implode("\r\n", [
+                'From: '.$this->fromAddress,
+                'Reply-To: '.$this->fromAddress,
+                'MIME-Version: 1.0',
+                'Content-Type: multipart/alternative; boundary="'.$boundary.'"',
+                'X-Mailer: extranet-17b',
+            ]);
+            $body = '--'.$boundary."\r\n"
+                .'Content-Type: text/plain; charset=UTF-8'."\r\n"
+                .'Content-Transfer-Encoding: 8bit'."\r\n\r\n"
+                .$textBody."\r\n"
+                .'--'.$boundary."\r\n"
+                .'Content-Type: text/html; charset=UTF-8'."\r\n"
+                .'Content-Transfer-Encoding: 8bit'."\r\n\r\n"
+                .$htmlBody."\r\n"
+                .'--'.$boundary.'--';
+        } else {
+            $headers = implode("\r\n", [
+                'From: '.$this->fromAddress,
+                'Reply-To: '.$this->fromAddress,
+                'MIME-Version: 1.0',
+                'Content-Type: text/plain; charset=UTF-8',
+                'Content-Transfer-Encoding: 8bit',
+                'X-Mailer: extranet-17b',
+            ]);
+            $body = $textBody;
+        }
 
         $ok = @mail($to, $encodedSubject, $body, $headers);
         if (!$ok) {

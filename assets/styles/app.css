@@ -13,6 +13,18 @@
 
 @theme {
     --breakpoint-3xl: 1400px;
+    /* Vert marque 17b — remplace la palette Tailwind green */
+    --color-green-50: #eefaf5;
+    --color-green-100: #d5f4e8;
+    --color-green-200: #ade9d2;
+    --color-green-300: #76d7b5;
+    --color-green-400: #3fbf94;
+    --color-green-500: #0fac71;
+    --color-green-600: #0fac71;
+    --color-green-700: #0fac71;
+    --color-green-800: #0b8759;
+    --color-green-900: #096b48;
+    --color-green-950: #053d2a;
 }
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap");
 :root {
@@ -21,6 +33,7 @@
     --brand-primary-hover: #000000;
     --brand-text: #111111;
     --brand-card: #F9F9F9;
+    --brand-green: #0fac71;
 }
 
 @layer base {

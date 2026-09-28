@@ -346,6 +346,109 @@ final class LegacyTimeCreditExchange
     }
 
     /**
+     * Complète les interventions manquantes sur des crédits legacy déjà importés
+     * (sans recréer les crédits). Utilisé pour corriger un JSON d’import incomplet.
+     *
+     * @param array{
+     *     credits: list<array{
+     *         legacySourceId: int,
+     *         interventions: list<array{
+     *             legacySourceId?: int,
+     *             minutes: int,
+     *             description?: string,
+     *             occurredAt: string
+     *         }>
+     *     }>
+     * } $payload
+     *
+     * @return array{creditsTouched: int, interventionsAdded: int, skipped: int}
+     */
+    public function syncMissingInterventions(array $payload, User $createdBy, bool $dryRun = false): array
+    {
+        $creditsTouched = 0;
+        $interventionsAdded = 0;
+        $skipped = 0;
+
+        foreach ($payload['credits'] as $row) {
+            $legacySourceId = (int) $row['legacySourceId'];
+            $credit = $this->timeCreditRepository->findOneByLegacySourceId($legacySourceId);
+            if (!$credit instanceof TimeCredit) {
+                ++$skipped;
+                continue;
+            }
+
+            $expected = $row['interventions'] ?? [];
+            if ($expected === []) {
+                continue;
+            }
+
+            $existingKeys = [];
+            foreach ($credit->getMovements() as $movement) {
+                if ($movement->getType() !== TimeCreditMovement::TYPE_INTERVENTION) {
+                    continue;
+                }
+                $existingKeys[$this->interventionMatchKey(
+                    (int) abs($movement->getDeltaMinutes()),
+                    $movement->getOccurredAt()?->format('Y-m-d') ?? '',
+                    (string) $movement->getDescription(),
+                )] = true;
+            }
+
+            $addedForCredit = 0;
+            foreach ($expected as $intervention) {
+                $minutes = abs((int) $intervention['minutes']);
+                $occurredAt = $this->parseDate((string) $intervention['occurredAt']);
+                if ($minutes <= 0 || $occurredAt === null) {
+                    continue;
+                }
+                $description = $this->normalizeDescription((string) ($intervention['description'] ?? '')) ?: 'Intervention importée';
+                $key = $this->interventionMatchKey($minutes, $occurredAt->format('Y-m-d'), $description);
+                if (isset($existingKeys[$key])) {
+                    continue;
+                }
+
+                if (!$dryRun) {
+                    $movement = (new TimeCreditMovement())
+                        ->setTimeCredit($credit)
+                        ->setCreatedBy($createdBy)
+                        ->setType(TimeCreditMovement::TYPE_INTERVENTION)
+                        ->setDeltaMinutes(-1 * $minutes)
+                        ->setDescription($description)
+                        ->setOccurredAt($occurredAt);
+                    $credit->addMovement($movement);
+                    $this->entityManager->persist($movement);
+                }
+
+                $existingKeys[$key] = true;
+                ++$addedForCredit;
+                ++$interventionsAdded;
+            }
+
+            if ($addedForCredit > 0) {
+                ++$creditsTouched;
+                if (!$dryRun) {
+                    $this->entityManager->flush();
+                    $this->balanceRecalculator->recalculate($credit);
+                    $this->entityManager->flush();
+                }
+            }
+        }
+
+        return [
+            'creditsTouched' => $creditsTouched,
+            'interventionsAdded' => $interventionsAdded,
+            'skipped' => $skipped,
+        ];
+    }
+
+    private function interventionMatchKey(int $minutes, string $date, string $description): string
+    {
+        $normalized = mb_strtolower(mb_substr(trim($description), 0, 80));
+
+        return $date.'|'.$minutes.'|'.$normalized;
+    }
+
+    /**
      * @return list<array{
      *     legacySourceId: int,
      *     entrepriseLegacySourceId: int,
@@ -440,34 +543,127 @@ final class LegacyTimeCreditExchange
      */
     private function parseTableRows(string $sql, string $table, array $requiredColumns): array
     {
-        $pattern = '/INSERT INTO `'.preg_quote($table, '/').'`\s*\(([^)]+)\)\s*VALUES\s*(.*?);/is';
-        if (!preg_match_all($pattern, $sql, $matches, \PREG_SET_ORDER)) {
+        $insertBlobs = $this->extractInsertValueBlobs($sql, $table);
+        if ($insertBlobs === []) {
             throw new \RuntimeException(sprintf('Aucun INSERT trouvé pour %s.', $table));
         }
 
         $rows = [];
-        foreach ($matches as $match) {
-            $columns = array_map(
-                static fn (string $col): string => trim($col, " \t\n\r\0\x0B`"),
-                explode(',', $match[1]),
-            );
-            foreach ($this->parseValueTuples($match[2]) as $fields) {
-                if (\count($fields) !== \count($columns)) {
+        foreach ($insertBlobs as $blob) {
+            $columns = $blob['columns'];
+            foreach ($this->parseValueTuples($blob['values']) as $fields) {
+                if ($columns !== null) {
+                    if (\count($fields) !== \count($columns)) {
+                        continue;
+                    }
+                    $assoc = array_combine($columns, $fields);
+                    if ($assoc === false) {
+                        continue;
+                    }
+                    $row = [];
+                    foreach ($requiredColumns as $column) {
+                        $row[$column] = $this->unquoteSql($assoc[$column] ?? '');
+                    }
+                    $rows[] = $row;
                     continue;
                 }
-                $assoc = array_combine($columns, $fields);
-                if ($assoc === false) {
+
+                if (\count($fields) !== \count($requiredColumns)) {
                     continue;
                 }
                 $row = [];
-                foreach ($requiredColumns as $column) {
-                    $row[$column] = $this->unquoteSql($assoc[$column] ?? '');
+                foreach ($requiredColumns as $index => $column) {
+                    $row[$column] = $this->unquoteSql($fields[$index] ?? '');
                 }
                 $rows[] = $row;
             }
         }
 
         return $rows;
+    }
+
+    /**
+     * Extrait les blocs VALUES des INSERT, sans couper sur un « ; » à l’intérieur d’une chaîne SQL.
+     *
+     * @return list<array{columns: list<string>|null, values: string}>
+     */
+    private function extractInsertValueBlobs(string $sql, string $table): array
+    {
+        $needle = 'INSERT INTO `'.$table.'`';
+        $blobs = [];
+        $offset = 0;
+        $length = \strlen($sql);
+
+        while (($start = stripos($sql, $needle, $offset)) !== false) {
+            $i = $start + \strlen($needle);
+            while ($i < $length && ctype_space($sql[$i])) {
+                ++$i;
+            }
+
+            $columns = null;
+            if ($i < $length && $sql[$i] === '(') {
+                ++$i;
+                $colsRaw = '';
+                while ($i < $length && $sql[$i] !== ')') {
+                    $colsRaw .= $sql[$i];
+                    ++$i;
+                }
+                if ($i >= $length || $sql[$i] !== ')') {
+                    break;
+                }
+                ++$i;
+                $columns = array_map(
+                    static fn (string $col): string => trim($col, " \t\n\r\0\x0B`"),
+                    explode(',', $colsRaw),
+                );
+                while ($i < $length && ctype_space($sql[$i])) {
+                    ++$i;
+                }
+            }
+
+            if ($i + 6 > $length || strncasecmp(substr($sql, $i, 6), 'VALUES', 6) !== 0) {
+                $offset = $start + \strlen($needle);
+                continue;
+            }
+            $i += 6;
+            while ($i < $length && ctype_space($sql[$i])) {
+                ++$i;
+            }
+
+            $valuesStart = $i;
+            $inString = false;
+            while ($i < $length) {
+                $ch = $sql[$i];
+                if ($inString) {
+                    if ($ch === '\\' && $i + 1 < $length) {
+                        $i += 2;
+                        continue;
+                    }
+                    if ($ch === "'") {
+                        $inString = false;
+                    }
+                    ++$i;
+                    continue;
+                }
+                if ($ch === "'") {
+                    $inString = true;
+                    ++$i;
+                    continue;
+                }
+                if ($ch === ';') {
+                    break;
+                }
+                ++$i;
+            }
+
+            $blobs[] = [
+                'columns' => $columns,
+                'values' => substr($sql, $valuesStart, $i - $valuesStart),
+            ];
+            $offset = $i + 1;
+        }
+
+        return $blobs;
     }
 
     /**
@@ -479,17 +675,11 @@ final class LegacyTimeCreditExchange
         if ($s === '') {
             return [];
         }
-        if ($s[0] === '(') {
-            $s = substr($s, 1);
-        }
-        if (str_ends_with($s, ')')) {
-            $s = substr($s, 0, -1);
-        }
 
         $tuples = [];
         $fields = [];
         $field = '';
-        $depth = 1;
+        $depth = 0;
         $inString = false;
         $length = \strlen($s);
 
@@ -515,6 +705,15 @@ final class LegacyTimeCreditExchange
                 continue;
             }
 
+            if ($depth === 0) {
+                if ($ch === '(') {
+                    $depth = 1;
+                    $fields = [];
+                    $field = '';
+                }
+                continue;
+            }
+
             if ($ch === ',' && $depth === 1) {
                 $fields[] = trim($field);
                 $field = '';
@@ -534,13 +733,6 @@ final class LegacyTimeCreditExchange
                     $tuples[] = $fields;
                     $fields = [];
                     $field = '';
-                    while ($i + 1 < $length && str_contains(" \n\r\t,", $s[$i + 1])) {
-                        ++$i;
-                    }
-                    if ($i + 1 < $length && $s[$i + 1] === '(') {
-                        ++$i;
-                        $depth = 1;
-                    }
                     continue;
                 }
                 $field .= $ch;

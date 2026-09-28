@@ -54,11 +54,19 @@ final class PasswordResetController extends AbstractController
 
                 $absoluteResetUrl = $this->generateUrl('auth_reset_password', ['token' => $token], 0);
 
+                $textBody = "Pour réinitialiser votre mot de passe, utilisez ce lien :\n\n{$absoluteResetUrl}\n\nCe lien expire dans 30 minutes.";
+                $htmlBody = '<p>Pour réinitialiser votre mot de passe, cliquez sur le lien ci-dessous&nbsp;:</p>'
+                    .'<p><a href="'.htmlspecialchars($absoluteResetUrl, \ENT_QUOTES | \ENT_HTML5, 'UTF-8').'">'
+                    .htmlspecialchars($absoluteResetUrl, \ENT_QUOTES | \ENT_HTML5, 'UTF-8')
+                    .'</a></p>'
+                    .'<p>Ce lien expire dans 30 minutes.</p>';
+
                 try {
-                    $systemMailer->sendText(
+                    $systemMailer->sendHtml(
                         $user->getEmail(),
                         'Réinitialisation de votre mot de passe',
-                        "Pour réinitialiser votre mot de passe, utilisez ce lien :\n\n{$absoluteResetUrl}\n\nCe lien expire dans 30 minutes.",
+                        $textBody,
+                        $htmlBody,
                     );
                 } catch (\Throwable) {
                     if ($this->getParameter('kernel.debug')) {
