@@ -4,6 +4,7 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
+        {% set client_preview = staff_client_view_enabled() %}
         {% for message in app.flashes('success') %}
             <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
         {% endfor %}
@@ -11,9 +12,14 @@
             <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
         {% endfor %}
 
-        <h1 class="mb-12 text-5xl font-extrabold text-brand leading-tight tracking-tight text-black">
+        <h1 class="{{ client_preview and selected_client ? 'mb-4' : 'mb-12' }} text-5xl font-extrabold text-brand leading-tight tracking-tight text-black">
             Tableau de bord
         </h1>
+        {% if client_preview and selected_client %}
+            <p class="mb-12 text-sm text-slate-600">
+                Espace client · <span class="font-semibold text-black">{{ selected_client.name }}</span>
+            </p>
+        {% endif %}
 
         <div class="grid gap-6 lg:grid-cols-3 lg:gap-5">
             {# Carte Fichiers #}
@@ -56,7 +62,7 @@
                         {% endif %}
                     </ul>
                     <div class="mt-auto pt-8">
-                        {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                        {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and not client_preview %}
                             <a href="{{ path('document_batch_upload') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Ajouter un fichier</a>
                         {% else %}
                             <a href="{{ path('document_index') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Consulter les fichiers</a>
@@ -169,9 +175,13 @@
                             </div>
                         {% endif %}
                     </div>
-                    {% if is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER') %}
+                    {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and not client_preview %}
                         <div class="mt-auto pt-8">
                             <a href="{{ path('time_credit_new') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Nouveau crédit temps</a>
+                        </div>
+                    {% elseif selected_client %}
+                        <div class="mt-auto pt-8">
+                            <a href="{{ path('time_credit_index', { entreprise: selected_client.id }) }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Consulter les crédits</a>
                         </div>
                     {% endif %}
                 {% endif %}

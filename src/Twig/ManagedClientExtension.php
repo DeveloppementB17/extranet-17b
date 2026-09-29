@@ -23,6 +23,7 @@ final class ManagedClientExtension extends AbstractExtension
     {
         return [
             new TwigFunction('managed_selected_client', $this->getManagedSelectedClient(...)),
+            new TwigFunction('staff_client_view_enabled', $this->isStaffClientViewEnabled(...)),
         ];
     }
 
@@ -34,5 +35,15 @@ final class ManagedClientExtension extends AbstractExtension
         }
 
         return $this->managedClientContext->getSelectedManagedEntreprise($user);
+    }
+
+    public function isStaffClientViewEnabled(): bool
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof User || !$user->is17bStaff()) {
+            return false;
+        }
+
+        return $this->managedClientContext->isClientViewEnabled($user);
     }
 }

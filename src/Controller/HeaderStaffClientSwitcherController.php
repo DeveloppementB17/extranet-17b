@@ -51,8 +51,49 @@ final class HeaderStaffClientSwitcherController extends AbstractController
             'is_admin' => $user->is17bAdmin(),
             'selected_client' => $managedClientContext->getSelectedManagedEntreprise($user),
             'mine_scope' => $managedClientContext->isMineScope($user),
+            'client_view_enabled' => $managedClientContext->isClientViewEnabled($user),
             'return_to' => (string) $request->query->get('return_to', '/'),
         ]);
+    }
+
+    #[Route('/staff/client/view-mode', name: 'staff_client_view_mode_toggle', methods: ['POST'])]
+    #[IsGranted(new Expression('is_granted("ROLE_17B_ADMIN") or is_granted("ROLE_17B_USER")'))]
+    public function toggleClientView(
+        Request $request,
+        ManagedClientContext $managedClientContext,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->is17bStaff()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$this->isCsrfTokenValid('toggle_client_view', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        $selectedClient = $managedClientContext->getSelectedManagedEntreprise($user);
+        if (!$selectedClient instanceof Entreprise) {
+            $this->addFlash('error', 'Sélectionnez d’abord une entreprise pour afficher la vue client.');
+
+            return $this->redirectToRoute('app_home');
+        }
+
+        $enable = (string) $request->request->get('enabled', '0') === '1';
+        $managedClientContext->setClientViewEnabled($user, $enable);
+
+        if ($enable) {
+            $this->addFlash('success', sprintf('Vue client : %s', $selectedClient->getName()));
+
+            return $this->redirectToRoute('app_home');
+        }
+
+        $this->addFlash('success', 'Retour à la vue équipe 17b.');
+
+        if ($user->is17bAdmin()) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        return $this->redirectToRoute('app_home');
     }
 
     #[Route('/staff/client/activate', name: 'staff_client_activate_switcher', methods: ['POST'])]

@@ -13,6 +13,7 @@ final class ManagedClientContext
 
     private const SESSION_KEY = 'staff_selected_client_id';
     private const SESSION_SCOPE_KEY = 'staff_client_scope';
+    private const SESSION_CLIENT_VIEW_KEY = 'staff_client_view_mode';
     private const SCOPE_MINE = 'mine';
 
     public function __construct(
@@ -73,6 +74,7 @@ final class ManagedClientContext
         $session = $this->requestStack->getSession();
         $session->remove(self::SESSION_KEY);
         $session->remove(self::SESSION_SCOPE_KEY);
+        $session->remove(self::SESSION_CLIENT_VIEW_KEY);
     }
 
     /**
@@ -96,6 +98,35 @@ final class ManagedClientContext
         $session = $this->requestStack->getSession();
         $session->remove(self::SESSION_KEY);
         $session->set(self::SESSION_SCOPE_KEY, self::SCOPE_MINE);
+        $session->remove(self::SESSION_CLIENT_VIEW_KEY);
+    }
+
+    /**
+     * Prévisualisation de l’espace client pour un client sélectionné.
+     */
+    public function isClientViewEnabled(User $actor): bool
+    {
+        if (!$actor->is17bStaff() || $this->getSelectedManagedEntreprise($actor) === null) {
+            return false;
+        }
+
+        return (bool) $this->requestStack->getSession()->get(self::SESSION_CLIENT_VIEW_KEY, false);
+    }
+
+    public function setClientViewEnabled(User $actor, bool $enabled): void
+    {
+        if (!$actor->is17bStaff()) {
+            return;
+        }
+
+        $session = $this->requestStack->getSession();
+        if (!$enabled || $this->getSelectedManagedEntreprise($actor) === null) {
+            $session->remove(self::SESSION_CLIENT_VIEW_KEY);
+
+            return;
+        }
+
+        $session->set(self::SESSION_CLIENT_VIEW_KEY, true);
     }
 
     /**

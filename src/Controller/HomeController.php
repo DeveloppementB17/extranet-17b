@@ -27,7 +27,10 @@ final class HomeController extends AbstractController
     {
         $user = $this->getUser();
         if ($user instanceof User && $this->isGranted('ROLE_17B_ADMIN')) {
-            return $this->redirectToRoute('admin_dashboard');
+            $selectedForView = $managedClientContext->getSelectedManagedEntreprise($user);
+            if (!$managedClientContext->isClientViewEnabled($user) || !$selectedForView instanceof Entreprise) {
+                return $this->redirectToRoute('admin_dashboard');
+            }
         }
 
         $managedClients = [];

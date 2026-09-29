@@ -39,6 +39,26 @@
             {% endif %}
         </select>
     </form>
+
+    {% if selected_client %}
+        <form method="post" action="{{ path('staff_client_view_mode_toggle') }}" class="mt-2">
+            <input type="hidden" name="_token" value="{{ csrf_token('toggle_client_view') }}">
+            <input type="hidden" name="enabled" value="{{ client_view_enabled ? '0' : '1' }}">
+            <button
+                type="submit"
+                class="inline-flex w-full items-center justify-between gap-2 rounded-base border px-2.5 py-1.5 text-left text-[11px] font-medium leading-snug transition
+                    {{ client_view_enabled
+                        ? 'border-green-200 bg-green-50 text-green-800 hover:bg-green-100'
+                        : 'border-transparent bg-transparent text-slate-500 hover:border-slate-200 hover:bg-white hover:text-slate-700' }}"
+                title="{{ client_view_enabled ? 'Revenir à la vue équipe 17b' : 'Afficher le tableau de bord tel que le voit le client' }}"
+            >
+                <span>{{ client_view_enabled ? 'Vue client active' : 'Voir comme le client' }}</span>
+                <span class="relative inline-flex h-4 w-7 shrink-0 items-center rounded-full {{ client_view_enabled ? 'bg-green-600' : 'bg-slate-300' }}" aria-hidden="true">
+                    <span class="inline-block h-3 w-3 rounded-full bg-white shadow transition {{ client_view_enabled ? 'translate-x-3.5' : 'translate-x-0.5' }}"></span>
+                </span>
+            </button>
+        </form>
+    {% endif %}
 {% else %}
     <span class="inline-flex items-center rounded-base border border-default bg-white px-3 py-2 text-xs text-slate-600">
         {% if is_admin %}
