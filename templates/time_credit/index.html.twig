@@ -201,16 +201,17 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
+                                {% set remaining_display_in_hours = credit.remainingMinutes > 60 %}
                                 <span
                                     class="cursor-help"
                                     data-tooltip-target="tc-index-remaining-{{ credit.id }}"
                                     data-tooltip-placement="top"
                                     tabindex="0"
                                 >
-                                    {{ (credit.remainingMinutes / 60)|round(2) }} h
+                                    {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ ' min' }}
                                 </span>
                                 <div id="tc-index-remaining-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                                    {{ credit.remainingMinutes }} min
+                                    {{ remaining_display_in_hours ? credit.remainingMinutes ~ ' min' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>

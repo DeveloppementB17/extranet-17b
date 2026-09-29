@@ -63,7 +63,7 @@
             <div class="col-span-1 p-4 ring-1 ring-black">
                 <div class="text-xs uppercase tracking-wide text-slate-500">Disponible</div>
                 <div class="mt-1 text-lg font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
-                    {% set remaining_display_in_hours = credit.remainingMinutes > 180 %}
+                    {% set remaining_display_in_hours = credit.remainingMinutes > 60 %}
                     <span
                         class="cursor-help"
                         data-tooltip-target="tc-show-remaining-tooltip"
@@ -236,7 +236,7 @@
                     <div class="bg-white px-3 py-2 ring-1 ring-slate-200">
                         <div class="text-slate-500">Disponible</div>
                         <div class="mt-1 font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
-                            {% set remaining_detail_display_in_hours = credit.remainingMinutes > 180 %}
+                            {% set remaining_detail_display_in_hours = credit.remainingMinutes > 60 %}
                             <span
                                 class="cursor-help"
                                 data-tooltip-target="tc-show-remaining-detail-tooltip"
