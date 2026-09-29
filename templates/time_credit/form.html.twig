@@ -21,7 +21,7 @@
         <p class="mt-2 text-m text-slate-600">
             {% if edit_mode|default(false) %}
                 {% if consumed_minutes|default(0) > 0 %}
-                    Vous pouvez ajuster le total du crédit ; le temps déjà consommé ({{ consumed_minutes }} min) est conservé. Un ajustement sera enregistré dans l’historique (sans intervention).
+                    Vous pouvez ajuster le total du crédit ; le temps déjà consommé ({{ consumed_minutes }}mn) est conservé. Un ajustement sera enregistré dans l’historique (sans intervention).
                 {% else %}
                     Aucune consommation pour l’instant : le total et le solde seront mis à jour ensemble.
                 {% endif %}

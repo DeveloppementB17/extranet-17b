@@ -29,12 +29,12 @@ final class TimeCreditInterventionType extends AbstractType
                 'data' => $options['preselected_time_credit'],
                 'choice_label' => static function (TimeCredit $credit): string {
                     $remainingMinutes = $credit->getRemainingMinutes();
-                    $display = sprintf('%s min', $remainingMinutes);
+                    $display = sprintf('%smn', $remainingMinutes);
                     $alternate = sprintf('%.2f h', $remainingMinutes / 60);
 
-                    if ($remainingMinutes > 180) {
+                    if ($remainingMinutes >= 60) {
                         $display = sprintf('%.2f h', $remainingMinutes / 60);
-                        $alternate = sprintf('%s min', $remainingMinutes);
+                        $alternate = sprintf('%smn', $remainingMinutes);
                     }
 
                     return sprintf(

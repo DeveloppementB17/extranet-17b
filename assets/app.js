@@ -7,18 +7,18 @@ import ApexCharts from 'apexcharts';
 const formatPrimaryDuration = (value) => {
     const minutes = Math.round(Number(value || 0));
 
-    if (minutes > 60 || minutes < -60) {
+    if (Math.abs(minutes) >= 60) {
         return `${(minutes / 60).toFixed(2)} h`;
     }
 
-    return `${minutes} min`;
+    return `${minutes}mn`;
 };
 
 const formatAlternateDuration = (value) => {
     const minutes = Math.round(Number(value || 0));
 
-    if (minutes > 60 || minutes < -60) {
-        return `${minutes} min`;
+    if (Math.abs(minutes) >= 60) {
+        return `${minutes}mn`;
     }
 
     return `${(minutes / 60).toFixed(2)} h`;

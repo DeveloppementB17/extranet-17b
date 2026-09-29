@@ -27,7 +27,7 @@
     <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
         <h1 class="text-3xl font-extrabold text-brand">{{ page_title }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            {% set remaining_display_in_hours = available_minutes > 60 %}
+            {% set remaining_display_in_hours = available_minutes >= 60 %}
             Crédit : <span class="font-medium">{{ credit.title }}</span> — disponible :
             <span
                 class="cursor-help"
@@ -35,10 +35,10 @@
                 data-tooltip-placement="top"
                 tabindex="0"
             >
-                {{ remaining_display_in_hours ? (available_minutes / 60)|round(2) ~ ' h' : available_minutes ~ ' min' }}
+                {{ remaining_display_in_hours ? (available_minutes / 60)|round(2) ~ ' h' : available_minutes ~ 'mn' }}
             </span>.
             <div id="tc-intervention-remaining-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                {{ remaining_display_in_hours ? available_minutes ~ ' min' : (available_minutes / 60)|round(2) ~ ' h' }}
+                {{ remaining_display_in_hours ? available_minutes ~ 'mn' : (available_minutes / 60)|round(2) ~ ' h' }}
                 <div class="tooltip-arrow" data-popper-arrow></div>
             </div>
             {% if is_edit_mode %}
