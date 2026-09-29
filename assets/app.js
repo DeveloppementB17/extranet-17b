@@ -144,7 +144,29 @@ const initTimeCreditDonutChart = () => {
                 colors: ['#ffffff'],
             },
             dataLabels: {
-                enabled: false,
+                enabled: true,
+                formatter: (_percent, opts) => {
+                    // Uniquement sur la part verte « Disponible » (index 1).
+                    if (opts.seriesIndex !== 1) {
+                        return '';
+                    }
+
+                    const minutes = Number(opts.w.config.series[opts.seriesIndex] || 0);
+                    if (minutes <= 0) {
+                        return '';
+                    }
+
+                    return formatPrimaryDuration(minutes);
+                },
+                style: {
+                    fontSize: '16px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 700,
+                    colors: ['#ffffff'],
+                },
+                dropShadow: {
+                    enabled: false,
+                },
             },
             legend: {
                 position: 'bottom',
@@ -167,6 +189,10 @@ const initTimeCreditDonutChart = () => {
                 pie: {
                     expandOnClick: false,
                     offsetY: -4,
+                    dataLabels: {
+                        offset: -10,
+                        minAngleToShowLabel: 18,
+                    },
                 },
             },
             states: {
