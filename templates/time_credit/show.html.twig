@@ -36,18 +36,18 @@
     {% set history_colspan = 3 + (show_type_column ? 1 : 0) + (show_created_by ? 1 : 0) + (show_actions_column ? 1 : 0) %}
 
     <div class="panel py-8">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <h1 class="text-4xl font-extrabold tracking-tight text-black md:text-5xl">{{ credit.entreprise.name }}</h1>
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="min-w-0 flex-1">
+                <h1 class="text-3xl font-extrabold tracking-tight text-black sm:text-4xl md:text-5xl">{{ credit.entreprise.name }}</h1>
                 {% if credit.dossierNumber %}
-                    <p class="mt-2 text-sm text-slate-600">Dossier {{ credit.dossierNumber }}</p>
+                    <p class="mt-1 text-sm text-slate-600">Dossier {{ credit.dossierNumber }}</p>
                 {% endif %}
             </div>
 
-            <div class="grid w-full max-w-md grid-cols-2 gap-4 lg:w-auto">
-                <div class="p-4 ring-1 ring-black">
-                    <div class="text-xs uppercase tracking-wide text-slate-500">Total</div>
-                    <div class="mt-1 text-lg font-semibold text-slate-900">
+            <div class="flex shrink-0 items-center gap-3">
+                <div class="flex size-24 flex-col items-center justify-center p-2 text-center ring-1 ring-black sm:size-28">
+                    <div class="text-[10px] uppercase tracking-wide text-slate-500 sm:text-xs">Total</div>
+                    <div class="mt-1 text-base font-semibold text-slate-900 sm:text-lg">
                         {% set total_display_in_hours = credit.totalMinutes >= 60 %}
                         <span
                             class="cursor-help"
@@ -63,9 +63,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-4 ring-1 ring-black">
-                    <div class="text-xs uppercase tracking-wide text-slate-500">Disponible</div>
-                    <div class="mt-1 text-lg font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }}">
+                <div class="flex size-24 flex-col items-center justify-center p-2 text-center ring-1 ring-black sm:size-28">
+                    <div class="text-[10px] uppercase tracking-wide text-slate-500 sm:text-xs">Disponible</div>
+                    <div class="mt-1 text-base font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }} sm:text-lg">
                         {% set remaining_display_in_hours = credit.remainingMinutes >= 60 %}
                         <span
                             class="cursor-help"
