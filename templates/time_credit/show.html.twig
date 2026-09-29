@@ -110,6 +110,7 @@
             
 
         <!-- Historique des mouvements -->
+        {% set show_created_by = (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and not staff_client_view_enabled() %}
 
         <div class="mt-6 col-span-2">
         <div class="overflow-x-auto overflow-hidden">
@@ -120,7 +121,9 @@
                         <th class="px-4 py-3 font-semibold text-black">Type</th>
                         <th class="px-4 py-3 font-semibold text-black">Delta</th>
                         <th class="px-4 py-3 font-semibold text-black">Description</th>
-                        <th class="px-4 py-3 font-semibold text-black">Créé par</th>
+                        {% if show_created_by %}
+                            <th class="px-4 py-3 font-semibold text-black">Créé par</th>
+                        {% endif %}
                         <th class="px-4 py-3 font-semibold text-black text-right">Actions</th>
                         {# <th class="px-4 py-3 font-semibold text-black">Créé le</th> #}
                     </tr>
@@ -158,7 +161,9 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-slate-700">{{ m.description ?: '—' }}</td>
-                            <td class="px-4 py-3 text-slate-700">{{ m.createdBy.email }}</td>
+                            {% if show_created_by %}
+                                <td class="px-4 py-3 text-slate-700">{{ m.createdBy.email }}</td>
+                            {% endif %}
                             <td class="px-4 py-3 text-right">
                                 {% if m.type == 'intervention' and is_granted('TIME_CREDIT_INTERVENTION_MANAGE', m) %}
                                     <div class="inline-flex items-center gap-2">
@@ -187,7 +192,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="7" class="px-4 py-6 text-slate-600">Aucun mouvement pour le moment.</td>
+                            <td colspan="{{ show_created_by ? 6 : 5 }}" class="px-4 py-6 text-slate-600">Aucun mouvement pour le moment.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
