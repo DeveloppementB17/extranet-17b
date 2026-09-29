@@ -126,11 +126,11 @@ const initTimeCreditDonutChart = () => {
             colors: ['#000000', '#0FAC71'],
             chart: {
                 height: chartHeight,
-                type: 'donut',
+                type: 'pie',
                 fontFamily: 'Inter, sans-serif',
             },
             stroke: {
-                colors: ['transparent'],
+                width: 0,
             },
             dataLabels: {
                 enabled: false,
@@ -140,27 +140,7 @@ const initTimeCreditDonutChart = () => {
             },
             plotOptions: {
                 pie: {
-                    donut: {
-                        size: '72%',
-                        labels: {
-                            show: true,
-                            name: {
-                                show: true,
-                                offsetY: 22,
-                            },
-                            value: {
-                                show: true,
-                                offsetY: -18,
-                                formatter: (value) => formatPrimaryDuration(value),
-                            },
-                            total: {
-                                show: true,
-                                showAlways: true,
-                                label: 'Total',
-                                formatter: () => formatPrimaryDuration(totalMinutes),
-                            },
-                        },
-                    },
+                    expandOnClick: false,
                 },
             },
             tooltip: {
