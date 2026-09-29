@@ -140,7 +140,7 @@ const initTimeCreditDonutChart = () => {
             },
             stroke: {
                 show: true,
-                width: 5,
+                width: 2,
                 colors: ['#ffffff'],
             },
             dataLabels: {
