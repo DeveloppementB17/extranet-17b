@@ -123,27 +123,70 @@ const initTimeCreditDonutChart = () => {
         const chart = new ApexCharts(chartElement, {
             series: [consumedMinutes, remainingMinutes],
             labels: ['Consommé', 'Disponible'],
-            colors: ['#000000', '#0FAC71'],
+            colors: ['#111111', '#0FAC71'],
             chart: {
                 height: chartHeight,
                 type: 'pie',
                 fontFamily: 'Inter, sans-serif',
+                background: 'transparent',
+                dropShadow: {
+                    enabled: true,
+                    top: 6,
+                    left: 0,
+                    blur: 12,
+                    color: '#0FAC71',
+                    opacity: 0.18,
+                },
             },
             stroke: {
-                width: 0,
+                show: true,
+                width: 3,
+                colors: ['#ffffff'],
             },
             dataLabels: {
                 enabled: false,
             },
             legend: {
                 position: 'bottom',
+                fontSize: '13px',
+                fontWeight: 600,
+                labels: {
+                    colors: '#334155',
+                },
+                markers: {
+                    size: 8,
+                    strokeWidth: 0,
+                    offsetX: -2,
+                },
+                itemMargin: {
+                    horizontal: 14,
+                    vertical: 4,
+                },
             },
             plotOptions: {
                 pie: {
                     expandOnClick: false,
+                    offsetY: -4,
+                },
+            },
+            states: {
+                hover: {
+                    filter: {
+                        type: 'lighten',
+                        value: 0.04,
+                    },
+                },
+                active: {
+                    filter: {
+                        type: 'none',
+                    },
                 },
             },
             tooltip: {
+                theme: 'light',
+                style: {
+                    fontSize: '13px',
+                },
                 y: {
                     formatter: (value) => `${formatPrimaryDuration(value)} (${formatAlternateDuration(value)})`,
                 },
