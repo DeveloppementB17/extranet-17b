@@ -32,7 +32,7 @@
     {% set show_created_by = staff_ops_view %}
     {% set show_type_column = staff_ops_view %}
     {% set show_actions_column = staff_ops_view %}
-    {% set visible_movements = staff_ops_view ? movements : movements|filter(m => m.type != 'allocation') %}
+    {% set visible_movements = movements|filter(m => m.type != 'allocation') %}
     {% set history_colspan = 3 + (show_type_column ? 1 : 0) + (show_created_by ? 1 : 0) + (show_actions_column ? 1 : 0) %}
 
     <div class="panel py-8">
