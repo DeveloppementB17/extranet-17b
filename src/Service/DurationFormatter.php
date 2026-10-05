@@ -20,7 +20,7 @@ final class DurationFormatter
     }
 
     /**
-     * Libellé standard d’un crédit temps (ex. « Crédit temps 32h00 »).
+     * Libellé standard d’un crédit temps (ex. « Crédit temps 32h »).
      */
     public function creditLabel(int $totalMinutes): string
     {
@@ -40,7 +40,7 @@ final class DurationFormatter
     }
 
     /**
-     * Convertit des minutes en format Hhii (ex. 27h30, -1h15).
+     * Convertit des minutes en format Hhii (ex. 27h30, 32h, -1h15).
      */
     public function hoursMinutes(int $minutes): string
     {
@@ -48,6 +48,10 @@ final class DurationFormatter
         $absolute = abs($minutes);
         $hours = intdiv($absolute, 60);
         $remainingMinutes = $absolute % 60;
+
+        if ($remainingMinutes === 0) {
+            return sprintf('%s%dh', $sign, $hours);
+        }
 
         return sprintf('%s%dh%02d', $sign, $hours, $remainingMinutes);
     }

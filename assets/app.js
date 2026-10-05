@@ -11,6 +11,10 @@ const formatHoursMinutes = (value) => {
     const hours = Math.floor(absolute / 60);
     const remainingMinutes = absolute % 60;
 
+    if (remainingMinutes === 0) {
+        return `${sign}${hours}h`;
+    }
+
     return `${sign}${hours}h${String(remainingMinutes).padStart(2, '0')}`;
 };
 
