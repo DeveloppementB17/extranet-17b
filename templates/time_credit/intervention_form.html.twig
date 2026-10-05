@@ -57,7 +57,7 @@
             {% endif %}
 
             <div class="flex flex-wrap gap-3">
-                <button type="submit" class="ml-auto inline-flex items-center gap-2 bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover button">{{ icons.icon('check') }}{{ submit_label }}</button>
+                <button type="submit" class="ml-auto inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50 button">{{ icons.icon('check') }}{{ submit_label }}</button>
                 <a class="inline-flex items-center gap-2 border border-slate-200 px-6 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" href="{{ cancel_url }}">{{ icons.icon('x') }}Annuler</a>
             </div>
         {{ form_end(form) }}

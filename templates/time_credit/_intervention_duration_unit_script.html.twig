@@ -58,19 +58,28 @@
 
         const applyInputMax = () => {
             const maxMinutes = getMaxMinutes();
+            const inHours = (unitField.value || 'minutes') === 'hours';
+
+            // min/step doivent rester cohérents (sinon Chrome refuse le submit
+            // même pour une durée déjà valide, ex. édition de la seule date).
+            if (inHours) {
+                valueField.min = '0.25';
+                valueField.step = '0.25';
+            } else {
+                valueField.min = '1';
+                valueField.step = '1';
+            }
+
             if (maxMinutes <= 0) {
                 valueField.removeAttribute('max');
-                valueField.removeAttribute('step');
 
                 return;
             }
 
-            if ((unitField.value || 'minutes') === 'hours') {
+            if (inHours) {
                 valueField.max = String(Math.round((maxMinutes / 60) * 100) / 100);
-                valueField.step = '0.25';
             } else {
                 valueField.max = String(maxMinutes);
-                valueField.step = '1';
             }
         };
 
