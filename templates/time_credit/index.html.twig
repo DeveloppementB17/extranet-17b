@@ -47,28 +47,30 @@
         </div>
 
         {% if is_admin_list_view %}
-            <form method="get" class="mt-6 flex flex-col gap-3 lg:flex-row lg:flex-nowrap lg:items-end lg:gap-2">
-                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="w-full border border-dark px-3 py-2 text-sm lg:min-w-0 lg:flex-1">
-                <select name="entreprise" class="w-full border border-dark px-3 py-2 text-sm lg:w-44 xl:w-52 lg:shrink">
-                    <option value="0">Toutes les entreprises</option>
-                    {% for id, name in available_entreprises %}
-                        <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="category" class="w-full border border-dark px-3 py-2 text-sm lg:w-40 xl:w-48 lg:shrink">
-                    <option value="0">Toutes les catégories</option>
-                    {% for id, name in available_categories %}
-                        <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="status" class="w-full border border-dark px-3 py-2 text-sm lg:w-36 lg:shrink-0">
-                    <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
-                    <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>En cours</option>
-                    <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Terminés</option>
-                </select>
-                <div class="flex shrink-0 gap-2">
-                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 whitespace-nowrap bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
-                    <a href="{{ path('time_credit_index') }}" class="inline-flex items-center gap-2 whitespace-nowrap border border-dark px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
+            <form method="get" class="mt-6">
+                <div class="flex flex-col gap-3 md:flex-row md:flex-nowrap md:items-end md:gap-2">
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="w-full border border-dark px-3 py-2 text-sm md:min-w-0 md:flex-[1.2]">
+                    <select name="entreprise" class="w-full min-w-0 border border-dark px-2 py-2 text-sm md:flex-1">
+                        <option value="0">Toutes les entreprises</option>
+                        {% for id, name in available_entreprises %}
+                            <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="category" class="w-full min-w-0 border border-dark px-2 py-2 text-sm md:flex-1">
+                        <option value="0">Toutes les catégories</option>
+                        {% for id, name in available_categories %}
+                            <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="status" class="w-full min-w-0 border border-dark px-2 py-2 text-sm md:w-32 md:flex-none">
+                        <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
+                        <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>En cours</option>
+                        <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Terminés</option>
+                    </select>
+                    <div class="flex shrink-0 gap-2">
+                        <button type="submit" class="inline-flex h-[38px] cursor-pointer items-center gap-2 whitespace-nowrap bg-brand-primary px-3 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
+                        <a href="{{ path('time_credit_index') }}" class="inline-flex h-[38px] items-center gap-2 whitespace-nowrap border border-dark px-3 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
+                    </div>
                 </div>
                 <input type="hidden" name="sort" value="{{ sort_field }}">
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
