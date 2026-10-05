@@ -64,7 +64,7 @@
                     </select>
                     <select name="status" class="border border-dark px-3 py-2 text-sm">
                         <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
-                        <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>Actifs</option>
+                        <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>En cours</option>
                         <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Terminés</option>
                     </select>
                 </div>
@@ -217,7 +217,7 @@
                                 {% if credit.archived %}
                                     <span class="bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">Terminé</span>
                                 {% else %}
-                                    <span class="bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Actif</span>
+                                    <span class="bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">En cours</span>
                                 {% endif %}
                             </td>
                             <td class="px-4 py-3 text-right">
