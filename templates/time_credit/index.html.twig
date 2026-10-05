@@ -200,7 +200,7 @@
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-[#194122]' }}">
+                            <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-credit-remaining' }}">
                                 {% set remaining_display_in_hours = credit.remainingMinutes >= 60 %}
                                 <span
                                     class="cursor-help"

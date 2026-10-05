@@ -16,6 +16,11 @@
     }
 }
 
+/* Solde disponible crédits temps — évite les classes Tailwind arbitraires non compilées en prod */
+.text-credit-remaining {
+    color: #194122;
+}
+
 
 
 .dashboard-card-action,

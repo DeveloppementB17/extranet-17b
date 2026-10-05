@@ -162,7 +162,8 @@ const initTimeCreditDonutChart = () => {
                     fontSize: '16px',
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 700,
-                    colors: ['#194122'],
+                    // Index 0 = consommé (label masqué), index 1 = disponible.
+                    colors: ['#ffffff', '#194122'],
                 },
                 dropShadow: {
                     enabled: false,
