@@ -38,7 +38,7 @@ final class TimeCreditInterventionType extends AbstractType
 
                     return sprintf(
                         '%s — %s restantes (%s)',
-                        $credit->getTitle(),
+                        $this->durationFormatter->creditLabel($credit->getTotalMinutes()),
                         $this->durationFormatter->primary($remainingMinutes),
                         $this->durationFormatter->alternate($remainingMinutes)
                     );

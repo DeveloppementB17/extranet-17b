@@ -13,7 +13,7 @@
         {% if has_available_credits %}
             {% if fixed_credit is defined and fixed_credit %}
                 <p class="mt-2 text-sm text-slate-600">
-                    Crédit : <span class="font-medium">{{ fixed_credit.title }}</span> — disponible :
+                    Crédit : <span class="font-medium">{{ fixed_credit|credit_label }}</span> — disponible :
                     {{ fixed_credit.remainingMinutes|duration_primary }}.
                 </p>
             {% endif %}

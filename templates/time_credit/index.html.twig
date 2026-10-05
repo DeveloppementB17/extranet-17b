@@ -180,7 +180,7 @@
                     {% for credit in credits %}
                         <tr class="hover:bg-neutral-50">
                             <td class="px-4 py-3 font-medium text-slate-900">
-                                <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit.title }}</a>
+                                <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit|credit_label }}</a>
                             </td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.entreprise.name }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.category ? credit.category.name : '—' }}</td>

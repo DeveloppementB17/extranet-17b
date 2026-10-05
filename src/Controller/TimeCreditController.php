@@ -12,6 +12,7 @@ use App\Repository\EntrepriseRepository;
 use App\Repository\TimeCreditCategoryRepository;
 use App\Repository\TimeCreditMovementRepository;
 use App\Repository\TimeCreditRepository;
+use App\Service\DurationFormatter;
 use App\Service\TimeCreditBalanceRecalculator;
 use App\Security\Voter\TimeCreditMovementVoter;
 use App\Security\Voter\TimeCreditVoter;
@@ -27,6 +28,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/credits-temps')]
 final class TimeCreditController extends AbstractController
 {
+    public function __construct(
+        private readonly DurationFormatter $durationFormatter,
+    ) {
+    }
+
     #[Route('', name: 'time_credit_index', methods: ['GET'])]
     public function index(
         Request $request,
@@ -345,7 +351,7 @@ final class TimeCreditController extends AbstractController
                 ]);
             }
 
-            $credit->setTitle('Crédit du '.(new \DateTimeImmutable())->format('d/m/Y H:i'));
+            $credit->setTitle($this->durationFormatter->creditLabel($total));
             $credit->setRemainingMinutes($total);
             $credit->setArchived(false);
             $credit->setCreatedBy($actor);
@@ -735,6 +741,7 @@ final class TimeCreditController extends AbstractController
 
         $credit->setTotalMinutes($newTotal);
         $credit->setRemainingMinutes($newTotal - $consumed);
+        $credit->setTitle($this->durationFormatter->creditLabel($newTotal));
         $credit->setArchived($credit->getRemainingMinutes() <= 0);
 
         $hasInterventions = $movementRepository->countInterventions($credit) > 0;

@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\TimeCredit;
 use App\Service\DurationFormatter;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
@@ -19,6 +20,16 @@ final class DurationExtension extends AbstractExtension
             new TwigFilter('duration_primary', $this->durationFormatter->primary(...)),
             new TwigFilter('duration_alternate', $this->durationFormatter->alternate(...)),
             new TwigFilter('duration_hours_minutes', $this->durationFormatter->hoursMinutes(...)),
+            new TwigFilter('credit_label', $this->creditLabel(...)),
         ];
+    }
+
+    private function creditLabel(TimeCredit|int $creditOrMinutes): string
+    {
+        $minutes = $creditOrMinutes instanceof TimeCredit
+            ? $creditOrMinutes->getTotalMinutes()
+            : $creditOrMinutes;
+
+        return $this->durationFormatter->creditLabel($minutes);
     }
 }

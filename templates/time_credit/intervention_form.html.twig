@@ -14,7 +14,7 @@
         <span class="text-neutral-400"> / </span>
         <a href="{{ path('time_credit_index') }}" class="hover:underline">Crédits temps</a>
         <span class="text-neutral-400"> / </span>
-        <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit.title }}</a>
+        <a href="{{ path('time_credit_show', { id: credit.id }) }}" class="hover:underline">{{ credit|credit_label }}</a>
         <span class="text-neutral-400"> / </span>
         <span class="font-medium" aria-current="page">{{ page_title }}</span>
     </nav>
@@ -27,7 +27,7 @@
     <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
         <h1 class="text-3xl font-extrabold text-brand">{{ page_title }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            Crédit : <span class="font-medium">{{ credit.title }}</span> — disponible :
+            Crédit : <span class="font-medium">{{ credit|credit_label }}</span> — disponible :
             <span
                 class="cursor-help"
                 data-tooltip-target="tc-intervention-remaining-tooltip"

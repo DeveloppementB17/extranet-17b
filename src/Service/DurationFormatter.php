@@ -20,6 +20,14 @@ final class DurationFormatter
     }
 
     /**
+     * Libellé standard d’un crédit temps (ex. « Crédit temps 32h00 »).
+     */
+    public function creditLabel(int $totalMinutes): string
+    {
+        return 'Crédit temps '.$this->primary(max(0, $totalMinutes));
+    }
+
+    /**
      * Affichage alternatif (tooltip) : inverse du format principal.
      */
     public function alternate(int $minutes): string
