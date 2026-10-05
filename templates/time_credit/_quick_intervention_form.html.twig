@@ -13,9 +13,8 @@
         {% if has_available_credits %}
             {% if fixed_credit is defined and fixed_credit %}
                 <p class="mt-2 text-sm text-slate-600">
-                    {% set remaining_display_in_hours = fixed_credit.remainingMinutes >= 60 %}
                     Crédit : <span class="font-medium">{{ fixed_credit.title }}</span> — disponible :
-                    {{ remaining_display_in_hours ? (fixed_credit.remainingMinutes / 60)|round(2) ~ ' h' : fixed_credit.remainingMinutes ~ 'mn' }}.
+                    {{ fixed_credit.remainingMinutes|duration_primary }}.
                 </p>
             {% endif %}
             {{ form_start(form, { attr: { class: (embedded|default(false) ? 'mt-4' : 'mt-8') ~ ' space-y-8' } }) }}

@@ -4,11 +4,21 @@ import './controllers/csrf_protection_controller.js';
 import 'flowbite';
 import ApexCharts from 'apexcharts';
 
+const formatHoursMinutes = (value) => {
+    const minutes = Math.round(Number(value || 0));
+    const sign = minutes < 0 ? '-' : '';
+    const absolute = Math.abs(minutes);
+    const hours = Math.floor(absolute / 60);
+    const remainingMinutes = absolute % 60;
+
+    return `${sign}${hours}h${String(remainingMinutes).padStart(2, '0')}`;
+};
+
 const formatPrimaryDuration = (value) => {
     const minutes = Math.round(Number(value || 0));
 
     if (Math.abs(minutes) >= 60) {
-        return `${(minutes / 60).toFixed(2)} h`;
+        return formatHoursMinutes(minutes);
     }
 
     return `${minutes}mn`;
@@ -21,7 +31,7 @@ const formatAlternateDuration = (value) => {
         return `${minutes}mn`;
     }
 
-    return `${(minutes / 60).toFixed(2)} h`;
+    return formatHoursMinutes(minutes);
 };
 
 const initStaffClientSwitcher = () => {

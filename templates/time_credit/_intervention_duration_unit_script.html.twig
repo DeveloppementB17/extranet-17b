@@ -42,9 +42,17 @@
                 : Math.round(raw);
         };
 
+        const formatHoursMinutes = (totalMinutes) => {
+            const absolute = Math.abs(totalMinutes);
+            const hours = Math.floor(absolute / 60);
+            const remainingMinutes = absolute % 60;
+
+            return `${hours}h${String(remainingMinutes).padStart(2, '0')}`;
+        };
+
         const formatLimitLabel = (maxMinutes) => {
             if (maxMinutes >= 60) {
-                return `${(maxMinutes / 60).toFixed(2)} h (${maxMinutes}mn)`;
+                return `${formatHoursMinutes(maxMinutes)} (${maxMinutes}mn)`;
             }
 
             return `${maxMinutes}mn`;
@@ -117,7 +125,7 @@
 
             if (minutes > maxMinutes) {
                 const limit = formatLimitLabel(maxMinutes);
-                const entered = minutes >= 60 ? `${(minutes / 60).toFixed(2)} h` : `${minutes}mn`;
+                const entered = minutes >= 60 ? formatHoursMinutes(minutes) : `${minutes}mn`;
                 if (warningEl) {
                     warningEl.textContent = `La durée saisie (${entered}) dépasse le solde disponible (${limit}). Réduisez la durée pour enregistrer l’intervention.`;
                     warningEl.classList.remove('hidden');

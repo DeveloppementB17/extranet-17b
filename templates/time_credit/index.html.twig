@@ -186,32 +186,30 @@
                             <td class="px-4 py-3 text-slate-700">{{ credit.category ? credit.category.name : '—' }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ credit.dossierNumber ?: '—' }}</td>
                             <td class="px-4 py-3 text-slate-700">
-                                {% set total_display_in_hours = credit.totalMinutes >= 60 %}
                                 <span
                                     class="cursor-help"
                                     data-tooltip-target="tc-index-total-{{ credit.id }}"
                                     data-tooltip-placement="top"
                                     tabindex="0"
                                 >
-                                    {{ total_display_in_hours ? (credit.totalMinutes / 60)|round(2) ~ ' h' : credit.totalMinutes ~ 'mn' }}
+                                    {{ credit.totalMinutes|duration_primary }}
                                 </span>
                                 <div id="tc-index-total-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                                    {{ total_display_in_hours ? credit.totalMinutes ~ 'mn' : (credit.totalMinutes / 60)|round(2) ~ ' h' }}
+                                    {{ credit.totalMinutes|duration_alternate }}
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>
                             <td class="px-4 py-3 font-medium {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-credit-remaining' }}">
-                                {% set remaining_display_in_hours = credit.remainingMinutes >= 60 %}
                                 <span
                                     class="cursor-help"
                                     data-tooltip-target="tc-index-remaining-{{ credit.id }}"
                                     data-tooltip-placement="top"
                                     tabindex="0"
                                 >
-                                    {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ 'mn' }}
+                                    {{ credit.remainingMinutes|duration_primary }}
                                 </span>
                                 <div id="tc-index-remaining-{{ credit.id }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                                    {{ remaining_display_in_hours ? credit.remainingMinutes ~ 'mn' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                                    {{ credit.remainingMinutes|duration_alternate }}
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>

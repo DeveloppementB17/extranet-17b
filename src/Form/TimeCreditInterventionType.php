@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\TimeCredit;
 use App\Entity\TimeCreditMovement;
+use App\Service\DurationFormatter;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -20,6 +21,11 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class TimeCreditInterventionType extends AbstractType
 {
+    public function __construct(
+        private readonly DurationFormatter $durationFormatter,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         if ($options['show_credit_selector']) {
@@ -27,21 +33,14 @@ final class TimeCreditInterventionType extends AbstractType
                 'class' => TimeCredit::class,
                 'choices' => $options['time_credit_choices'],
                 'data' => $options['preselected_time_credit'],
-                'choice_label' => static function (TimeCredit $credit): string {
+                'choice_label' => function (TimeCredit $credit): string {
                     $remainingMinutes = $credit->getRemainingMinutes();
-                    $display = sprintf('%smn', $remainingMinutes);
-                    $alternate = sprintf('%.2f h', $remainingMinutes / 60);
-
-                    if ($remainingMinutes >= 60) {
-                        $display = sprintf('%.2f h', $remainingMinutes / 60);
-                        $alternate = sprintf('%smn', $remainingMinutes);
-                    }
 
                     return sprintf(
                         '%s — %s restantes (%s)',
                         $credit->getTitle(),
-                        $display,
-                        $alternate
+                        $this->durationFormatter->primary($remainingMinutes),
+                        $this->durationFormatter->alternate($remainingMinutes)
                     );
                 },
                 'choice_attr' => static function (TimeCredit $credit): array {

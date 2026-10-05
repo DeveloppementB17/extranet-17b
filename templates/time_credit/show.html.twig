@@ -47,17 +47,16 @@
                 <div class="flex size-24 flex-col items-center justify-center p-2 text-center ring-1 ring-black sm:size-28">
                     <div class="text-[10px] uppercase tracking-wide text-slate-500 sm:text-xs">Total</div>
                     <div class="mt-1 text-base font-semibold text-slate-900 sm:text-lg">
-                        {% set total_display_in_hours = credit.totalMinutes >= 60 %}
                         <span
                             class="cursor-help"
                             data-tooltip-target="tc-show-total-tooltip"
                             data-tooltip-placement="top"
                             tabindex="0"
                         >
-                            {{ total_display_in_hours ? (credit.totalMinutes / 60)|round(2) ~ ' h' : credit.totalMinutes ~ 'mn' }}
+                            {{ credit.totalMinutes|duration_primary }}
                         </span>
                         <div id="tc-show-total-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                            {{ total_display_in_hours ? credit.totalMinutes ~ 'mn' : (credit.totalMinutes / 60)|round(2) ~ ' h' }}
+                            {{ credit.totalMinutes|duration_alternate }}
                             <div class="tooltip-arrow" data-popper-arrow></div>
                         </div>
                     </div>
@@ -65,17 +64,16 @@
                 <div class="flex size-24 flex-col items-center justify-center p-2 text-center ring-1 ring-black sm:size-28">
                     <div class="text-[10px] uppercase tracking-wide text-slate-500 sm:text-xs">Disponible</div>
                     <div class="mt-1 text-base font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-credit-remaining' }} sm:text-lg">
-                        {% set remaining_display_in_hours = credit.remainingMinutes >= 60 %}
                         <span
                             class="cursor-help"
                             data-tooltip-target="tc-show-remaining-tooltip"
                             data-tooltip-placement="top"
                             tabindex="0"
                         >
-                            {{ remaining_display_in_hours ? (credit.remainingMinutes / 60)|round(2) ~ ' h' : credit.remainingMinutes ~ 'mn' }}
+                            {{ credit.remainingMinutes|duration_primary }}
                         </span>
                         <div id="tc-show-remaining-tooltip" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                            {{ remaining_display_in_hours ? credit.remainingMinutes ~ 'mn' : (credit.remainingMinutes / 60)|round(2) ~ ' h' }}
+                            {{ credit.remainingMinutes|duration_alternate }}
                             <div class="tooltip-arrow" data-popper-arrow></div>
                         </div>
                     </div>
@@ -140,21 +138,16 @@
                                 <tr>
                                     <td class="px-4 py-3 text-slate-700">{{ m.occurredAt|date('d/m/Y') }}</td>
                                     <td class="px-4 py-3 font-medium text-black">
-                                        {% set delta_display_in_hours = m.deltaMinutes|abs >= 60 %}
                                         <span
                                             class="cursor-help"
                                             data-tooltip-target="tc-show-delta-tooltip-{{ loop.index }}"
                                             data-tooltip-placement="top"
                                             tabindex="0"
                                         >
-                                            {% if delta_display_in_hours %}
-                                                {{ (m.deltaMinutes / 60)|round(2) }} h
-                                            {% else %}
-                                                {{ m.deltaMinutes > 0 ? '+' : '' }}{{ m.deltaMinutes }}mn
-                                            {% endif %}
+                                            {{ m.deltaMinutes > 0 and m.deltaMinutes|abs < 60 ? '+' : '' }}{{ m.deltaMinutes|duration_primary }}
                                         </span>
                                         <div id="tc-show-delta-tooltip-{{ loop.index }}" role="tooltip" class="tooltip absolute z-10 invisible inline-block rounded-base border border-default bg-neutral-primary-soft px-3 py-2 text-xs text-body opacity-0 shadow-xs">
-                                            {{ delta_display_in_hours ? (m.deltaMinutes > 0 ? '+' : '') ~ m.deltaMinutes ~ 'mn' : (m.deltaMinutes / 60)|round(2) ~ ' h' }}
+                                            {{ m.deltaMinutes > 0 and m.deltaMinutes|abs < 60 ? '+' : '' }}{{ m.deltaMinutes|duration_alternate }}
                                             <div class="tooltip-arrow" data-popper-arrow></div>
                                         </div>
                                     </td>
