@@ -47,28 +47,28 @@
         </div>
 
         {% if is_admin_list_view %}
-            <form method="get" class="mt-6 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="border border-dark px-3 py-2 text-sm">
-                <select name="entreprise" class="border border-dark px-3 py-2 text-sm">
+            <form method="get" class="mt-6 flex flex-col gap-3 lg:flex-row lg:flex-nowrap lg:items-end lg:gap-2">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un crédit..." class="w-full border border-dark px-3 py-2 text-sm lg:min-w-0 lg:flex-1">
+                <select name="entreprise" class="w-full border border-dark px-3 py-2 text-sm lg:w-44 xl:w-52 lg:shrink">
                     <option value="0">Toutes les entreprises</option>
                     {% for id, name in available_entreprises %}
                         <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
                     {% endfor %}
                 </select>
-                <select name="category" class="border border-dark px-3 py-2 text-sm">
+                <select name="category" class="w-full border border-dark px-3 py-2 text-sm lg:w-40 xl:w-48 lg:shrink">
                     <option value="0">Toutes les catégories</option>
                     {% for id, name in available_categories %}
                         <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
                     {% endfor %}
                 </select>
-                <select name="status" class="border border-dark px-3 py-2 text-sm">
+                <select name="status" class="w-full border border-dark px-3 py-2 text-sm lg:w-36 lg:shrink-0">
                     <option value="all" {{ filter_status == 'all' ? 'selected' : '' }}>Tous les statuts</option>
                     <option value="active" {{ filter_status == 'active' ? 'selected' : '' }}>En cours</option>
                     <option value="archived" {{ filter_status == 'archived' ? 'selected' : '' }}>Terminés</option>
                 </select>
-                <div class="flex gap-2 sm:justify-end xl:justify-start">
-                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
-                    <a href="{{ path('time_credit_index') }}" class="inline-flex items-center gap-2 border border-dark px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
+                <div class="flex shrink-0 gap-2">
+                    <button type="submit" class="inline-flex cursor-pointer items-center gap-2 whitespace-nowrap bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
+                    <a href="{{ path('time_credit_index') }}" class="inline-flex items-center gap-2 whitespace-nowrap border border-dark px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
                 </div>
                 <input type="hidden" name="sort" value="{{ sort_field }}">
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
