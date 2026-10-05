@@ -65,7 +65,7 @@
                 </div>
                 <div class="flex size-24 flex-col items-center justify-center p-2 text-center ring-1 ring-black sm:size-28">
                     <div class="text-[10px] uppercase tracking-wide text-slate-500 sm:text-xs">Disponible</div>
-                    <div class="mt-1 text-base font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-green-700' }} sm:text-lg">
+                    <div class="mt-1 text-base font-semibold {{ credit.remainingMinutes <= 0 ? 'text-red-700' : 'text-[#194122]' }} sm:text-lg">
                         {% set remaining_display_in_hours = credit.remainingMinutes >= 60 %}
                         <span
                             class="cursor-help"
@@ -105,8 +105,8 @@
             <section class="lg:col-span-5" aria-labelledby="tc-show-chart-heading">
                 <h2 id="tc-show-chart-heading" class="sr-only">Répartition du crédit temps</h2>
                 <div class="relative overflow-hidden ring-1 ring-black">
-                    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(15,172,113,0.18),transparent_55%),linear-gradient(160deg,#f7faf8_0%,#ffffff_45%,#eef7f3_100%)]" aria-hidden="true"></div>
-                    <div class="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[#0FAC71]/10" aria-hidden="true"></div>
+                    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(117,198,106,0.18),transparent_55%),linear-gradient(160deg,#f7faf8_0%,#ffffff_45%,#eef7f3_100%)]" aria-hidden="true"></div>
+                    <div class="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[#75c66a]/10" aria-hidden="true"></div>
                     <div class="pointer-events-none absolute -bottom-12 -left-8 size-36 rounded-full bg-black/5" aria-hidden="true"></div>
                     <div
                         class="relative mx-auto min-h-[380px] w-full max-w-[420px] px-4 py-6 lg:max-w-none"

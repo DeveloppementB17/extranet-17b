@@ -123,7 +123,7 @@ const initTimeCreditDonutChart = () => {
         const chart = new ApexCharts(chartElement, {
             series: [consumedMinutes, remainingMinutes],
             labels: ['Consommé', 'Disponible'],
-            colors: ['#111111', '#0FAC71'],
+            colors: ['#111111', '#75c66a'],
             chart: {
                 height: chartHeight,
                 type: 'pie',
@@ -134,7 +134,7 @@ const initTimeCreditDonutChart = () => {
                     top: 6,
                     left: 0,
                     blur: 12,
-                    color: '#0FAC71',
+                    color: '#75c66a',
                     opacity: 0.18,
                 },
             },
@@ -162,7 +162,7 @@ const initTimeCreditDonutChart = () => {
                     fontSize: '16px',
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 700,
-                    colors: ['#ffffff'],
+                    colors: ['#194122'],
                 },
                 dropShadow: {
                     enabled: false,
