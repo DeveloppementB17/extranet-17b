@@ -1,3 +1,12 @@
+{% macro document_month_year(date) -%}
+    {%- set mois = {
+        1: 'janvier', 2: 'février', 3: 'mars', 4: 'avril',
+        5: 'mai', 6: 'juin', 7: 'juillet', 8: 'août',
+        9: 'septembre', 10: 'octobre', 11: 'novembre', 12: 'décembre'
+    } -%}
+    {{- mois[date|date('n') + 0] }} {{ date|date('Y') -}}
+{%- endmacro %}
+
 {% macro preview_open_url(document) -%}
     {%- if document.externalLink -%}
         {{- path('document_download', { id: document.id }) -}}

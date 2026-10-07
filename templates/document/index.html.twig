@@ -205,7 +205,9 @@
                                 <td class="px-4 py-3 text-slate-900">{{ document.title }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.entreprise ? document.entreprise.name : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.category ? document.category.name : '—' }}</td>
-                                <td class="px-4 py-3 text-slate-700">{{ document.documentDate|date('d/m/Y') }}</td>
+                                <td class="px-4 py-3 text-slate-700">
+                                    <span title="{{ document.documentDate|date('d/m/Y') }}">{{ doc_preview.document_month_year(document.documentDate) }}</span>
+                                </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="inline-flex items-center gap-2">
                                         <a href="{{ doc_preview.preview_open_url(document) }}" title="Ouvrir" class="text-brand hover:text-brand-primary-hover" target="_blank" rel="noopener noreferrer">
