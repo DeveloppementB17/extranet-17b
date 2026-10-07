@@ -2,11 +2,13 @@
 
 namespace App\Form;
 
+use App\Entity\Document;
 use App\Entity\DocumentCategory;
 use App\Entity\Entreprise;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -24,6 +26,15 @@ final class DocumentEditType extends AbstractType
                 'constraints' => [
                     new NotBlank(message: 'Le titre est requis.'),
                     new Length(max: 255),
+                ],
+            ])
+            ->add('documentDate', DateType::class, [
+                'label' => 'Date',
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+                'required' => true,
+                'constraints' => [
+                    new NotBlank(message: 'La date est requise.'),
                 ],
             ])
             ->add('entreprise', EntityType::class, [
@@ -49,6 +60,7 @@ final class DocumentEditType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
+            'data_class' => Document::class,
             'category_choices' => [],
             'entreprise_choices' => [],
             'lock_entreprise' => false,

@@ -30,7 +30,8 @@ class DocumentRepository extends ServiceEntityRepository
         ?array $forcedEntrepriseIds = null,
     ): array {
         $qb = $this->createQueryBuilder('d')
-            ->orderBy('d.createdAt', 'DESC');
+            ->orderBy('d.documentDate', 'DESC')
+            ->addOrderBy('d.createdAt', 'DESC');
 
         if ($user->is17bAdmin()) {
             $qb->join('d.entreprise', 'e')

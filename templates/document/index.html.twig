@@ -96,7 +96,7 @@
                             {% set nextTitleDir = sort_field == 'title' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% set nextEntrepriseDir = sort_field == 'entreprise' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% set nextCategoryDir = sort_field == 'category' and sort_direction == 'asc' ? 'desc' : 'asc' %}
-                            {% set nextDateDir = sort_field == 'created_at' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                            {% set nextDateDir = sort_field == 'document_date' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                             {% if can_bulk_delete %}
                                 <th class="doc-bulk-col hidden w-10 px-4 py-3 font-semibold text-black" scope="col">
                                     <span class="sr-only">Sélection</span>
@@ -161,9 +161,9 @@
                                 </a>
                             </th>
                             <th class="px-4 py-3 font-semibold">
-                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'created_at', dir: nextDateDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'document_date', dir: nextDateDir })) }}">
                                     Date
-                                    {% if sort_field == 'created_at' %}
+                                    {% if sort_field == 'document_date' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
                                             {% if sort_direction == 'asc' %}
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 15l4-4 4 4"/>
@@ -205,7 +205,7 @@
                                 <td class="px-4 py-3 text-slate-900">{{ document.title }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.entreprise ? document.entreprise.name : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.category ? document.category.name : '—' }}</td>
-                                <td class="px-4 py-3 text-slate-700">{{ document.createdAt|date('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ document.documentDate|date('d/m/Y') }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="inline-flex items-center gap-2">
                                         <a href="{{ doc_preview.preview_open_url(document) }}" title="Ouvrir" class="text-brand hover:text-brand-primary-hover"{% if not document.externalLink %} target="_blank" rel="noopener noreferrer"{% endif %}>

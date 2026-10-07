@@ -74,12 +74,12 @@ final class DocumentController extends AbstractController
             $search = trim((string) $request->query->get('q', ''));
             $entrepriseFilter = (int) $request->query->get('entreprise', 0);
             $categoryFilter = (int) $request->query->get('category', 0);
-            $sort = (string) $request->query->get('sort', 'created_at');
+            $sort = (string) $request->query->get('sort', 'document_date');
             $direction = strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-            $allowedSorts = ['created_at', 'title', 'entreprise', 'category'];
+            $allowedSorts = ['document_date', 'created_at', 'title', 'entreprise', 'category'];
             if (!\in_array($sort, $allowedSorts, true)) {
-                $sort = 'created_at';
+                $sort = 'document_date';
             }
 
             $documents = array_values(array_filter($documents, static function (Document $document) use (
@@ -112,7 +112,8 @@ final class DocumentController extends AbstractController
                     'title' => strcasecmp($left->getTitle(), $right->getTitle()),
                     'entreprise' => strcasecmp((string) $left->getEntreprise()?->getName(), (string) $right->getEntreprise()?->getName()),
                     'category' => strcasecmp((string) $left->getCategory()?->getName(), (string) $right->getCategory()?->getName()),
-                    default => $left->getCreatedAt() <=> $right->getCreatedAt(),
+                    'created_at' => $left->getCreatedAt() <=> $right->getCreatedAt(),
+                    default => $left->getDocumentDate() <=> $right->getDocumentDate(),
                 };
 
                 return $direction === 'asc' ? $result : -$result;
@@ -138,7 +139,7 @@ final class DocumentController extends AbstractController
             'search_query' => $isAdminListView ? trim((string) $request->query->get('q', '')) : '',
             'filter_entreprise' => $isAdminListView ? (int) $request->query->get('entreprise', 0) : 0,
             'filter_category' => $isAdminListView ? (int) $request->query->get('category', 0) : 0,
-            'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'created_at') : 'created_at',
+            'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'document_date') : 'document_date',
             'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
             'available_entreprises' => $availableEntreprises,
             'available_categories' => $availableCategories,

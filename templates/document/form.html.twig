@@ -19,7 +19,7 @@
     <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
         <h1 class="text-3xl font-extrabold text-brand">{{ title }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            Modifie les informations du document (titre, entreprise, catégorie).
+            Modifie les informations du document (titre, date, entreprise, catégorie).
         </p>
 
         {% for message in app.flashes('error') %}
@@ -31,6 +31,11 @@
                 {{ form_widget(form.title, { attr: { class: 'block pt-2.5 pb-1 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium appearance-none focus:outline-none focus:ring-0 peer', placeholder: ' ' } }) }}
                 {{ form_label(form.title, null, { label_attr: { class: 'absolute text-lg font-semibold text-brand duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:bg-black peer-focus:text-white peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto' } }) }}
                 {{ form_errors(form.title) }}
+            </div>
+            <div>
+                {{ form_label(form.documentDate, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                {{ form_widget(form.documentDate, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                {{ form_errors(form.documentDate) }}
             </div>
             <div>
                 {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}

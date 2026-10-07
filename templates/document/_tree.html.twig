@@ -28,7 +28,7 @@
             <span class="min-w-0 flex-1 font-['Proxima_Nova','Inter',sans-serif] text-base text-black">
                 {{ displayName }}
                 {% if showClient %}
-                    <span class="mt-0.5 block text-xs font-normal text-neutral-500">{{ doc.client ? doc.client.email : doc.entreprise.name }} · {{ doc.createdAt|date('d/m/Y H:i') }}</span>
+                    <span class="mt-0.5 block text-xs font-normal text-neutral-500">{{ doc.client ? doc.client.email : doc.entreprise.name }} · {{ doc.documentDate|date('d/m/Y') }}</span>
                 {% endif %}
             </span>
         </div>

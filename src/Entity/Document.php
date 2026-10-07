@@ -63,9 +63,17 @@ class Document implements EntrepriseOwnedInterface
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    /**
+     * Date affichée / modifiable (initialisée à la date d’upload).
+     */
+    #[ORM\Column]
+    private \DateTimeImmutable $documentDate;
+
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->documentDate = $now;
     }
 
     public function getId(): ?int
@@ -204,5 +212,17 @@ class Document implements EntrepriseOwnedInterface
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getDocumentDate(): \DateTimeImmutable
+    {
+        return $this->documentDate;
+    }
+
+    public function setDocumentDate(\DateTimeImmutable $documentDate): self
+    {
+        $this->documentDate = $documentDate;
+
+        return $this;
     }
 }
