@@ -135,7 +135,19 @@ final class DocumentBatchController extends AbstractController
                 foreach ($validFiles as $file) {
                     $sizeBeforeMove = $file->getSize();
                     $mimeBeforeMove = $mimeResolver->resolveForUpload($file);
-                    $stored = $storage->storeUploadedFile($file, $user);
+                    try {
+                        $stored = $storage->storeUploadedFile($file, $user);
+                    } catch (\Throwable) {
+                        $this->addFlash(
+                            'error',
+                            sprintf(
+                                'Impossible d’enregistrer « %s » : problème d’accès au stockage. Réessayez ou contactez un administrateur.',
+                                $file->getClientOriginalName(),
+                            ),
+                        );
+
+                        return $this->redirectToRoute('document_batch_upload');
+                    }
 
                     $doc = new Document();
                     $doc->setEntreprise($selectedEntreprise);

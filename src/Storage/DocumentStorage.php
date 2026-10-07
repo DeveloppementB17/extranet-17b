@@ -46,7 +46,24 @@ final class DocumentStorage
 
         $absoluteDir = rtrim($this->storagePath->root, '/').'/'.$relativeDir;
         if (!is_dir($absoluteDir)) {
-            mkdir($absoluteDir, 0775, true);
+            // Sur mutualisé, 0775 peut être insuffisant si le PHP web
+            // n’est pas le même utilisateur que le propriétaire SSH.
+            if (!@mkdir($absoluteDir, 0777, true) && !is_dir($absoluteDir)) {
+                throw new \RuntimeException(sprintf(
+                    'Impossible de créer le dossier de stockage « %s ».',
+                    $absoluteDir,
+                ));
+            }
+            @chmod($absoluteDir, 0777);
+        }
+        if (!is_writable($absoluteDir)) {
+            @chmod($absoluteDir, 0777);
+        }
+        if (!is_writable($absoluteDir)) {
+            throw new \RuntimeException(sprintf(
+                'Le dossier de stockage « %s » n’est pas accessible en écriture.',
+                $absoluteDir,
+            ));
         }
 
         $file->move($absoluteDir, $storageName);
