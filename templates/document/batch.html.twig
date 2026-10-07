@@ -47,7 +47,7 @@
 
             
 
-            {{ form_start(form, { attr: { class: 'mt-8 space-y-8' } }) }}
+            {{ form_start(form, { attr: { class: 'mt-8 space-y-8', 'data-turbo': 'false' } }) }}
                 {% if form.vars.errors|length %}
                     <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                         {% for error in form.vars.errors %}
@@ -316,22 +316,27 @@
 
             xhr.onload = function () {
                 updatePerFileProgress(files, 1, 1);
-                const finalUrl = xhr.responseURL || '';
-                const stayedOnUpload = finalUrl.indexOf('/documents/ajouter') !== -1;
 
-                // Validation échouée : Symfony renvoie le formulaire (200) sans redirection.
-                if (xhr.status >= 200 && xhr.status < 300 && stayedOnUpload && xhr.responseText) {
+                // Important : ne pas refaire un window.location après le suivi de
+                // redirection XHR — le flash Symfony est déjà consommé dans la réponse.
+                if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
+                    const finalUrl = xhr.responseURL || '';
                     document.open();
                     document.write(xhr.responseText);
                     document.close();
+                    if (finalUrl) {
+                        try { history.replaceState(null, '', finalUrl); } catch (err) {}
+                    }
                     return;
                 }
 
-                if (finalUrl) {
-                    window.location.href = finalUrl;
-                    return;
+                progressGlobal.classList.remove('hidden');
+                progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Le téléversement a échoué (code ' + xhr.status + '). Veuillez réessayer.</div>';
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    submitButton.textContent = 'Enregistrer';
                 }
-                window.location.reload();
             };
 
             xhr.onerror = function () {

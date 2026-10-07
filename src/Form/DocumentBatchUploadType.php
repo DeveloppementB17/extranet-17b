@@ -86,8 +86,8 @@ final class DocumentBatchUploadType extends AbstractType
                     new File(
                         maxSize: '20M',
                         maxSizeMessage: 'Le fichier est trop volumineux ({{ size }} {{ suffix }}). La taille maximale autorisée est de {{ limit }} {{ suffix }}.',
-                        extensions: DocumentUploadPolicy::extensions(),
-                        extensionsMessage: 'Extension non autorisée. Formats acceptés : {{ extensions }}.',
+                        // Les extensions sont validées en POST_SUBMIT : la contrainte
+                        // « extensions » de File échoue souvent sur les SVG (MIME finfo).
                     ),
                 ]),
             ],
@@ -145,6 +145,19 @@ final class DocumentBatchUploadType extends AbstractType
                 $files,
                 static fn (mixed $file): bool => $file instanceof UploadedFile && $file->getError() === \UPLOAD_ERR_OK,
             ));
+
+            foreach ($validFiles as $file) {
+                $extension = strtolower((string) $file->getClientOriginalExtension());
+                if (!DocumentUploadPolicy::isAllowedExtension($extension)) {
+                    $message = sprintf(
+                        'Extension non autorisée pour « %s ». Formats acceptés : %s.',
+                        $file->getClientOriginalName(),
+                        DocumentUploadPolicy::extensionsLabel(),
+                    );
+                    $form->addError(new FormError($message));
+                    $form->get('files')->addError(new FormError($message));
+                }
+            }
 
             $urlRaw = $form->get('externalUrl')->getData();
             $url = \is_string($urlRaw) ? trim($urlRaw) : '';
