@@ -290,66 +290,16 @@
                 return;
             }
 
-            if (files.length === 0) {
-                return;
-            }
-
-            e.preventDefault();
-            renderUploadProgress(files);
-
-            const submitButton = form.querySelector('button[type="submit"]');
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.classList.add('opacity-60', 'cursor-not-allowed');
-                submitButton.textContent = 'Téléversement…';
-            }
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', form.action, true);
-
-            xhr.upload.addEventListener('progress', function (event) {
-                if (!event.lengthComputable) {
-                    return;
-                }
-                updatePerFileProgress(files, event.loaded, event.total);
-            });
-
-            xhr.onload = function () {
-                updatePerFileProgress(files, 1, 1);
-
-                // Important : ne pas refaire un window.location après le suivi de
-                // redirection XHR — le flash Symfony est déjà consommé dans la réponse.
-                if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
-                    const finalUrl = xhr.responseURL || '';
-                    document.open();
-                    document.write(xhr.responseText);
-                    document.close();
-                    if (finalUrl) {
-                        try { history.replaceState(null, '', finalUrl); } catch (err) {}
-                    }
-                    return;
-                }
-
-                progressGlobal.classList.remove('hidden');
-                progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Le téléversement a échoué (code ' + xhr.status + '). Veuillez réessayer.</div>';
+            // Soumission native (pas de XHR) : respecte CSRF cookie/header Symfony
+            // et conserve les messages flash après redirection.
+            if (files.length > 0) {
+                renderUploadProgress(files);
+                const submitButton = form.querySelector('button[type="submit"]');
                 if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
-                    submitButton.textContent = 'Enregistrer';
+                    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+                    submitButton.textContent = 'Téléversement…';
                 }
-            };
-
-            xhr.onerror = function () {
-                progressGlobal.classList.remove('hidden');
-                progressGlobal.innerHTML = '<div class="font-semibold text-red-700">Le téléversement a échoué. Veuillez réessayer.</div>';
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
-                    submitButton.textContent = 'Enregistrer';
-                }
-            };
-
-            xhr.send(new FormData(form));
+            }
         });
     }
 
