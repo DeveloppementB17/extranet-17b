@@ -1,9 +1,9 @@
 framework:
     asset_mapper:
-        # The paths to make available to the asset mapper.
+        # Les chemins Asset Mapper. Ne pas référencer node_modules/ en prod
+        # mutualisé (souvent absent) — flowbite est versionné sous assets/vendor/.
         paths:
             - assets/
-            - node_modules/flowbite/dist/
         missing_import_mode: strict
 
 when@prod:

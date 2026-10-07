@@ -26,7 +26,7 @@ return [
         'version' => '7.3.0',
     ],
     'flowbite' => [
-        'path' => 'flowbite.turbo.min.js',
+        'path' => './assets/lib/flowbite.turbo.min.js',
     ],
     'apexcharts' => [
         'version' => '5.10.6',
