@@ -54,7 +54,7 @@ final class DocumentController extends AbstractController
             }
         }
 
-        $documents = $documentRepository->findAccessibleForUser($user, $forcedEntreprise, $forcedEntrepriseIds);
+        $documents = $documentRepository->findAccessibleForUser($user, $forcedEntreprise, $forcedEntrepriseIds, 'fichiers');
         $availableEntreprises = [];
         $availableCategories = [];
         foreach ($documents as $document) {
@@ -131,7 +131,7 @@ final class DocumentController extends AbstractController
         return $this->render('document/index.html.twig', [
             'documents' => $documents,
             'documents_by_category' => $documentsByCategory,
-            'category_roots' => $categoryRepository->findRoots(),
+            'category_roots' => $categoryRepository->findNonStrategyRoots(),
             'is_admin_list_view' => $isAdminListView,
             'can_upload' => $this->isGranted('ROLE_17B_ADMIN')
                 || ($this->isGranted('ROLE_17B_USER') && $user->getManagedEntrepriseIds() !== []),
@@ -144,6 +144,12 @@ final class DocumentController extends AbstractController
             'available_entreprises' => $availableEntreprises,
             'available_categories' => $availableCategories,
             'can_bulk_delete' => $user->is17bAdmin() && $isAdminListView,
+            'section_title' => 'Fichiers',
+            'index_route' => 'document_index',
+            'upload_route' => 'document_batch_upload',
+            'edit_route' => 'document_edit',
+            'bulk_delete_route' => 'document_bulk_delete',
+            'show_strategy_columns' => false,
         ]);
     }
 
@@ -206,7 +212,10 @@ final class DocumentController extends AbstractController
             $this->addFlash('success', $message);
         }
 
-        return $this->redirectToRoute('document_index', $request->query->all());
+        $referer = (string) $request->headers->get('referer', '');
+        $redirectRoute = str_contains($referer, '/strategie') ? 'strategie_index' : 'document_index';
+
+        return $this->redirectToRoute($redirectRoute, $request->query->all());
     }
 
     #[Route('/{id}/edit', name: 'document_edit', methods: ['GET', 'POST'])]
@@ -214,6 +223,7 @@ final class DocumentController extends AbstractController
         Request $request,
         Document $document,
         DocumentCategoryRepository $categoryRepository,
+        DocumentRepository $documentRepository,
         EntrepriseRepository $entrepriseRepository,
         ManagedClientContext $managedClientContext,
         EntityManagerInterface $entityManager,
@@ -235,10 +245,15 @@ final class DocumentController extends AbstractController
             return $this->redirectToRoute('document_index');
         }
 
+        if ($documentRepository->isStrategyDocument($document)) {
+            return $this->redirectToRoute('strategie_edit', ['id' => $document->getId()]);
+        }
+
         $form = $this->createForm(DocumentEditType::class, $document, [
             'category_choices' => $this->buildCategoryChoices($categoryRepository),
             'entreprise_choices' => $allowedEntreprises,
             'lock_entreprise' => $forcedEntreprise instanceof Entreprise && $user->is17bUser(),
+            'strategy_fields' => false,
         ]);
         $form->handleRequest($request);
 
@@ -264,6 +279,9 @@ final class DocumentController extends AbstractController
             'form' => $form,
             'document' => $document,
             'title' => 'Modifier le document',
+            'index_route' => 'document_index',
+            'section_title' => 'Fichiers',
+            'show_strategy_fields' => false,
         ]);
     }
 
@@ -359,6 +377,7 @@ final class DocumentController extends AbstractController
     public function delete(
         Request $request,
         Document $document,
+        DocumentRepository $documentRepository,
         DocumentStorage $storage,
         EntityManagerInterface $entityManager,
     ): Response {
@@ -368,12 +387,13 @@ final class DocumentController extends AbstractController
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
 
+        $wasStrategy = $documentRepository->isStrategyDocument($document);
         $this->removeDocumentFile($document, $storage);
         $entityManager->remove($document);
         $entityManager->flush();
         $this->addFlash('success', 'Document supprimé.');
 
-        return $this->redirectToRoute('document_index');
+        return $this->redirectToRoute($wasStrategy ? 'strategie_index' : 'document_index');
     }
 
     private function removeDocumentFile(Document $document, DocumentStorage $storage): void
@@ -399,7 +419,7 @@ final class DocumentController extends AbstractController
         DocumentCategoryRepository $categoryRepository,
     ): array {
         $choices = [];
-        foreach ($categoryRepository->findRoots() as $root) {
+        foreach ($categoryRepository->findNonStrategyRoots() as $root) {
             $this->appendCategoryBranchChoices($root, '', $choices);
         }
 

@@ -1,7 +1,11 @@
 {% extends 'base.html.twig' %}
 {% import '_icon_macros.html.twig' as icons %}
 
-{% block title %}Ajouter des documents{% endblock %}
+{% set section_title = section_title|default('Fichiers') %}
+{% set index_route = index_route|default('document_index') %}
+{% set show_strategy_fields = show_strategy_fields|default(false) %}
+
+{% block title %}Ajouter — {{ section_title }}{% endblock %}
 
 {% block body %}
     {% for message in app.flashes('success') %}
@@ -14,7 +18,7 @@
     <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
         <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
         <span class="text-neutral-400"> / </span>
-        <a href="{{ path('document_index') }}" class="hover:underline">Fichiers</a>
+        <a href="{{ path(index_route) }}" class="hover:underline">{{ section_title }}</a>
         <span class="text-neutral-400"> / </span>
         <span class="font-medium" aria-current="page">Ajouter des documents</span>
     </nav>
@@ -25,11 +29,15 @@
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 align-middle">
             <div class="flex flex-col gap-4">
             <p class="mt-6 text-m">
-                <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('document_index') }}">← Retour à la liste</a>
+                <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path(index_route) }}">← Retour à la liste</a>
             </p>
             <h1 class="text-5xl font-extrabold text-brand">Ajouter des documents</h1>
                 <p class="mt-2 text-m text-slate-600">
-                    Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+                    {% if show_strategy_fields %}
+                        Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise, le dossier (Stratégie ou Pilotage), l'année, le type et le sujet.
+                    {% else %}
+                        Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+                    {% endif %}
                 </p>
                 <p class="text-sm text-slate-600">
                     <span class="font-semibold text-slate-800">Extensions autorisées :</span>
@@ -92,6 +100,24 @@
                         </div>
                     {% endif %}
                 </div>
+
+                {% if show_strategy_fields and form.year is defined %}
+                    <div>
+                        {{ form_label(form.year, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                        {{ form_widget(form.year, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                        {{ form_errors(form.year) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.kind, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                        {{ form_widget(form.kind, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                        {{ form_errors(form.kind) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.topic, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                        {{ form_widget(form.topic, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                        {{ form_errors(form.topic) }}
+                    </div>
+                {% endif %}
 
                 <div>
                     {{ form_label(form.files, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}

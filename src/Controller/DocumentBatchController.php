@@ -77,6 +77,7 @@ final class DocumentBatchController extends AbstractController
             'entreprise_choices' => $allowedEntreprises,
             'preselected_entreprise' => $forcedEntreprise,
             'lock_entreprise' => $forcedEntreprise instanceof Entreprise,
+            'strategy_fields' => false,
         ]);
         $form->handleRequest($request);
 
@@ -184,6 +185,9 @@ final class DocumentBatchController extends AbstractController
             'form' => $form,
             'has_entreprises' => $hasEntreprises,
             'allowed_extensions_label' => DocumentUploadPolicy::extensionsLabel(),
+            'section_title' => 'Fichiers',
+            'index_route' => 'document_index',
+            'show_strategy_fields' => false,
         ]);
     }
 
@@ -194,7 +198,7 @@ final class DocumentBatchController extends AbstractController
         DocumentCategoryRepository $categoryRepository,
     ): array {
         $choices = [];
-        foreach ($categoryRepository->findRoots() as $root) {
+        foreach ($categoryRepository->findNonStrategyRoots() as $root) {
             $this->appendCategoryBranchChoices($root, '', $choices);
         }
 

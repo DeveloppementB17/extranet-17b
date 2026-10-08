@@ -37,12 +37,14 @@ final class HomeController extends AbstractController
         $selectedClient = null;
         $selectedClientCredits = [];
         $selectedClientDocumentFolders = [];
+        $selectedClientStrategyFolders = [];
         if ($user instanceof User && $user->is17bStaff()) {
             $managedClients = $entrepriseRepository->findSwitchableClientsForStaff($user);
             $selectedClient = $managedClientContext->getSelectedManagedEntreprise($user);
 
             if ($selectedClient instanceof Entreprise) {
                 $selectedClientDocumentFolders = $documentRepository->findCategorySummariesByEntreprise($selectedClient);
+                $selectedClientStrategyFolders = $documentRepository->findStrategyFolderSummariesByEntreprise($selectedClient);
                 $selectedClientCredits = $timeCreditRepository->findAccessibleForUser($user, $selectedClient);
             }
         }
@@ -50,6 +52,7 @@ final class HomeController extends AbstractController
             $selectedClient = $user->getEntreprise();
             if ($selectedClient instanceof Entreprise && !$selectedClient->isAgency()) {
                 $selectedClientDocumentFolders = $documentRepository->findCategorySummariesByEntreprise($selectedClient);
+                $selectedClientStrategyFolders = $documentRepository->findStrategyFolderSummariesByEntreprise($selectedClient);
                 $selectedClientCredits = $timeCreditRepository->findAccessibleForUser($user, $selectedClient);
             }
         }
@@ -58,6 +61,7 @@ final class HomeController extends AbstractController
             'managed_clients' => $managedClients,
             'selected_client' => $selectedClient,
             'selected_client_document_folders' => $selectedClientDocumentFolders,
+            'selected_client_strategy_folders' => $selectedClientStrategyFolders,
             'selected_client_credits' => $selectedClientCredits,
         ]);
     }

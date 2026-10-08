@@ -4,6 +4,8 @@ namespace App\Form;
 
 use App\Document\DocumentUploadPolicy;
 use App\Document\ExternalDocumentUrlChecker;
+use App\Entity\DocumentKind;
+use App\Entity\DocumentTopic;
 use App\Entity\Entreprise;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -22,6 +24,7 @@ use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 
 final class DocumentBatchUploadType extends AbstractType
 {
@@ -60,12 +63,61 @@ final class DocumentBatchUploadType extends AbstractType
         ]);
 
         $builder->add('category', ChoiceType::class, [
-            'label' => 'Catégorie',
+            'label' => $options['strategy_fields'] ? 'Dossier' : 'Catégorie',
             'mapped' => false,
-            'required' => false,
+            'required' => $options['strategy_fields'],
             'choices' => $options['category_choices'],
             'placeholder' => '— Choisir —',
+            'constraints' => $options['strategy_fields']
+                ? [new NotBlank(message: 'Le dossier est requis.')]
+                : [],
         ]);
+
+        if ($options['strategy_fields']) {
+            $currentYear = (int) date('Y');
+            $years = [];
+            for ($y = $currentYear + 1; $y >= $currentYear - 10; --$y) {
+                $years[(string) $y] = $y;
+            }
+
+            $builder
+                ->add('year', ChoiceType::class, [
+                    'label' => 'Année',
+                    'mapped' => false,
+                    'required' => true,
+                    'choices' => $years,
+                    'placeholder' => '— Choisir —',
+                    'data' => $currentYear,
+                    'constraints' => [
+                        new NotBlank(message: 'L’année est requise.'),
+                        new Range(min: 2000, max: 2100),
+                    ],
+                ])
+                ->add('kind', EntityType::class, [
+                    'class' => DocumentKind::class,
+                    'choices' => $options['kind_choices'],
+                    'choice_label' => 'name',
+                    'label' => 'Type',
+                    'mapped' => false,
+                    'required' => true,
+                    'placeholder' => '— Choisir —',
+                    'constraints' => [
+                        new NotBlank(message: 'Le type est requis.'),
+                    ],
+                ])
+                ->add('topic', EntityType::class, [
+                    'class' => DocumentTopic::class,
+                    'choices' => $options['topic_choices'],
+                    'choice_label' => 'name',
+                    'label' => 'Sujet',
+                    'mapped' => false,
+                    'required' => true,
+                    'placeholder' => '— Choisir —',
+                    'constraints' => [
+                        new NotBlank(message: 'Le sujet est requis.'),
+                    ],
+                ]);
+        }
 
         $builder->add('files', FileType::class, [
             'label' => 'Fichiers',
@@ -86,8 +138,6 @@ final class DocumentBatchUploadType extends AbstractType
                     new File(
                         maxSize: '20M',
                         maxSizeMessage: 'Le fichier est trop volumineux ({{ size }} {{ suffix }}). La taille maximale autorisée est de {{ limit }} {{ suffix }}.',
-                        // Les extensions sont validées en POST_SUBMIT : la contrainte
-                        // « extensions » de File échoue souvent sur les SVG (MIME finfo).
                     ),
                 ]),
             ],
@@ -193,11 +243,17 @@ final class DocumentBatchUploadType extends AbstractType
             'entreprise_choices' => [],
             'preselected_entreprise' => null,
             'lock_entreprise' => false,
+            'strategy_fields' => false,
+            'kind_choices' => [],
+            'topic_choices' => [],
         ]);
 
         $resolver->setAllowedTypes('category_choices', 'array');
         $resolver->setAllowedTypes('entreprise_choices', 'array');
         $resolver->setAllowedTypes('preselected_entreprise', ['null', Entreprise::class]);
         $resolver->setAllowedTypes('lock_entreprise', 'bool');
+        $resolver->setAllowedTypes('strategy_fields', 'bool');
+        $resolver->setAllowedTypes('kind_choices', 'array');
+        $resolver->setAllowedTypes('topic_choices', 'array');
     }
 }

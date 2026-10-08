@@ -4,6 +4,8 @@ namespace App\DataFixtures;
 
 use App\Entity\Document;
 use App\Entity\DocumentCategory;
+use App\Entity\DocumentKind;
+use App\Entity\DocumentTopic;
 use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Storage\StoragePath;
@@ -111,6 +113,23 @@ class AppFixtures extends Fixture
         $manager->persist($strategieChild);
         $pilotage = (new DocumentCategory())->setName('Pilotage')->setParent($strategie);
         $manager->persist($pilotage);
+
+        foreach ([
+            'Feuille de route',
+            'Plan de communication',
+            'Compte-rendu',
+            'Tips et bonnes pratiques',
+        ] as $kindName) {
+            $manager->persist((new DocumentKind())->setName($kindName));
+        }
+        foreach ([
+            'Stratégie de communication',
+            'Digital et social media',
+            'Création graphique',
+            'Relations presse',
+        ] as $topicName) {
+            $manager->persist((new DocumentTopic())->setName($topicName));
+        }
 
         $manager->flush();
 

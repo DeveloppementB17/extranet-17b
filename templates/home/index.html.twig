@@ -24,9 +24,11 @@
         {% set client_document_folders = selected_client
             ? selected_client_document_folders|filter(f => f.documentsCount > 0)
             : [] %}
+        {% set client_strategy_folders = selected_client
+            ? selected_client_strategy_folders|default([])|filter(f => f.documentsCount > 0)
+            : [] %}
         {% set show_fichiers_card = not selected_client or client_document_folders is not empty %}
-        {# Vue client : la carte Stratégie n’a pas encore de contenu → masquée. #}
-        {% set show_strategie_card = not selected_client %}
+        {% set show_strategie_card = not selected_client or client_strategy_folders is not empty %}
 
         <div class="grid gap-6 lg:grid-cols-3 lg:gap-5">
             {% if show_fichiers_card %}
@@ -80,45 +82,51 @@
 
             {% if show_strategie_card %}
             {# Carte Stratégie #}
-            <section id="carte-strategie" class="relative flex min-h-[347px] flex-col overflow-hidden border-[3px] border-black bg-white p-8 {{ (is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER')) ? 'cursor-not-allowed opacity-60' : '' }}" aria-labelledby="dash-card-strategie">
-                <div class="pointer-events-none absolute inset-0 opacity-[0.07]" aria-hidden="true">
-                    <div class="absolute -right-4 -top-4 h-40 w-40 rounded-full bg-violet-600"></div>
-                    <div class="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-amber-400"></div>
-                </div>
-                <div class="relative">
+            <section id="carte-strategie" class="relative flex min-h-[347px] flex-col overflow-hidden border-[3px] border-black bg-white p-8" aria-labelledby="dash-card-strategie">
+                <div class="relative flex flex-1 flex-col">
                     <div class="mb-4">
 <svg class="h-[22px] w-[22px] shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.5A2.493 2.493 0 0 1 7.51 20H7.5a2.468 2.468 0 0 1-2.4-3.154 2.98 2.98 0 0 1-.85-5.274 2.468 2.468 0 0 1 .92-3.182 2.477 2.477 0 0 1 1.876-3.344 2.5 2.5 0 0 1 3.41-1.856A2.5 2.5 0 0 1 12 5.5m0 13v-13m0 13a2.493 2.493 0 0 0 4.49 1.5h.01a2.468 2.468 0 0 0 2.403-3.154 2.98 2.98 0 0 0 .847-5.274 2.468 2.468 0 0 0-.921-3.182 2.477 2.477 0 0 0-1.875-3.344A2.5 2.5 0 0 0 14.5 3 2.5 2.5 0 0 0 12 5.5m-8 5a2.5 2.5 0 0 1 3.48-2.3m-.28 8.551a3 3 0 0 1-2.953-5.185M20 10.5a2.5 2.5 0 0 0-3.481-2.3m.28 8.551a3 3 0 0 0 2.954-5.185"/></svg>
                     </div>
                     <h2 id="dash-card-strategie" class="font-['Sora',sans-serif] text-2xl font-bold text-black">
                         Stratégie
                     </h2>
-                    <ul class="mt-6 flex flex-1 flex-col gap-3 text-base text-black">
-                        <li class="flex items-center gap-2">
-                            <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
-                            {% if is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER') %}
-                                <span class="font-['Proxima_Nova','Inter',sans-serif] text-slate-500">Stratégie</span>
+                    {% if is_granted('ROLE_17B_USER') and not selected_client %}
+                        <div class="mt-6 flex flex-1 flex-col gap-3">
+                            <a href="{{ path('strategie_index') }}" class="flex items-center justify-center gap-2 rounded-sm border border-dark px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                                {{ icons.icon('list') }}
+                                Tous les documents stratégie
+                            </a>
+                            <a href="{{ path('strategie_batch_upload') }}" class="flex items-center justify-center gap-2 rounded-sm bg-brand-primary px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                                {{ icons.icon('upload') }}
+                                Ajouter un document
+                            </a>
+                        </div>
+                    {% else %}
+                        <ul class="mt-6 flex flex-1 flex-col gap-3 text-base text-black">
+                            {% if selected_client and client_strategy_folders is not empty %}
+                                {% for folder in client_strategy_folders %}
+                                    <li class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
+                                        <a href="{{ path('strategie_index', { entreprise: selected_client.id, category: folder.id }) }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">
+                                            {{ folder.name }} ({{ folder.documentsCount }})
+                                        </a>
+                                    </li>
+                                {% endfor %}
                             {% else %}
-                                <a href="{{ path('document_index') }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">Stratégie</a>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
+                                    <a href="{{ path('strategie_index') }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">Tous les documents</a>
+                                </li>
                             {% endif %}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
-                            {% if is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER') %}
-                                <span class="font-['Proxima_Nova','Inter',sans-serif] text-slate-500">Pilotage</span>
+                        </ul>
+                        <div class="mt-auto pt-8">
+                            {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and not client_preview %}
+                                <a href="{{ path('strategie_batch_upload') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Ajouter un document</a>
                             {% else %}
-                                <a href="{{ path('document_index') }}" class="font-['Proxima_Nova','Inter',sans-serif] hover:underline">Pilotage</a>
+                                <a href="{{ path('strategie_index') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Consulter les documents</a>
                             {% endif %}
-                        </li>
-                    </ul>
-                    <div class="mt-auto pt-8">
-                        {% if is_granted('ROLE_17B_USER') or is_granted('ROLE_CUSTOMER_ADMIN') or is_granted('ROLE_CUSTOMER_USER') %}
-                            <span class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-slate-500">Bientôt disponible</span>
-                        {% elseif is_granted('ROLE_17B_ADMIN') %}
-                            <a href="{{ path('document_batch_upload') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Ajouter un document</a>
-                        {% else %}
-                            <a href="{{ path('document_index') }}" class="dashboard-card-action font-['Proxima_Nova','Inter',sans-serif] text-base font-bold text-black">Consulter les documents</a>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
                 </div>
             </section>
             {% endif %}

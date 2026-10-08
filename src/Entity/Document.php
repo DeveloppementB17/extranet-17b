@@ -69,6 +69,20 @@ class Document implements EntrepriseOwnedInterface
     #[ORM\Column]
     private \DateTimeImmutable $documentDate;
 
+    /**
+     * Année métier (Stratégie) — indépendante de documentDate.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $year = null;
+
+    #[ORM\ManyToOne(targetEntity: DocumentKind::class, inversedBy: 'documents')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?DocumentKind $kind = null;
+
+    #[ORM\ManyToOne(targetEntity: DocumentTopic::class, inversedBy: 'documents')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?DocumentTopic $topic = null;
+
     public function __construct()
     {
         $now = new \DateTimeImmutable();
@@ -222,6 +236,42 @@ class Document implements EntrepriseOwnedInterface
     public function setDocumentDate(\DateTimeImmutable $documentDate): self
     {
         $this->documentDate = $documentDate;
+
+        return $this;
+    }
+
+    public function getYear(): ?int
+    {
+        return $this->year;
+    }
+
+    public function setYear(?int $year): self
+    {
+        $this->year = $year;
+
+        return $this;
+    }
+
+    public function getKind(): ?DocumentKind
+    {
+        return $this->kind;
+    }
+
+    public function setKind(?DocumentKind $kind): self
+    {
+        $this->kind = $kind;
+
+        return $this;
+    }
+
+    public function getTopic(): ?DocumentTopic
+    {
+        return $this->topic;
+    }
+
+    public function setTopic(?DocumentTopic $topic): self
+    {
+        $this->topic = $topic;
 
         return $this;
     }

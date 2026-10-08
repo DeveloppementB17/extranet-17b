@@ -1,25 +1,33 @@
 {% extends 'base.html.twig' %}
 {% import '_icon_macros.html.twig' as icons %}
 
+{% set section_title = section_title|default('Fichiers') %}
+{% set index_route = index_route|default('document_index') %}
+{% set show_strategy_fields = show_strategy_fields|default(false) %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block body %}
     <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
         <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
         <span class="text-neutral-400"> / </span>
-        <a href="{{ path('document_index') }}" class="hover:underline">Fichiers</a>
+        <a href="{{ path(index_route) }}" class="hover:underline">{{ section_title }}</a>
         <span class="text-neutral-400"> / </span>
         <span class="font-medium" aria-current="page">{{ title }}</span>
     </nav>
 
     <p class="mt-6 text-m">
-        <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path('document_index') }}">← Retour aux fichiers</a>
+        <a class="block w-fit font-semibold text-brand underline underline-offset-2" href="{{ path(index_route) }}">← Retour à {{ section_title|lower }}</a>
     </p>
 
     <div class="panel border-2 border-black mx-auto max-w-xl px-8 py-8">
         <h1 class="text-3xl font-extrabold text-brand">{{ title }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            Modifie les informations du document (titre, date, entreprise, catégorie).
+            {% if show_strategy_fields %}
+                Modifie le titre, la date, l’entreprise, le dossier, l’année, le type et le sujet.
+            {% else %}
+                Modifie les informations du document (titre, date, entreprise, catégorie).
+            {% endif %}
         </p>
 
         {% for message in app.flashes('error') %}
@@ -47,10 +55,27 @@
                 {{ form_widget(form.category, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
                 {{ form_errors(form.category) }}
             </div>
+            {% if show_strategy_fields and form.year is defined %}
+                <div>
+                    {{ form_label(form.year, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    {{ form_widget(form.year, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                    {{ form_errors(form.year) }}
+                </div>
+                <div>
+                    {{ form_label(form.kind, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    {{ form_widget(form.kind, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                    {{ form_errors(form.kind) }}
+                </div>
+                <div>
+                    {{ form_label(form.topic, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                    {{ form_widget(form.topic, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                    {{ form_errors(form.topic) }}
+                </div>
+            {% endif %}
 
             <div class="flex flex-wrap gap-3">
                 <button type="submit" class="ml-auto inline-flex items-center gap-2 bg-brand-primary px-6 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover button">{{ icons.icon('check') }}Enregistrer</button>
-                <a class="inline-flex items-center gap-2 border border-slate-200 px-6 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" href="{{ path('document_index') }}">{{ icons.icon('x') }}Annuler</a>
+                <a class="inline-flex items-center gap-2 border border-slate-200 px-6 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" href="{{ path(index_route) }}">{{ icons.icon('x') }}Annuler</a>
             </div>
         {{ form_end(form) }}
     </div>

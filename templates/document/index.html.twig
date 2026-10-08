@@ -3,7 +3,14 @@
 {% import 'document/_preview_macros.html.twig' as doc_preview %}
 {% import '_icon_macros.html.twig' as icons %}
 
-{% block title %}Documents{% endblock %}
+{% set section_title = section_title|default('Fichiers') %}
+{% set index_route = index_route|default('document_index') %}
+{% set upload_route = upload_route|default('document_batch_upload') %}
+{% set edit_route = edit_route|default('document_edit') %}
+{% set bulk_delete_route = bulk_delete_route|default('document_bulk_delete') %}
+{% set show_strategy_columns = show_strategy_columns|default(false) %}
+
+{% block title %}{{ section_title }}{% endblock %}
 
 {% block body %}
     {% for message in app.flashes('success') %}
@@ -16,7 +23,7 @@
     <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">
         <a href="{{ path('app_home') }}" class="hover:underline">Tableau de bord</a>
         <span class="text-neutral-400"> / </span>
-        <span class="font-medium" aria-current="page">Fichiers</span>
+        <span class="font-medium" aria-current="page">{{ section_title }}</span>
     </nav>
 
     <p class="mt-6 text-m">
@@ -25,9 +32,9 @@
 
     <div class="panel mt-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-5xl font-extrabold text-brand">Fichiers</h1>
+            <h1 class="text-5xl font-extrabold text-brand">{{ section_title }}</h1>
             {% if can_upload %}
-                <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path('document_batch_upload') }}">
+                <a class="inline-flex items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover" href="{{ path(upload_route) }}">
                     {{ icons.icon('upload') }}
                     Ajouter un document
                 </a>
@@ -52,14 +59,14 @@
                 <div class="flex gap-2 justify-end">
                     <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
 
-                    <a href="{{ path('document_index') }}" class="inline-flex items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
+                    <a href="{{ path(index_route) }}" class="inline-flex items-center gap-2 border border-black px-4 py-2 text-sm font-semibold text-slate-700">{{ icons.icon('refresh') }}Réinitialiser</a>
                 </div>
                 <input type="hidden" name="sort" value="{{ sort_field }}">
                 <input type="hidden" name="dir" value="{{ sort_direction }}">
             </form>
 
             {% if can_bulk_delete %}
-                <form id="doc-bulk-form" method="post" action="{{ path('document_bulk_delete', app.request.query.all) }}" class="hidden" tabindex="-1" aria-hidden="true">
+                <form id="doc-bulk-form" method="post" action="{{ path(bulk_delete_route, app.request.query.all) }}" class="hidden" tabindex="-1" aria-hidden="true">
                     <input type="hidden" name="_token" value="{{ csrf_token('document_bulk_delete') }}">
                 </form>
                 <div class="mt-4 flex flex-wrap items-center gap-3" id="doc-bulk-controls">
@@ -104,7 +111,7 @@
                             {% endif %}
                             <th class="w-16 px-4 py-3 font-semibold text-black">Aperçu</th>
                             <th class="px-4 py-3 font-semibold">
-                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'title', dir: nextTitleDir })) }}">
                                     Titre
                                     {% if sort_field == 'title' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -123,7 +130,7 @@
                                 </a>
                             </th>
                             <th class="px-4 py-3 font-semibold">
-                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'entreprise', dir: nextEntrepriseDir })) }}">
                                     Entreprise
                                     {% if sort_field == 'entreprise' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -142,8 +149,8 @@
                                 </a>
                             </th>
                             <th class="px-4 py-3 font-semibold">
-                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
-                                    Catégorie
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
+                                    {{ show_strategy_columns ? 'Dossier' : 'Catégorie' }}
                                     {% if sort_field == 'category' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
                                             {% if sort_direction == 'asc' %}
@@ -160,8 +167,22 @@
                                     {% endif %}
                                 </a>
                             </th>
+                            {% if show_strategy_columns %}
+                                {% set nextYearDir = sort_field == 'year' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                                {% set nextKindDir = sort_field == 'kind' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                                {% set nextTopicDir = sort_field == 'topic' and sort_direction == 'asc' ? 'desc' : 'asc' %}
+                                <th class="px-4 py-3 font-semibold">
+                                    <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'year', dir: nextYearDir })) }}">Année</a>
+                                </th>
+                                <th class="px-4 py-3 font-semibold">
+                                    <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'kind', dir: nextKindDir })) }}">Type</a>
+                                </th>
+                                <th class="px-4 py-3 font-semibold">
+                                    <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'topic', dir: nextTopicDir })) }}">Sujet</a>
+                                </th>
+                            {% endif %}
                             <th class="px-4 py-3 font-semibold">
-                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path('document_index', app.request.query.all|merge({ sort: 'document_date', dir: nextDateDir })) }}">
+                                <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'document_date', dir: nextDateDir })) }}">
                                     Date
                                     {% if sort_field == 'document_date' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
@@ -205,6 +226,11 @@
                                 <td class="px-4 py-3 text-slate-900">{{ document.title }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.entreprise ? document.entreprise.name : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.category ? document.category.name : '—' }}</td>
+                                {% if show_strategy_columns %}
+                                    <td class="px-4 py-3 text-slate-700">{{ document.year ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ document.kind ? document.kind.name : '—' }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ document.topic ? document.topic.name : '—' }}</td>
+                                {% endif %}
                                 <td class="px-4 py-3 text-slate-700">
                                     <span title="{{ document.documentDate|date('d/m/Y') }}">{{ doc_preview.document_month_year(document.documentDate) }}</span>
                                 </td>
@@ -217,7 +243,7 @@
                                             <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
                                         </a>
                                         {% if (is_granted('ROLE_17B_ADMIN') or is_granted('ROLE_17B_USER')) and is_granted('DOCUMENT_MANAGE', document) %}
-                                            <a href="{{ path('document_edit', { id: document.id }) }}" title="Modifier" class="text-brand hover:text-brand-primary-hover">
+                                            <a href="{{ path(edit_route, { id: document.id }) }}" title="Modifier" class="text-brand hover:text-brand-primary-hover">
                                                 <svg class="w-5 h-5 hover:text-slate-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/></svg>
                                             </a>
                                             <form class="inline-flex" method="post" action="{{ path('document_delete', { id: document.id }) }}" onsubmit="return confirm('Supprimer ce document ?');">
@@ -231,8 +257,9 @@
                                 </td>
                             </tr>
                         {% else %}
+                            {% set empty_colspan = (can_bulk_delete ? 7 : 6) + (show_strategy_columns ? 3 : 0) %}
                             <tr>
-                                <td colspan="{{ can_bulk_delete ? 7 : 6 }}" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
+                                <td colspan="{{ empty_colspan }}" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
