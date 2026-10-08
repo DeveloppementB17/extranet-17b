@@ -152,22 +152,28 @@
                     <div class="mt-6 flex flex-1 flex-col gap-4 text-sm text-black md:text-base">
                         {% if selected_client %}
                             {% for category in active_categories %}
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
-                                    <a href="{{ path('time_credit_index', { entreprise: selected_client.id, category: category.id, status: 'active' }) }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">
-                                        {{ category.label }} ({{ category.count }})
-                                    </a>
-                                </div>
-                            {% else %}
-                                <p class="text-sm text-slate-600">Aucun crédit temps en cours pour cette entreprise.</p>
+                                {% if category.count > 0 %}
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
+                                        <a href="{{ path('time_credit_index', { entreprise: selected_client.id, category: category.id, status: 'active' }) }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">
+                                            {{ category.label }} ({{ category.count }})
+                                        </a>
+                                    </div>
+                                {% endif %}
                             {% endfor %}
 
-                            <div class="flex items-center gap-2">
-                                <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
-                                <a href="{{ path('time_credit_index', { entreprise: selected_client.id, status: 'archived' }) }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">
-                                    Terminés ({{ archived_credits|length }})
-                                </a>
-                            </div>
+                            {% if archived_credits|length > 0 %}
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
+                                    <a href="{{ path('time_credit_index', { entreprise: selected_client.id, status: 'archived' }) }}" class="font-['Inter','Proxima_Nova',sans-serif] text-[14px] leading-snug hover:underline md:text-base">
+                                        Terminés ({{ archived_credits|length }})
+                                    </a>
+                                </div>
+                            {% endif %}
+
+                            {% if active_categories is empty and archived_credits|length == 0 %}
+                                <p class="text-sm text-slate-600">Aucun crédit temps pour cette entreprise.</p>
+                            {% endif %}
                         {% else %}
                             <div class="flex items-start gap-2">
                                 <svg class="w-5 h-5 shrink-0 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8H3Z"/></svg>
