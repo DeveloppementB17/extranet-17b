@@ -139,7 +139,7 @@
                     {% set active_categories = {} %}
                     {% for credit in active_credits %}
                         {% set category_key = credit.category ? credit.category.id : 'uncategorized' %}
-                        {% set category_label = credit.category ? credit.category.name : 'Sans catégorie' %}
+                        {% set category_label = credit.category ? credit.category.name : 'En cours' %}
                         {% set current_count = active_categories[category_key].count|default(0) %}
                         {% set active_categories = active_categories|merge({
                             (category_key): {
