@@ -47,6 +47,11 @@ final class DocumentBatchUploadType extends AbstractType
             ],
         ]);
 
+        $entrepriseAttr = [];
+        if (!$options['lock_entreprise']) {
+            $entrepriseAttr['data-entreprise-searchable'] = '1';
+        }
+
         $builder->add('entreprise', EntityType::class, [
             'class' => Entreprise::class,
             'choices' => $options['entreprise_choices'],
@@ -57,6 +62,7 @@ final class DocumentBatchUploadType extends AbstractType
             'placeholder' => $options['lock_entreprise'] ? false : '— Choisir une entreprise —',
             'data' => $options['preselected_entreprise'],
             'disabled' => $options['lock_entreprise'],
+            'attr' => $entrepriseAttr,
             'constraints' => [
                 new NotBlank(message: 'L’entreprise est requise.'),
             ],

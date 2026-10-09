@@ -47,7 +47,10 @@
             </div>
             <div>
                 {{ form_label(form.entreprise, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                {{ form_widget(form.entreprise, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                {{ form_widget(form.entreprise, { attr: form.entreprise.vars.attr|merge({ class: form.entreprise.vars.attr['data-entreprise-searchable'] is defined
+                    ? 'block w-full rounded-base border border-default bg-white px-3 py-2.5 text-lg text-heading focus:outline-none focus:ring-2 focus:ring-brand-primary'
+                    : 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0'
+                }) }) }}
                 {{ form_errors(form.entreprise) }}
             </div>
             <div>

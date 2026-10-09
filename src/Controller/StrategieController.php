@@ -12,6 +12,7 @@ use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Form\DocumentBatchUploadType;
 use App\Form\DocumentEditType;
+use App\Form\StaffEntrepriseChoiceHelper;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\DocumentKindRepository;
 use App\Repository\DocumentRepository;
@@ -226,7 +227,7 @@ final class StrategieController extends AbstractController
 
         $form = $this->createForm(DocumentBatchUploadType::class, options: [
             'category_choices' => $strategyChoices,
-            'entreprise_choices' => $allowedEntreprises,
+            'entreprise_choices' => StaffEntrepriseChoiceHelper::groupForStaff($user, $allowedEntreprises),
             'preselected_entreprise' => $forcedEntreprise,
             'lock_entreprise' => $forcedEntreprise instanceof Entreprise,
             'strategy_fields' => true,
@@ -395,7 +396,7 @@ final class StrategieController extends AbstractController
 
         $form = $this->createForm(DocumentEditType::class, $document, [
             'category_choices' => $categoryRepository->buildStrategyCategoryChoices(),
-            'entreprise_choices' => $allowedEntreprises,
+            'entreprise_choices' => StaffEntrepriseChoiceHelper::groupForStaff($user, $allowedEntreprises),
             'lock_entreprise' => $forcedEntreprise instanceof Entreprise && $user->is17bUser(),
             'strategy_fields' => true,
             'kind_choices' => $kindRepository->findAllOrdered(),

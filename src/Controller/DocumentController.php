@@ -7,6 +7,7 @@ use App\Entity\Document;
 use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Form\DocumentEditType;
+use App\Form\StaffEntrepriseChoiceHelper;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\EntrepriseRepository;
@@ -251,7 +252,7 @@ final class DocumentController extends AbstractController
 
         $form = $this->createForm(DocumentEditType::class, $document, [
             'category_choices' => $this->buildCategoryChoices($categoryRepository),
-            'entreprise_choices' => $allowedEntreprises,
+            'entreprise_choices' => StaffEntrepriseChoiceHelper::groupForStaff($user, $allowedEntreprises),
             'lock_entreprise' => $forcedEntreprise instanceof Entreprise && $user->is17bUser(),
             'strategy_fields' => false,
         ]);

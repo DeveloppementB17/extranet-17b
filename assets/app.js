@@ -91,6 +91,46 @@ const destroyStaffClientSwitcher = () => {
     });
 };
 
+const initEntrepriseSearchableSelects = () => {
+    if (!window.jQuery || !window.jQuery.fn || typeof window.jQuery.fn.select2 !== 'function') {
+        return;
+    }
+
+    document.querySelectorAll('[data-entreprise-searchable]').forEach((select) => {
+        if (select.dataset.select2Initialized === '1' || select.disabled) {
+            return;
+        }
+
+        const $select = window.jQuery(select);
+        $select.select2({
+            width: '100%',
+            placeholder: select.getAttribute('data-placeholder') || 'Sélectionner une entreprise',
+            allowClear: !select.required,
+        });
+
+        select.dataset.select2Initialized = '1';
+    });
+};
+
+const destroyEntrepriseSearchableSelects = () => {
+    if (!window.jQuery || !window.jQuery.fn || typeof window.jQuery.fn.select2 !== 'function') {
+        return;
+    }
+
+    document.querySelectorAll('[data-entreprise-searchable]').forEach((select) => {
+        if (select.dataset.select2Initialized !== '1') {
+            return;
+        }
+
+        const $select = window.jQuery(select);
+        if ($select.data('select2')) {
+            $select.select2('destroy');
+        }
+
+        delete select.dataset.select2Initialized;
+    });
+};
+
 const dismissFlashMessage = (message) => {
     if (!message || message.dataset.flashDismissing === '1') {
         return;
@@ -242,9 +282,11 @@ const initTimeCreditDonutChart = () => {
 document.addEventListener('turbo:load', () => {
     initFlashMessages();
     initStaffClientSwitcher();
+    initEntrepriseSearchableSelects();
     initTimeCreditDonutChart();
 });
 document.addEventListener('turbo:before-cache', () => {
     document.querySelectorAll('[data-flash-message]').forEach((message) => message.remove());
 });
 document.addEventListener('turbo:before-cache', destroyStaffClientSwitcher);
+document.addEventListener('turbo:before-cache', destroyEntrepriseSearchableSelects);

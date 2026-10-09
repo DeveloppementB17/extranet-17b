@@ -47,6 +47,7 @@ final class DocumentEditType extends AbstractType
                 'required' => true,
                 'placeholder' => $options['lock_entreprise'] ? false : '— Choisir une entreprise —',
                 'disabled' => $options['lock_entreprise'],
+                'attr' => $options['lock_entreprise'] ? [] : ['data-entreprise-searchable' => '1'],
                 'constraints' => [
                     new NotBlank(message: 'L’entreprise est requise.'),
                 ],

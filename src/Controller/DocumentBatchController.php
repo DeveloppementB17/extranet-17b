@@ -9,6 +9,7 @@ use App\Entity\DocumentCategory;
 use App\Entity\Entreprise;
 use App\Entity\User;
 use App\Form\DocumentBatchUploadType;
+use App\Form\StaffEntrepriseChoiceHelper;
 use App\Repository\DocumentCategoryRepository;
 use App\Repository\EntrepriseRepository;
 use App\Tenant\ManagedClientContext;
@@ -74,7 +75,7 @@ final class DocumentBatchController extends AbstractController
 
         $form = $this->createForm(DocumentBatchUploadType::class, options: [
             'category_choices' => $this->buildCategoryChoices($categoryRepository),
-            'entreprise_choices' => $allowedEntreprises,
+            'entreprise_choices' => StaffEntrepriseChoiceHelper::groupForStaff($user, $allowedEntreprises),
             'preselected_entreprise' => $forcedEntreprise,
             'lock_entreprise' => $forcedEntreprise instanceof Entreprise,
             'strategy_fields' => false,
