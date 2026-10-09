@@ -9,6 +9,10 @@
 {% set edit_route = edit_route|default('document_edit') %}
 {% set bulk_delete_route = bulk_delete_route|default('document_bulk_delete') %}
 {% set show_strategy_columns = show_strategy_columns|default(false) %}
+{% set available_years = available_years|default({}) %}
+{% set available_topics = available_topics|default({}) %}
+{% set filter_year = filter_year|default(0) %}
+{% set filter_topic = filter_topic|default(0) %}
 
 {% block title %}{{ section_title }}{% endblock %}
 
@@ -42,8 +46,8 @@
         </div>
 
         {% if is_admin_list_view %}
-            <form method="get" class="mt-6 grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4">
-                <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un fichier..." class="border border-black px-3 py-2 text-sm">
+            <form method="get" class="mt-6 grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 {{ show_strategy_columns ? '2xl:grid-cols-6' : '2xl:grid-cols-4' }}">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="{{ show_strategy_columns ? 'Rechercher un document…' : 'Rechercher un fichier...' }}" class="border border-black px-3 py-2 text-sm">
                 <select name="entreprise" class="border border-black px-3 py-2 text-sm">
                     <option value="0">Toutes les entreprises</option>
                     {% for id, name in available_entreprises %}
@@ -51,11 +55,25 @@
                     {% endfor %}
                 </select>
                 <select name="category" class="border border-black px-3 py-2 text-sm">
-                    <option value="0">Toutes les catégories</option>
+                    <option value="0">{{ show_strategy_columns ? 'Tous les dossiers' : 'Toutes les catégories' }}</option>
                     {% for id, name in available_categories %}
                         <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
                     {% endfor %}
                 </select>
+                {% if show_strategy_columns %}
+                    <select name="year" class="border border-black px-3 py-2 text-sm">
+                        <option value="0">Toutes les années</option>
+                        {% for year in available_years %}
+                            <option value="{{ year }}" {{ filter_year == year ? 'selected' : '' }}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="topic" class="border border-black px-3 py-2 text-sm">
+                        <option value="0">Tous les sujets</option>
+                        {% for id, name in available_topics %}
+                            <option value="{{ id }}" {{ filter_topic == id ? 'selected' : '' }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
                 <div class="flex gap-2 justify-end">
                     <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">{{ icons.icon('filter') }}Filtrer</button>
 

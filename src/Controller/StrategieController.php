@@ -65,6 +65,8 @@ final class StrategieController extends AbstractController
         $documents = $documentRepository->findAccessibleForUser($user, $forcedEntreprise, $forcedEntrepriseIds, 'strategie');
         $availableEntreprises = [];
         $availableCategories = [];
+        $availableYears = [];
+        $availableTopics = [];
         foreach ($documents as $document) {
             $entreprise = $document->getEntreprise();
             if ($entreprise !== null) {
@@ -74,14 +76,26 @@ final class StrategieController extends AbstractController
             if ($category !== null) {
                 $availableCategories[$category->getId() ?? 0] = $category->getName();
             }
+            $year = $document->getYear();
+            if ($year !== null) {
+                $availableYears[$year] = $year;
+            }
+            $topic = $document->getTopic();
+            if ($topic !== null) {
+                $availableTopics[$topic->getId() ?? 0] = $topic->getName();
+            }
         }
         asort($availableEntreprises, SORT_NATURAL | SORT_FLAG_CASE);
         asort($availableCategories, SORT_NATURAL | SORT_FLAG_CASE);
+        krsort($availableYears, SORT_NUMERIC);
+        asort($availableTopics, SORT_NATURAL | SORT_FLAG_CASE);
         $isAdminListView = $user->is17bStaff() || $user->isCustomerActor();
         if ($isAdminListView) {
             $search = trim((string) $request->query->get('q', ''));
             $entrepriseFilter = (int) $request->query->get('entreprise', 0);
             $categoryFilter = (int) $request->query->get('category', 0);
+            $yearFilter = (int) $request->query->get('year', 0);
+            $topicFilter = (int) $request->query->get('topic', 0);
             $sort = (string) $request->query->get('sort', 'document_date');
             $direction = strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
@@ -94,11 +108,19 @@ final class StrategieController extends AbstractController
                 $search,
                 $entrepriseFilter,
                 $categoryFilter,
+                $yearFilter,
+                $topicFilter,
             ): bool {
                 if ($entrepriseFilter > 0 && $document->getEntreprise()?->getId() !== $entrepriseFilter) {
                     return false;
                 }
                 if ($categoryFilter > 0 && $document->getCategory()?->getId() !== $categoryFilter) {
+                    return false;
+                }
+                if ($yearFilter > 0 && $document->getYear() !== $yearFilter) {
+                    return false;
+                }
+                if ($topicFilter > 0 && $document->getTopic()?->getId() !== $topicFilter) {
                     return false;
                 }
                 if ($search === '') {
@@ -156,10 +178,14 @@ final class StrategieController extends AbstractController
             'search_query' => $isAdminListView ? trim((string) $request->query->get('q', '')) : '',
             'filter_entreprise' => $isAdminListView ? (int) $request->query->get('entreprise', 0) : 0,
             'filter_category' => $isAdminListView ? (int) $request->query->get('category', 0) : 0,
+            'filter_year' => $isAdminListView ? (int) $request->query->get('year', 0) : 0,
+            'filter_topic' => $isAdminListView ? (int) $request->query->get('topic', 0) : 0,
             'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'document_date') : 'document_date',
             'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
             'available_entreprises' => $availableEntreprises,
             'available_categories' => $availableCategories,
+            'available_years' => $availableYears,
+            'available_topics' => $availableTopics,
             'can_bulk_delete' => $user->is17bAdmin() && $isAdminListView,
             'section_title' => 'Stratégie',
             'index_route' => 'strategie_index',
