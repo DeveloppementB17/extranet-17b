@@ -183,6 +183,17 @@ const initTimeCreditDonutChart = () => {
                 type: 'pie',
                 fontFamily: 'Inter, sans-serif',
                 background: 'transparent',
+                // Safari Mac : évite le drag natif SVG / rectangle de sélection
+                // qui donne l’impression de « dessiner » sur le graphique.
+                toolbar: {
+                    show: false,
+                },
+                selection: {
+                    enabled: false,
+                },
+                zoom: {
+                    enabled: false,
+                },
                 dropShadow: {
                     enabled: true,
                     top: 6,
@@ -274,7 +285,14 @@ const initTimeCreditDonutChart = () => {
             },
         });
 
-        chart.render();
+        chart.render().then(() => {
+            chartElement.querySelectorAll('svg, canvas, img').forEach((node) => {
+                node.setAttribute('draggable', 'false');
+            });
+            chartElement.addEventListener('dragstart', (event) => {
+                event.preventDefault();
+            });
+        });
         chartElement.dataset.chartInitialized = '1';
     });
 };

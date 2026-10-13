@@ -47,7 +47,7 @@ final class DocumentUploadType extends AbstractType
         ]);
 
         $builder->add('category', ChoiceType::class, [
-            'label' => 'Catégorie',
+            'label' => 'Type',
             'mapped' => false,
             'required' => false,
             'choices' => $options['category_choices'],

@@ -22,7 +22,9 @@ class DocumentKindRepository extends ServiceEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('k')
-            ->orderBy('k.name', 'ASC')
+            ->addSelect("CASE WHEN LOWER(k.name) = 'autre' THEN 1 ELSE 0 END AS HIDDEN autre_sort")
+            ->orderBy('autre_sort', 'ASC')
+            ->addOrderBy('k.name', 'ASC')
             ->getQuery()
             ->getResult();
     }

@@ -17,26 +17,47 @@
     {%- endif -%}
 {%- endmacro %}
 
+{% macro preview_type_label(document) -%}
+    {%- if document.externalLink -%}
+        URL
+    {%- else -%}
+        {%- set source = (document.originalName ?: document.title)|lower -%}
+        {%- set ext = source|split('.')|last -%}
+        {%- if document.mimeType == 'application/pdf' or ext == 'pdf' -%}
+            PDF
+        {%- elseif document.mimeType == 'application/json' or document.mimeType == 'application/ld+json' or ext == 'json' -%}
+            JSON
+        {%- elseif document.mimeType starts with 'text/' or ext in ['txt', 'csv', 'xml', 'md'] -%}
+            {{ ext == 'csv' ? 'CSV' : (ext == 'xml' ? 'XML' : (ext == 'md' ? 'MD' : 'TXT')) }}
+        {%- elseif ext in ['doc', 'docx'] -%}
+            {{ ext|upper }}
+        {%- elseif ext in ['xls', 'xlsx'] -%}
+            {{ ext|upper }}
+        {%- elseif ext in ['ppt', 'pptx'] -%}
+            {{ ext|upper }}
+        {%- elseif ext in ['zip', 'rar', '7z'] -%}
+            {{ ext|upper }}
+        {%- elseif ext|length > 0 and ext|length <= 5 and '.' in source -%}
+            {{ ext|upper }}
+        {%- else -%}
+            FICHIER
+        {%- endif -%}
+    {%- endif -%}
+{%- endmacro %}
+
 {% macro preview_cell(document) %}
+    {% set type_label = _self.preview_type_label(document) %}
     {% if document.externalLink %}
-        <a href="{{ _self.preview_open_url(document) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-neutral-100 text-xs font-bold uppercase text-neutral-500" title="Ouvrir le lien">URL</a>
+        <a href="{{ _self.preview_open_url(document) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-sky-50 text-[10px] font-bold uppercase text-sky-800" title="Lien externe">{{ type_label }}</a>
     {% elseif document.mimeType starts with 'image/' %}
         <a href="{{ path('document_preview', { id: document.id }) }}" target="_blank" rel="noopener noreferrer" title="Aperçu">
             <img src="{{ path('document_preview', { id: document.id }) }}" alt="" class="h-10 w-10 rounded object-cover" loading="lazy">
         </a>
-    {% elseif document.mimeType == 'application/pdf' or (document.originalName|lower ends with '.pdf') or (document.title|lower ends with '.pdf') %}
+    {% elseif type_label == 'PDF' %}
         <a href="{{ path('document_preview', { id: document.id }) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-red-50 text-xs font-bold uppercase text-red-700" title="Aperçu PDF">PDF</a>
-    {% elseif document.mimeType starts with 'text/' or document.mimeType == 'application/json' or document.mimeType == 'application/ld+json' or (document.originalName|lower ends with '.json') or (document.title|lower ends with '.json') or (document.originalName|lower ends with '.txt') or (document.originalName|lower ends with '.csv') or (document.originalName|lower ends with '.xml') or (document.originalName|lower ends with '.md') %}
-        <a href="{{ path('document_preview', { id: document.id }) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-sky-50 text-[10px] font-bold uppercase text-sky-800" title="Aperçu texte">
-            {% if (document.originalName|lower ends with '.json') or (document.title|lower ends with '.json') or document.mimeType == 'application/json' %}
-                JSON
-            {% else %}
-                TXT
-            {% endif %}
-        </a>
+    {% elseif type_label in ['JSON', 'TXT', 'CSV', 'XML', 'MD'] %}
+        <a href="{{ path('document_preview', { id: document.id }) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-sky-50 text-[10px] font-bold uppercase text-sky-800" title="Aperçu texte">{{ type_label }}</a>
     {% else %}
-        <a href="{{ _self.preview_open_url(document) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-neutral-100 text-neutral-400" title="Ouvrir">
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-        </a>
+        <a href="{{ _self.preview_open_url(document) }}" target="_blank" rel="noopener noreferrer" class="inline-flex h-10 w-10 items-center justify-center rounded bg-sky-50 text-[9px] font-bold uppercase leading-tight text-sky-800" title="{{ type_label }}">{{ type_label }}</a>
     {% endif %}
 {% endmacro %}

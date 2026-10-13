@@ -128,7 +128,7 @@ final class AdminExtranetGuideController extends AbstractController
                     ],
                     [
                         'title' => 'Arborescence',
-                        'text' => 'Documents rangés par catégories / sous-dossiers. Prévisualisation et téléchargement selon le type de fichier.',
+                        'text' => 'Documents rangés par types / sous-dossiers. Prévisualisation et téléchargement selon le format de fichier.',
                     ],
                 ],
             ],
@@ -269,7 +269,7 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'title' => 'Fichiers (documents)',
                 'path' => '/documents',
-                'description' => 'Bibliothèque en arborescence (catégories). Prévisualisation et téléchargement. Dépôt via /documents/ajouter : plusieurs fichiers d’un coup ou un lien https seul (max. 20 Mo par fichier, pas les deux à la fois). Modification et suppression réservées à l’équipe 17b.',
+                'description' => 'Bibliothèque en arborescence (types). Prévisualisation et téléchargement. Dépôt via /documents/ajouter : plusieurs fichiers d’un coup ou un lien https seul (max. 20 Mo par fichier, pas les deux à la fois). Modification et suppression réservées à l’équipe 17b.',
                 'roles' => 'Lecture : tous · Gestion : 17b (admin & user autorisé)',
             ],
             [
@@ -299,7 +299,7 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'title' => 'Administration 17b',
                 'path' => '/admin',
-                'description' => 'Gestion des entreprises (agence + clients), de tous les utilisateurs et des paramètres avancés (catégories documents, catégories crédits).',
+                'description' => 'Gestion des entreprises (agence + clients), de tous les utilisateurs et des paramètres avancés (types documents, catégories crédits).',
                 'roles' => 'Administrateur 17b uniquement',
             ],
             [
@@ -350,8 +350,8 @@ final class AdminExtranetGuideController extends AbstractController
                 'user_client' => 'Non',
             ],
             [
-                'feature' => 'Catégories de documents',
-                'detail' => 'CRUD dossiers /documents/categories.',
+                'feature' => 'Types de documents',
+                'detail' => 'CRUD types /documents/categories.',
                 'admin_17b' => 'Oui',
                 'user_17b' => 'Non',
                 'admin_client' => 'Non',

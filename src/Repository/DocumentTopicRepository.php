@@ -22,7 +22,9 @@ class DocumentTopicRepository extends ServiceEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('t')
-            ->orderBy('t.name', 'ASC')
+            ->addSelect("CASE WHEN LOWER(t.name) = 'autre' THEN 1 ELSE 0 END AS HIDDEN autre_sort")
+            ->orderBy('autre_sort', 'ASC')
+            ->addOrderBy('t.name', 'ASC')
             ->getQuery()
             ->getResult();
     }

@@ -92,7 +92,7 @@
                     {% endfor %}
                 </select>
                 <select name="category" class="border border-black px-3 py-2 text-sm">
-                    <option value="0">Toutes les catégories</option>
+                    <option value="0">Tous les types</option>
                     {% for id, name in available_categories %}
                         <option value="{{ id }}" {{ filter_category == id ? 'selected' : '' }}>{{ name }}</option>
                     {% endfor %}
@@ -192,7 +192,7 @@
                             </th>
                             <th class="px-4 py-3 font-semibold">
                                 <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'category', dir: nextCategoryDir })) }}">
-                                    {{ show_strategy_columns ? 'Dossier' : 'Catégorie' }}
+                                    {{ show_strategy_columns ? 'Dossier' : 'Type' }}
                                     {% if sort_field == 'category' %}
                                         <svg class="h-3.5 w-3.5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-label="Tri {{ sort_direction == 'asc' ? 'croissant' : 'décroissant' }}">
                                             {% if sort_direction == 'asc' %}
@@ -210,12 +210,8 @@
                                 </a>
                             </th>
                             {% if show_strategy_columns %}
-                                {% set nextYearDir = sort_field == 'year' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                                 {% set nextKindDir = sort_field == 'kind' and sort_direction == 'asc' ? 'desc' : 'asc' %}
                                 {% set nextTopicDir = sort_field == 'topic' and sort_direction == 'asc' ? 'desc' : 'asc' %}
-                                <th class="px-4 py-3 font-semibold">
-                                    <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'year', dir: nextYearDir })) }}">Année</a>
-                                </th>
                                 <th class="px-4 py-3 font-semibold">
                                     <a class="inline-flex items-center gap-1 text-black hover:underline" href="{{ path(index_route, app.request.query.all|merge({ sort: 'kind', dir: nextKindDir })) }}">Type</a>
                                 </th>
@@ -265,16 +261,22 @@
                                 <td class="px-4 py-3">
                                     {{ doc_preview.preview_cell(document) }}
                                 </td>
-                                <td class="px-4 py-3 text-slate-900">{{ document.title }}</td>
+                                <td class="px-4 py-3 text-slate-900">
+                                    <span class="inline-flex flex-wrap items-center gap-2">
+                                        <a href="{{ doc_preview.preview_open_url(document) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:underline">{{ document.title }}</a>
+                                        {% if document.externalLink %}
+                                            <span class="inline-flex text-slate-500" title="Lien externe">{{ icons.icon('external-link', 'h-4 w-4 shrink-0') }}<span class="sr-only">Lien externe</span></span>
+                                        {% endif %}
+                                    </span>
+                                </td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.entreprise ? document.entreprise.name : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ document.category ? document.category.name : '—' }}</td>
                                 {% if show_strategy_columns %}
-                                    <td class="px-4 py-3 text-slate-700">{{ document.year ?? '—' }}</td>
                                     <td class="px-4 py-3 text-slate-700">{{ document.kind ? document.kind.name : '—' }}</td>
                                     <td class="px-4 py-3 text-slate-700">{{ document.topic ? document.topic.name : '—' }}</td>
                                 {% endif %}
                                 <td class="px-4 py-3 text-slate-700">
-                                    <span title="{{ document.documentDate|date('d/m/Y') }}">{{ doc_preview.document_month_year(document.documentDate) }}</span>
+                                    {{ doc_preview.document_month_year(document.documentDate) }}
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="inline-flex items-center gap-2">
@@ -299,7 +301,7 @@
                                 </td>
                             </tr>
                         {% else %}
-                            {% set empty_colspan = (can_bulk_delete ? 7 : 6) + (show_strategy_columns ? 3 : 0) %}
+                            {% set empty_colspan = (can_bulk_delete ? 7 : 6) + (show_strategy_columns ? 2 : 0) %}
                             <tr>
                                 <td colspan="{{ empty_colspan }}" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
                             </tr>

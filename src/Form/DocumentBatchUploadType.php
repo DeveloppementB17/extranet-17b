@@ -69,7 +69,7 @@ final class DocumentBatchUploadType extends AbstractType
         ]);
 
         $builder->add('category', ChoiceType::class, [
-            'label' => $options['strategy_fields'] ? 'Dossier' : 'Catégorie',
+            'label' => $options['strategy_fields'] ? 'Dossier' : 'Type',
             'mapped' => false,
             'required' => $options['strategy_fields'],
             'choices' => $options['category_choices'],
@@ -81,12 +81,25 @@ final class DocumentBatchUploadType extends AbstractType
 
         if ($options['strategy_fields']) {
             $currentYear = (int) date('Y');
+            $currentMonth = (int) date('n');
             $years = [];
             for ($y = $currentYear + 1; $y >= $currentYear - 10; --$y) {
                 $years[(string) $y] = $y;
             }
 
             $builder
+                ->add('month', ChoiceType::class, [
+                    'label' => 'Mois',
+                    'mapped' => false,
+                    'required' => true,
+                    'choices' => DocumentEditType::monthChoices(),
+                    'placeholder' => '— Choisir —',
+                    'data' => $currentMonth,
+                    'constraints' => [
+                        new NotBlank(message: 'Le mois est requis.'),
+                        new Range(min: 1, max: 12),
+                    ],
+                ])
                 ->add('year', ChoiceType::class, [
                     'label' => 'Année',
                     'mapped' => false,

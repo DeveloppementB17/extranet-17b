@@ -12,6 +12,8 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -29,8 +31,10 @@ final class DocumentEditType extends AbstractType
                     new NotBlank(message: 'Le titre est requis.'),
                     new Length(max: 255),
                 ],
-            ])
-            ->add('documentDate', DateType::class, [
+            ]);
+
+        if (!$options['strategy_fields']) {
+            $builder->add('documentDate', DateType::class, [
                 'label' => 'Date',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
@@ -38,7 +42,10 @@ final class DocumentEditType extends AbstractType
                 'constraints' => [
                     new NotBlank(message: 'La date est requise.'),
                 ],
-            ])
+            ]);
+        }
+
+        $builder
             ->add('entreprise', EntityType::class, [
                 'class' => Entreprise::class,
                 'choices' => $options['entreprise_choices'],
@@ -53,7 +60,7 @@ final class DocumentEditType extends AbstractType
                 ],
             ])
             ->add('category', ChoiceType::class, [
-                'label' => $options['strategy_fields'] ? 'Dossier' : 'Catégorie',
+                'label' => $options['strategy_fields'] ? 'Dossier' : 'Type',
                 'required' => $options['strategy_fields'],
                 'choices' => $options['category_choices'],
                 'placeholder' => $options['strategy_fields'] ? '— Choisir —' : '— Aucune —',
@@ -70,6 +77,17 @@ final class DocumentEditType extends AbstractType
             }
 
             $builder
+                ->add('month', ChoiceType::class, [
+                    'label' => 'Mois',
+                    'mapped' => false,
+                    'required' => true,
+                    'choices' => self::monthChoices(),
+                    'placeholder' => '— Choisir —',
+                    'constraints' => [
+                        new NotBlank(message: 'Le mois est requis.'),
+                        new Range(min: 1, max: 12),
+                    ],
+                ])
                 ->add('year', ChoiceType::class, [
                     'label' => 'Année',
                     'required' => true,
@@ -102,6 +120,37 @@ final class DocumentEditType extends AbstractType
                         new NotBlank(message: 'Le sujet est requis.'),
                     ],
                 ]);
+
+            $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event): void {
+                $document = $event->getData();
+                $form = $event->getForm();
+                if (!$document instanceof Document || !$form->has('month')) {
+                    return;
+                }
+
+                $date = $document->getDocumentDate();
+                $form->get('month')->setData((int) $date->format('n'));
+                if ($document->getYear() === null) {
+                    $form->get('year')->setData((int) $date->format('Y'));
+                }
+            });
+
+            $builder->addEventListener(FormEvents::SUBMIT, static function (FormEvent $event): void {
+                $document = $event->getData();
+                $form = $event->getForm();
+                if (!$document instanceof Document || !$form->has('month') || !$form->has('year')) {
+                    return;
+                }
+
+                $month = $form->get('month')->getData();
+                $year = $form->get('year')->getData();
+                if (!\is_int($month) || !\is_int($year)) {
+                    return;
+                }
+
+                $document->setDocumentDate(new \DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month)));
+                $document->setYear($year);
+            });
         }
     }
 
@@ -123,5 +172,26 @@ final class DocumentEditType extends AbstractType
         $resolver->setAllowedTypes('strategy_fields', 'bool');
         $resolver->setAllowedTypes('kind_choices', 'array');
         $resolver->setAllowedTypes('topic_choices', 'array');
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public static function monthChoices(): array
+    {
+        return [
+            'Janvier' => 1,
+            'Février' => 2,
+            'Mars' => 3,
+            'Avril' => 4,
+            'Mai' => 5,
+            'Juin' => 6,
+            'Juillet' => 7,
+            'Août' => 8,
+            'Septembre' => 9,
+            'Octobre' => 10,
+            'Novembre' => 11,
+            'Décembre' => 12,
+        ];
     }
 }

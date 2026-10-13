@@ -34,9 +34,9 @@
             <h1 class="text-5xl font-extrabold text-brand">Ajouter des documents</h1>
                 <p class="mt-2 text-m text-slate-600">
                     {% if show_strategy_fields %}
-                        Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise, le dossier (Stratégie ou Pilotage), l'année, le type et le sujet.
+                        Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise, le dossier (Stratégie ou Pilotage), le mois, l'année, le type et le sujet.
                     {% else %}
-                        Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise destinataire et éventuellement la catégorie. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
+                        Un ou plusieurs fichiers (20 Mo max chacun) ou une URL externe. Renseignez le titre, l'entreprise destinataire et éventuellement le type. Pour plusieurs fichiers, le nom du fichier est ajouté au titre pour les distinguer.
                     {% endif %}
                 </p>
                 <p class="text-sm text-slate-600">
@@ -104,11 +104,18 @@
                     {% endif %}
                 </div>
 
-                {% if show_strategy_fields and form.year is defined %}
-                    <div>
-                        {{ form_label(form.year, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
-                        {{ form_widget(form.year, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
-                        {{ form_errors(form.year) }}
+                {% if show_strategy_fields and form.month is defined %}
+                    <div class="grid gap-6 sm:grid-cols-2">
+                        <div>
+                            {{ form_label(form.month, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                            {{ form_widget(form.month, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                            {{ form_errors(form.month) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.year, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}
+                            {{ form_widget(form.year, { attr: { class: 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0' } }) }}
+                            {{ form_errors(form.year) }}
+                        </div>
                     </div>
                     <div>
                         {{ form_label(form.kind, null, { label_attr: { class: 'block text-lg font-semibold text-brand mb-2' } }) }}

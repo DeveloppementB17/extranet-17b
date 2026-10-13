@@ -27,7 +27,15 @@
         <div class="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
             {{ _self.icon_folder }}
             <span class="min-w-0 flex-1 font-['Proxima_Nova','Inter',sans-serif] text-base text-black">
-                {{ displayName }}
+                <span class="inline-flex flex-wrap items-center gap-2">
+                    <span>{{ displayName }}</span>
+                    {% if doc.externalUrl %}
+                        <span class="inline-flex text-neutral-500" title="Lien externe">
+                            <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+                            <span class="sr-only">Lien externe</span>
+                        </span>
+                    {% endif %}
+                </span>
                 {% if showClient %}
                     <span class="mt-0.5 block text-xs font-normal text-neutral-500" title="{{ doc.documentDate|date('d/m/Y') }}">{{ doc.client ? doc.client.email : doc.entreprise.name }} · {{ doc_preview.document_month_year(doc.documentDate) }}</span>
                 {% endif %}
@@ -105,7 +113,7 @@
     {% if docs|length > 0 %}
         <details class="doc-maquette-section group border-b border-neutral-300 [&[open]]:border-neutral-800" {{ openDefault ? 'open' : '' }}>
             <summary class="doc-maquette-summary flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-['Sora',sans-serif] text-[21px] text-black outline-none [&::-webkit-details-marker]:hidden">
-                <span class="min-w-0 font-normal group-open:font-semibold">Sans catégorie</span>
+                <span class="min-w-0 font-normal group-open:font-semibold">Sans type</span>
                 <span class="inline-flex h-[20px] w-[20px] shrink-0 items-center justify-center text-black" aria-hidden="true">
                     <svg class="chevron-doc block h-full w-full -rotate-90 transition-transform duration-200 group-open:rotate-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                 </span>

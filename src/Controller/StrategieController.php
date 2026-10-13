@@ -88,7 +88,15 @@ final class StrategieController extends AbstractController
         asort($availableEntreprises, SORT_NATURAL | SORT_FLAG_CASE);
         asort($availableCategories, SORT_NATURAL | SORT_FLAG_CASE);
         krsort($availableYears, SORT_NUMERIC);
-        asort($availableTopics, SORT_NATURAL | SORT_FLAG_CASE);
+        uasort($availableTopics, static function (string $left, string $right): int {
+            $leftOther = strcasecmp($left, 'Autre') === 0;
+            $rightOther = strcasecmp($right, 'Autre') === 0;
+            if ($leftOther !== $rightOther) {
+                return $leftOther ? 1 : -1;
+            }
+
+            return strcasecmp($left, $right);
+        });
         $isAdminListView = $user->is17bStaff() || $user->isCustomerActor();
         if ($isAdminListView) {
             $search = trim((string) $request->query->get('q', ''));
@@ -265,6 +273,7 @@ final class StrategieController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $titleBase = trim((string) $form->get('title')->getData());
             $category = $form->get('category')->getData();
+            $month = $form->get('month')->getData();
             $year = $form->get('year')->getData();
             $kind = $form->get('kind')->getData();
             $topic = $form->get('topic')->getData();
@@ -287,11 +296,13 @@ final class StrategieController extends AbstractController
 
                 return $this->redirectToRoute('strategie_batch_upload');
             }
-            if (!$kind instanceof DocumentKind || !$topic instanceof DocumentTopic || !\is_int($year)) {
-                $this->addFlash('error', 'Année, type et sujet sont obligatoires.');
+            if (!$kind instanceof DocumentKind || !$topic instanceof DocumentTopic || !\is_int($month) || !\is_int($year)) {
+                $this->addFlash('error', 'Mois, année, type et sujet sont obligatoires.');
 
                 return $this->redirectToRoute('strategie_batch_upload');
             }
+
+            $documentDate = new \DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month));
 
             /** @var list<UploadedFile>|null $files */
             $files = $form->get('files')->getData();
@@ -314,6 +325,7 @@ final class StrategieController extends AbstractController
                 $doc->setUploadedBy($user);
                 $doc->setTitle($titleBase);
                 $doc->setCategory($category);
+                $doc->setDocumentDate($documentDate);
                 $doc->setYear($year);
                 $doc->setKind($kind);
                 $doc->setTopic($topic);
@@ -351,6 +363,7 @@ final class StrategieController extends AbstractController
                     $doc->setUploadedBy($user);
                     $doc->setTitle($multi ? $titleBase.' — '.$file->getClientOriginalName() : $titleBase);
                     $doc->setCategory($category);
+                    $doc->setDocumentDate($documentDate);
                     $doc->setYear($year);
                     $doc->setKind($kind);
                     $doc->setTopic($topic);
