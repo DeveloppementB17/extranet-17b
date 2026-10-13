@@ -9,11 +9,11 @@
         {% set consumed_minutes = 0 %}
     {% endif %}
 
-    {% for message in app.flashes('success') %}
-        <div class="mb-6 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ message }}</div>
+    {% for message in app.session.flashbag.peek('success') %}
+        <div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800" role="status">{{ message }}</div>
     {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="mb-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+    {% for message in app.session.flashbag.peek('error') %}
+        <div class="mb-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert">{{ message }}</div>
     {% endfor %}
 
     <nav class="mb-4 font-['Proxima_Nova','Inter',sans-serif] text-base text-black" aria-label="Fil d'Ariane">

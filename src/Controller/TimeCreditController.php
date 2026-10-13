@@ -441,7 +441,7 @@ final class TimeCreditController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'Crédit temps mis à jour.');
+            $this->addFlash('success', 'Le crédit temps a bien été mis à jour.');
 
             return $this->redirectToRoute('time_credit_show', ['id' => $credit->getId()]);
         }
