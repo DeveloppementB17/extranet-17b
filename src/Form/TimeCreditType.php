@@ -68,10 +68,14 @@ final class TimeCreditType extends AbstractType
                 'scale' => 2,
                 'constraints' => [new GreaterThanOrEqual(value: 0.01, message: 'Le total doit être supérieur à 0.')],
                 'disabled' => $options['lock_total_field'],
+                'html5' => true,
                 'attr' => [
                     'class' => 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary',
-                    'min' => 0.01,
-                    'step' => 0.25,
+                    // Cohérent avec l’unité minutes (POST_SET_DATA). Sinon Chrome refuse
+                    // le submit : (valeur - min) / step doit être entier (ex. 90mn + min 0.01).
+                    'min' => 1,
+                    'step' => 1,
+                    'inputmode' => 'decimal',
                 ],
             ])
             ->add('totalUnit', HiddenType::class, [

@@ -106,8 +106,19 @@
                 });
             };
 
+            const applyInputStep = (unit) => {
+                // min/step doivent rester cohérents avec l’unité, sinon Chrome bloque le submit.
+                if (unit === 'hours') {
+                    valueField.min = '0.25';
+                    valueField.step = '0.25';
+                } else {
+                    valueField.min = '1';
+                    valueField.step = '1';
+                }
+            };
+
             const convertValue = (fromUnit, toUnit) => {
-                const raw = parseFloat(valueField.value.replace(',', '.'));
+                const raw = parseFloat(String(valueField.value).replace(',', '.'));
                 if (Number.isNaN(raw) || fromUnit === toUnit) {
                     return;
                 }
@@ -124,10 +135,13 @@
                     convertValue(previousUnit, nextUnit);
                     unitField.value = nextUnit;
                     setActive(nextUnit);
+                    applyInputStep(nextUnit);
                 });
             });
 
-            setActive(unitField.value || 'minutes');
+            const initialUnit = unitField.value || 'minutes';
+            setActive(initialUnit);
+            applyInputStep(initialUnit);
         })();
     </script>
 {% endblock %}
