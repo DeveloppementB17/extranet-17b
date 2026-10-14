@@ -107,6 +107,22 @@ class TimeCreditRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return list<TimeCredit>
+     */
+    public function findByEntrepriseOrdered(Entreprise $entreprise): array
+    {
+        return $this->createQueryBuilder('tc')
+            ->leftJoin('tc.category', 'cat')
+            ->addSelect('cat')
+            ->andWhere('tc.entreprise = :e')
+            ->setParameter('e', $entreprise)
+            ->orderBy('tc.archived', 'ASC')
+            ->addOrderBy('tc.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneByLegacySourceId(int $legacySourceId): ?TimeCredit
     {
         return $this->createQueryBuilder('tc')

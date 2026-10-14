@@ -101,6 +101,10 @@
                         {{ icons.icon('tag') }}
                         Gérer les catégories
                     </a>
+                    <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-white" href="{{ path('admin_time_credit_intervention_csv_import') }}">
+                        {{ icons.icon('upload') }}
+                        Import CSV interventions
+                    </a>
                 </div>
             </article>
             {% if app.environment != 'prod' %}
