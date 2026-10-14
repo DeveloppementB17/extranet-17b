@@ -80,8 +80,23 @@
             </div>
 
             <div class="min-w-0">
+                {% if is_granted('ROLE_17B_ADMIN') %}
+                    <section class="lg:border-l lg:border-slate-200 lg:pl-12{% if preferred_clients_form %} mb-10{% endif %}" aria-labelledby="account-admin-tools-heading">
+                        <h2 id="account-admin-tools-heading" class="text-xl font-bold text-brand">Outils admin</h2>
+                        <p class="mt-2 text-sm text-slate-600">
+                            Actions réservées aux administrateurs 17b.
+                        </p>
+                        <div class="mt-6 flex flex-col gap-3">
+                            <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="{{ path('account_time_credit_intervention_csv_import') }}">
+                                {{ icons.icon('upload') }}
+                                Import CSV d’interventions
+                            </a>
+                        </div>
+                    </section>
+                {% endif %}
+
                 {% if preferred_clients_form %}
-                    <section class="lg:border-l lg:border-slate-200 lg:pl-12" aria-labelledby="account-preferred-clients-heading">
+                    <section class="{% if is_granted('ROLE_17B_ADMIN') %}border-t border-slate-200 pt-8{% else %}lg:border-l lg:border-slate-200 lg:pl-12{% endif %}" aria-labelledby="account-preferred-clients-heading">
                         <h2 id="account-preferred-clients-heading" class="text-xl font-bold text-brand">Mes clients</h2>
                         <p class="mt-2 text-sm text-slate-600">
                             Rattachez les entreprises que vous suivez au quotidien. Utilisez ensuite

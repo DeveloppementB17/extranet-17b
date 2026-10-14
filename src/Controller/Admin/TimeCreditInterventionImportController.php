@@ -16,11 +16,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin/credits/interventions-csv')]
 #[IsGranted('ROLE_17B_ADMIN')]
 final class TimeCreditInterventionImportController extends AbstractController
 {
-    #[Route('', name: 'admin_time_credit_intervention_csv_import', methods: ['GET', 'POST'])]
+    #[Route('/compte/interventions-csv', name: 'account_time_credit_intervention_csv_import', methods: ['GET', 'POST'])]
     public function __invoke(
         Request $request,
         EntrepriseRepository $entrepriseRepository,
@@ -83,7 +82,7 @@ final class TimeCreditInterventionImportController extends AbstractController
         ]);
     }
 
-    #[Route('/modele.csv', name: 'admin_time_credit_intervention_csv_sample', methods: ['GET'])]
+    #[Route('/compte/interventions-csv/modele.csv', name: 'account_time_credit_intervention_csv_sample', methods: ['GET'])]
     public function sample(): Response
     {
         $csv = "dossier;duree;date;descriptif\n"
@@ -95,5 +94,16 @@ final class TimeCreditInterventionImportController extends AbstractController
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="modele-interventions.csv"',
         ]);
+    }
+
+    #[Route('/admin/credits/interventions-csv', name: 'admin_time_credit_intervention_csv_import_legacy', methods: ['GET', 'POST'])]
+    #[Route('/admin/credits/interventions-csv/modele.csv', name: 'admin_time_credit_intervention_csv_sample_legacy', methods: ['GET'])]
+    public function legacyRedirect(Request $request): Response
+    {
+        if (str_ends_with($request->getPathInfo(), '/modele.csv')) {
+            return $this->redirectToRoute('account_time_credit_intervention_csv_sample', status: Response::HTTP_MOVED_PERMANENTLY);
+        }
+
+        return $this->redirectToRoute('account_time_credit_intervention_csv_import', status: Response::HTTP_MOVED_PERMANENTLY);
     }
 }
