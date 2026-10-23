@@ -65,6 +65,7 @@ final class TimeCreditController extends AbstractController
         $credits = $timeCreditRepository->findAccessibleForUser($actor, $forcedEntreprise, $forcedEntrepriseIds);
         $availableEntreprises = [];
         $availableCategories = [];
+        $searchSuggestions = [];
         foreach ($credits as $credit) {
             $entreprise = $credit->getEntreprise();
             if ($entreprise !== null) {
@@ -74,9 +75,17 @@ final class TimeCreditController extends AbstractController
             if ($category !== null) {
                 $availableCategories[$category->getId() ?? 0] = $category->getName();
             }
+            foreach ([$credit->getTitle(), $credit->getDossierNumber(), $entreprise?->getName(), $category?->getName()] as $suggestion) {
+                $suggestion = trim((string) $suggestion);
+                if ($suggestion !== '') {
+                    $searchSuggestions[$suggestion] = $suggestion;
+                }
+            }
         }
         asort($availableEntreprises, SORT_NATURAL | SORT_FLAG_CASE);
         asort($availableCategories, SORT_NATURAL | SORT_FLAG_CASE);
+        natcasesort($searchSuggestions);
+        $searchSuggestions = array_values($searchSuggestions);
 
         $preferredEntrepriseIds = $actor->is17bAdmin() ? $actor->getManagedEntrepriseIds() : [];
         $showMineFilter = $actor->is17bAdmin() && $preferredEntrepriseIds !== [];
@@ -184,6 +193,7 @@ final class TimeCreditController extends AbstractController
             'other_entreprises' => $otherEntreprises,
             'show_mine_filter' => $showMineFilter,
             'available_categories' => $availableCategories,
+            'search_suggestions' => $isAdminListView ? $searchSuggestions : [],
         ]);
     }
 
