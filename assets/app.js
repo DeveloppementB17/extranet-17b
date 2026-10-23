@@ -50,8 +50,8 @@ const initStaffClientSwitcher = () => {
 
         const $switcher = window.jQuery(switcher);
         $switcher.select2({
-            width: 'resolve',
-            placeholder: 'Sélectionner une entreprise',
+            width: '100%',
+            placeholder: switcher.getAttribute('data-placeholder') || 'Sélectionner une entreprise',
             allowClear: true,
         });
 

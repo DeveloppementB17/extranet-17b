@@ -3,11 +3,13 @@
         <input type="hidden" name="_token" value="{{ csrf_token('activate_client_switcher') }}">
         <input type="hidden" name="return_to" value="{{ return_to }}">
         <label class="sr-only" for="staff-client-switcher">Entreprise active</label>
+        <div class="w-full min-w-0" data-select2-style="filter">
         <select
             id="staff-client-switcher"
             name="client_id"
-            class="w-full rounded-base border border-default bg-white px-3 py-2 text-sm text-slate-900"
+            class="w-full border border-dark bg-white px-2 py-2 text-sm text-slate-900"
             data-staff-client-switcher
+            data-placeholder="Sélectionner une entreprise"
         >
             <option value="" {{ not selected_client and not mine_scope ? 'selected' : '' }}>— Tous les clients —</option>
             {% if is_admin and preferred_clients is not empty %}
@@ -38,6 +40,7 @@
                 {% endfor %}
             {% endif %}
         </select>
+        </div>
     </form>
 
     {% if selected_client %}
