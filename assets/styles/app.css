@@ -165,50 +165,53 @@
         outline: 2px solid #ffffff;
         outline-offset: 2px;
     }
+}
 
-    /* Select2 aligné sur les <select class="border border-dark …"> natifs */
-    .select2-container {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
-    .select2-container .select2-selection--single {
-        height: 38px;
-        border: 1px solid var(--color-dark, #1f2937);
-        border-radius: 0;
-        background-color: #fff;
-    }
-    .select2-container--default.select2-container--focus .select2-selection--single,
-    .select2-container--default.select2-container--open .select2-selection--single {
-        border-color: var(--color-dark, #1f2937);
-        outline: none;
-        box-shadow: none;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 36px;
-        padding-left: 0.5rem;
-        padding-right: 1.75rem;
-        font-size: 0.875rem;
-        color: #0f172a;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 36px;
-        top: 1px;
-        right: 2px;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__clear {
-        height: 36px;
-        margin-right: 1.25rem;
-        font-size: 1rem;
-    }
-    .select2-container--default .select2-dropdown {
-        border-radius: 0;
-        border-color: var(--color-dark, #1f2937);
-    }
-    .select2-search--dropdown .select2-search__field {
-        border: 1px solid var(--color-dark, #1f2937);
-        border-radius: 0;
-    }
+/*
+ * Select2 CDN est hors @layer : les règles dans @layer utilities étaient
+ * toujours perdantes. Ces overrides doivent rester hors layer.
+ */
+.select2-container {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid var(--color-dark, #1f2937) !important;
+    border-radius: 0 !important;
+    background-color: #fff !important;
+}
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--color-dark, #1f2937) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px !important;
+    padding-left: 0.5rem !important;
+    padding-right: 1.75rem !important;
+    font-size: 0.875rem !important;
+    color: #0f172a !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    top: 1px !important;
+    right: 2px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    height: 36px !important;
+    margin-right: 1.25rem !important;
+    font-size: 1rem !important;
+}
+.select2-container--default .select2-dropdown {
+    border-radius: 0 !important;
+    border-color: var(--color-dark, #1f2937) !important;
+}
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid var(--color-dark, #1f2937) !important;
+    border-radius: 0 !important;
 }
