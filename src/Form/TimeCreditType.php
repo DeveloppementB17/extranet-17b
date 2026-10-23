@@ -95,6 +95,9 @@ final class TimeCreditType extends AbstractType
             }
 
             $rawValue = $data['totalValue'] ?? null;
+            if (\is_string($rawValue)) {
+                $rawValue = str_replace([',', ' '], ['.', ''], $rawValue);
+            }
             $value = is_numeric($rawValue) ? (float) $rawValue : 0.0;
             $unit = (string) ($data['totalUnit'] ?? 'minutes');
             $minutes = $unit === 'hours'

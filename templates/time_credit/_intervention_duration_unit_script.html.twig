@@ -13,6 +13,55 @@
             return;
         }
 
+        // Virgule (clavier FR) → point pour les décimales (ex. 1,5 h).
+        const normalizeDecimalSeparator = (field) => {
+            field.addEventListener('keydown', (event) => {
+                if (event.key !== ',') {
+                    return;
+                }
+                event.preventDefault();
+                const start = field.selectionStart;
+                const end = field.selectionEnd;
+                if (typeof start === 'number' && typeof end === 'number') {
+                    field.value = field.value.slice(0, start) + '.' + field.value.slice(end);
+                    try {
+                        field.setSelectionRange(start + 1, start + 1);
+                    } catch (_) {
+                        // type=number : setSelectionRange peut être indisponible
+                    }
+                } else {
+                    const current = String(field.value ?? '');
+                    field.value = current.includes('.') ? current : current + '.';
+                }
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            field.addEventListener('input', () => {
+                if (String(field.value).includes(',')) {
+                    field.value = String(field.value).replace(/,/g, '.');
+                }
+            });
+
+            field.addEventListener('paste', (event) => {
+                const text = event.clipboardData?.getData('text') ?? '';
+                if (!text.includes(',')) {
+                    return;
+                }
+                event.preventDefault();
+                const replaced = text.replace(/,/g, '.');
+                const start = field.selectionStart;
+                const end = field.selectionEnd;
+                if (typeof start === 'number' && typeof end === 'number') {
+                    field.value = field.value.slice(0, start) + replaced + field.value.slice(end);
+                } else {
+                    field.value = replaced;
+                }
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        };
+
+        normalizeDecimalSeparator(valueField);
+
         const submitBtn = formEl.querySelector('button[type="submit"]');
         const inputClassesDefault = 'block py-2.5 px-0 w-full text-lg text-heading bg-transparent border-0 border-slate-600 border-b border-default-medium focus:outline-none focus:ring-0';
         const inputClassesOverflow = inputClassesDefault + ' !border-amber-500 !border-b-2';

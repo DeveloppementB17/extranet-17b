@@ -95,6 +95,47 @@
                 return;
             }
 
+            // Virgule (clavier FR) → point pour les décimales (ex. 1,5 h).
+            valueField.addEventListener('keydown', (event) => {
+                if (event.key !== ',') {
+                    return;
+                }
+                event.preventDefault();
+                const start = valueField.selectionStart;
+                const end = valueField.selectionEnd;
+                if (typeof start === 'number' && typeof end === 'number') {
+                    valueField.value = valueField.value.slice(0, start) + '.' + valueField.value.slice(end);
+                    try {
+                        valueField.setSelectionRange(start + 1, start + 1);
+                    } catch (_) {}
+                } else {
+                    const current = String(valueField.value ?? '');
+                    valueField.value = current.includes('.') ? current : current + '.';
+                }
+                valueField.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            valueField.addEventListener('input', () => {
+                if (String(valueField.value).includes(',')) {
+                    valueField.value = String(valueField.value).replace(/,/g, '.');
+                }
+            });
+            valueField.addEventListener('paste', (event) => {
+                const text = event.clipboardData?.getData('text') ?? '';
+                if (!text.includes(',')) {
+                    return;
+                }
+                event.preventDefault();
+                const replaced = text.replace(/,/g, '.');
+                const start = valueField.selectionStart;
+                const end = valueField.selectionEnd;
+                if (typeof start === 'number' && typeof end === 'number') {
+                    valueField.value = valueField.value.slice(0, start) + replaced + valueField.value.slice(end);
+                } else {
+                    valueField.value = replaced;
+                }
+                valueField.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
             const buttons = switchRoot.querySelectorAll('.duration-unit-btn');
             const setActive = (unit) => {
                 buttons.forEach((btn) => {

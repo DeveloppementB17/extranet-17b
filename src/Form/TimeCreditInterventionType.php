@@ -113,6 +113,9 @@ final class TimeCreditInterventionType extends AbstractType
             }
 
             $rawValue = $data['durationValue'] ?? null;
+            if (\is_string($rawValue)) {
+                $rawValue = str_replace([',', ' '], ['.', ''], $rawValue);
+            }
             $value = is_numeric($rawValue) ? (float) $rawValue : 0.0;
             $unit = (string) ($data['durationUnit'] ?? 'minutes');
             $minutes = $unit === 'hours'
