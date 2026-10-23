@@ -57,10 +57,28 @@
                             data-entreprise-searchable
                             data-placeholder="Toutes les entreprises"
                         >
-                            <option value="" {{ filter_entreprise == 0 ? 'selected' : '' }}>Toutes les entreprises</option>
-                            {% for id, name in available_entreprises %}
-                                <option value="{{ id }}" {{ filter_entreprise == id ? 'selected' : '' }}>{{ name }}</option>
-                            {% endfor %}
+                            <option value="" {{ filter_entreprise == '' ? 'selected' : '' }}>Toutes les entreprises</option>
+                            {% if show_mine_filter %}
+                                <option value="__mine__" {{ filter_entreprise == '__mine__' ? 'selected' : '' }}>— Mes clients —</option>
+                                {% if preferred_entreprises is not empty %}
+                                    <optgroup label="Mes clients">
+                                        {% for id, name in preferred_entreprises %}
+                                            <option value="{{ id }}" {{ filter_entreprise == (id ~ '') ? 'selected' : '' }}>{{ name }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                {% endif %}
+                                {% if other_entreprises is not empty %}
+                                    <optgroup label="Autres clients">
+                                        {% for id, name in other_entreprises %}
+                                            <option value="{{ id }}" {{ filter_entreprise == (id ~ '') ? 'selected' : '' }}>{{ name }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                {% endif %}
+                            {% else %}
+                                {% for id, name in available_entreprises %}
+                                    <option value="{{ id }}" {{ filter_entreprise == (id ~ '') ? 'selected' : '' }}>{{ name }}</option>
+                                {% endfor %}
+                            {% endif %}
                         </select>
                     </div>
                     <select name="category" class="w-full min-w-0 border border-dark px-2 py-2 text-sm md:flex-1">

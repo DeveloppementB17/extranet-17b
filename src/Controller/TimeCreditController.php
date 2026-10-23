@@ -78,9 +78,34 @@ final class TimeCreditController extends AbstractController
         asort($availableEntreprises, SORT_NATURAL | SORT_FLAG_CASE);
         asort($availableCategories, SORT_NATURAL | SORT_FLAG_CASE);
 
+        $preferredEntrepriseIds = $actor->is17bAdmin() ? $actor->getManagedEntrepriseIds() : [];
+        $showMineFilter = $actor->is17bAdmin() && $preferredEntrepriseIds !== [];
+        $preferredEntreprises = [];
+        $otherEntreprises = [];
+        if ($showMineFilter) {
+            $preferredIdMap = array_fill_keys($preferredEntrepriseIds, true);
+            foreach ($availableEntreprises as $id => $name) {
+                if (isset($preferredIdMap[$id])) {
+                    $preferredEntreprises[$id] = $name;
+                } else {
+                    $otherEntreprises[$id] = $name;
+                }
+            }
+        }
+
+        $filterEntrepriseRaw = '';
         if ($isAdminListView) {
             $search = trim((string) $request->query->get('q', ''));
-            $entrepriseFilter = (int) $request->query->get('entreprise', 0);
+            $filterEntrepriseRaw = trim((string) $request->query->get('entreprise', ''));
+            $mineFilter = $showMineFilter && $filterEntrepriseRaw === ManagedClientContext::SWITCHER_VALUE_MINE;
+            $entrepriseFilter = (!$mineFilter && ctype_digit($filterEntrepriseRaw)) ? (int) $filterEntrepriseRaw : 0;
+            if ($mineFilter) {
+                $filterEntrepriseRaw = ManagedClientContext::SWITCHER_VALUE_MINE;
+            } elseif ($entrepriseFilter > 0) {
+                $filterEntrepriseRaw = (string) $entrepriseFilter;
+            } else {
+                $filterEntrepriseRaw = '';
+            }
             $categoryFilter = (int) $request->query->get('category', 0);
             $statusFilter = (string) $request->query->get('status', 'all');
             $sort = (string) $request->query->get('sort', 'created_at');
@@ -91,13 +116,22 @@ final class TimeCreditController extends AbstractController
                 $sort = 'created_at';
             }
 
+            $mineIdMap = $mineFilter ? array_fill_keys($preferredEntrepriseIds, true) : [];
+
             $credits = array_values(array_filter($credits, static function (TimeCredit $credit) use (
                 $search,
                 $entrepriseFilter,
+                $mineFilter,
+                $mineIdMap,
                 $categoryFilter,
                 $statusFilter,
             ): bool {
-                if ($entrepriseFilter > 0 && $credit->getEntreprise()?->getId() !== $entrepriseFilter) {
+                $entrepriseId = $credit->getEntreprise()?->getId();
+                if ($mineFilter) {
+                    if ($entrepriseId === null || !isset($mineIdMap[$entrepriseId])) {
+                        return false;
+                    }
+                } elseif ($entrepriseFilter > 0 && $entrepriseId !== $entrepriseFilter) {
                     return false;
                 }
                 if ($categoryFilter > 0 && $credit->getCategory()?->getId() !== $categoryFilter) {
@@ -140,12 +174,15 @@ final class TimeCreditController extends AbstractController
             'credits' => $credits,
             'is_admin_list_view' => $isAdminListView,
             'search_query' => $isAdminListView ? trim((string) $request->query->get('q', '')) : '',
-            'filter_entreprise' => $isAdminListView ? (int) $request->query->get('entreprise', 0) : 0,
+            'filter_entreprise' => $isAdminListView ? $filterEntrepriseRaw : '',
             'filter_category' => $isAdminListView ? (int) $request->query->get('category', 0) : 0,
             'filter_status' => $isAdminListView ? (string) $request->query->get('status', 'all') : 'all',
             'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'created_at') : 'created_at',
             'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
             'available_entreprises' => $availableEntreprises,
+            'preferred_entreprises' => $preferredEntreprises,
+            'other_entreprises' => $otherEntreprises,
+            'show_mine_filter' => $showMineFilter,
             'available_categories' => $availableCategories,
         ]);
     }
