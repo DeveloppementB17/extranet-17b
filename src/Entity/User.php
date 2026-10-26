@@ -49,6 +49,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $passwordResetRequestedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $onboardingTourCompletedAt = null;
+
     #[ORM\ManyToOne(targetEntity: Entreprise::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     private ?Entreprise $entreprise = null;
@@ -332,6 +335,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->passwordResetRequestedAt = null;
 
         return $this;
+    }
+
+    public function getOnboardingTourCompletedAt(): ?\DateTimeImmutable
+    {
+        return $this->onboardingTourCompletedAt;
+    }
+
+    public function setOnboardingTourCompletedAt(?\DateTimeImmutable $onboardingTourCompletedAt): self
+    {
+        $this->onboardingTourCompletedAt = $onboardingTourCompletedAt;
+
+        return $this;
+    }
+
+    public function hasCompletedOnboardingTour(): bool
+    {
+        return $this->onboardingTourCompletedAt !== null;
     }
 
     public function getEntreprise(): ?Entreprise

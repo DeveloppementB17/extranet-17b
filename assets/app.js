@@ -3,6 +3,7 @@ import './stimulus_bootstrap.js';
 import './controllers/csrf_protection_controller.js';
 import 'flowbite';
 import ApexCharts from 'apexcharts';
+import { initOnboardingTour } from './onboarding-tour.js';
 
 const formatHoursMinutes = (value) => {
     const minutes = Math.round(Number(value || 0));
@@ -302,6 +303,7 @@ document.addEventListener('turbo:load', () => {
     initStaffClientSwitcher();
     initEntrepriseSearchableSelects();
     initTimeCreditDonutChart();
+    initOnboardingTour();
 });
 document.addEventListener('turbo:before-cache', () => {
     document.querySelectorAll('[data-flash-message]').forEach((message) => message.remove());

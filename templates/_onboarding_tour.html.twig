@@ -1,0 +1,21 @@
+{# Tuto guidé première connexion — étapes adaptées au rôle #}
+{% set tour = onboarding_tour() %}
+<div
+    class="onboarding-tour-root"
+    data-onboarding-tour="{{ tour|json_encode|e('html_attr') }}"
+    data-auto-start="{{ tour.auto_start ? '1' : '0' }}"
+    data-complete-url="{{ path('onboarding_tour_complete') }}"
+    data-csrf-token="{{ csrf_token('onboarding_tour') }}"
+>
+    <button
+        type="button"
+        data-tour="help-button"
+        class="onboarding-tour-help"
+        title="Relancer le guide ({{ tour.role_label }})"
+        aria-label="Relancer le guide d’utilisation"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/>
+        </svg>
+    </button>
+</div>
