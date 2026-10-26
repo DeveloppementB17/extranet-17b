@@ -22,13 +22,22 @@ final class TimeCreditType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $entrepriseAttr = [
+            'class' => 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary',
+        ];
+        if ($options['entreprise_searchable']) {
+            $entrepriseAttr['data-entreprise-searchable'] = '1';
+            $entrepriseAttr['data-placeholder'] = '— Choisir une entreprise —';
+        }
+
         $entrepriseFieldOptions = [
             'class' => Entreprise::class,
             'choices' => $options['entreprise_choices'],
             'label' => 'Entreprise cliente',
             'placeholder' => '— Choisir —',
             'constraints' => [new NotBlank(message: 'Choisis une entreprise.')],
-            'attr' => ['class' => 'mt-2 block w-full rounded bg-slate-100 px-3 py-2 text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-primary'],
+            'attr' => $entrepriseAttr,
+            'disabled' => $options['lock_entreprise_field'],
         ];
         if ($options['preselected_entreprise'] instanceof Entreprise) {
             $entrepriseFieldOptions['data'] = $options['preselected_entreprise'];
@@ -133,12 +142,16 @@ final class TimeCreditType extends AbstractType
             'category_choices' => [],
             'allow_archive_field' => true,
             'lock_total_field' => false,
+            'lock_entreprise_field' => false,
+            'entreprise_searchable' => true,
             'preselected_entreprise' => null,
         ]);
         $resolver->setAllowedTypes('entreprise_choices', 'array');
         $resolver->setAllowedTypes('category_choices', 'array');
         $resolver->setAllowedTypes('allow_archive_field', 'bool');
         $resolver->setAllowedTypes('lock_total_field', 'bool');
+        $resolver->setAllowedTypes('lock_entreprise_field', 'bool');
+        $resolver->setAllowedTypes('entreprise_searchable', 'bool');
         $resolver->setAllowedTypes('preselected_entreprise', ['null', Entreprise::class]);
     }
 }

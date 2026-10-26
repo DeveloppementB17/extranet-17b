@@ -6,6 +6,7 @@ use App\Entity\Entreprise;
 use App\Entity\TimeCredit;
 use App\Entity\TimeCreditMovement;
 use App\Entity\User;
+use App\Form\StaffEntrepriseChoiceHelper;
 use App\Form\TimeCreditInterventionType;
 use App\Form\TimeCreditType;
 use App\Repository\EntrepriseRepository;
@@ -375,9 +376,10 @@ final class TimeCreditController extends AbstractController
 
         $credit = new TimeCredit();
         $form = $this->createForm(TimeCreditType::class, $credit, [
-            'entreprise_choices' => $allowedEntreprises,
+            'entreprise_choices' => StaffEntrepriseChoiceHelper::groupForStaff($actor, $allowedEntreprises),
             'category_choices' => $categoryRepository->findAllOrdered(),
             'allow_archive_field' => false,
+            'entreprise_searchable' => true,
             'preselected_entreprise' => $selectedEntreprise,
         ]);
         $form->handleRequest($request);
@@ -395,6 +397,7 @@ final class TimeCreditController extends AbstractController
                 return $this->render('time_credit/form.html.twig', [
                     'form' => $form,
                     'title' => 'Nouveau crédit temps',
+                    'edit_mode' => false,
                 ]);
             }
 
@@ -458,6 +461,7 @@ final class TimeCreditController extends AbstractController
             'category_choices' => $categoryRepository->findAllOrdered(),
             'allow_archive_field' => true,
             'lock_total_field' => false,
+            'entreprise_searchable' => false,
         ]);
         $form->handleRequest($request);
 
