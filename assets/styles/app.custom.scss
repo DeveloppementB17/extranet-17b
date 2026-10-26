@@ -33,13 +33,11 @@
     }
 }
 
-/* Safari : empêche le drag fantôme des parts SVG (effet « dessiner » au clic-glissé). */
+/* Empêcher la sélection du contenu du graphique sur Safari */
 [data-time-credit-donut-chart],
-[data-time-credit-donut-chart] svg,
-[data-time-credit-donut-chart] .apexcharts-canvas,
-[data-time-credit-donut-chart] .apexcharts-svg {
+[data-time-credit-donut-chart] * {
     -webkit-user-select: none;
     user-select: none;
+    -webkit-touch-callout: none;
     -webkit-user-drag: none;
-    touch-action: manipulation;
 }
