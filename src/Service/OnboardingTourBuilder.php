@@ -135,7 +135,7 @@ final class OnboardingTourBuilder
             'element' => '[data-tour="account"]',
             'title' => 'Mon compte',
             'description' => match ($role) {
-                'admin_17b' => 'Profil, clients préférés (filtre Mes clients) et import CSV d’interventions.',
+                'admin_17b' => 'Profil, clients préférés (filtre Mes clients) et saisie groupée d’interventions.',
                 'user_17b' => 'Modifiez votre profil et votre mot de passe.',
                 'admin_client' => 'Gérez votre profil. Les utilisateurs de l’entreprise se gèrent dans le menu Utilisateurs.',
                 default => 'Consultez votre profil et changez votre mot de passe si besoin.',

@@ -146,8 +146,8 @@ final class AdminExtranetGuideController extends AbstractController
                         'text' => 'Filtrer par entreprise, catégorie, statut (actif / archivé), rechercher par titre ou n° de dossier, trier les colonnes.',
                     ],
                     [
-                        'title' => 'Intervention rapide & import CSV',
-                        'text' => 'Formulaire d’intervention depuis la liste ou la fiche. Les admins 17b peuvent aussi importer des interventions en masse (CSV) depuis Mon compte.',
+                        'title' => 'Intervention rapide & saisie groupée',
+                        'text' => 'Formulaire d’intervention depuis la liste ou la fiche. Les admins 17b peuvent aussi saisir plusieurs interventions en tableau depuis Mon compte.',
                     ],
                 ],
             ],
@@ -318,7 +318,7 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'title' => 'Mon compte',
                 'path' => '/compte',
-                'description' => 'Profil connecté. Admins 17b : clients préférés (filtre Mes clients) et import CSV d’interventions crédits temps.',
+                'description' => 'Profil connecté. Admins 17b : clients préférés (filtre Mes clients) et saisie groupée d’interventions crédits temps.',
                 'roles' => 'Tous · options admin 17b supplémentaires',
             ],
             [
@@ -431,8 +431,8 @@ final class AdminExtranetGuideController extends AbstractController
                 'user_client' => 'Consultation seule',
             ],
             [
-                'feature' => 'Crédits temps — import CSV',
-                'detail' => 'Import d’interventions depuis Mon compte.',
+                'feature' => 'Crédits temps — saisie groupée',
+                'detail' => 'Tableau d’interventions depuis Mon compte.',
                 'admin_17b' => 'Oui',
                 'user_17b' => 'Non',
                 'admin_client' => 'Non',

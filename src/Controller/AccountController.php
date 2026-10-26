@@ -2,10 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Entreprise;
+use App\Entity\TimeCredit;
 use App\Entity\User;
 use App\Form\Account\AccountPreferredClientsType;
+use App\Form\Account\TimeCreditInterventionBulkType;
 use App\Form\AccountPasswordChangeType;
 use App\Repository\EntrepriseRepository;
+use App\Repository\TimeCreditRepository;
+use App\Service\TimeCreditInterventionCsvImporter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -22,6 +27,8 @@ final class AccountController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
         EntrepriseRepository $entrepriseRepository,
+        TimeCreditRepository $timeCreditRepository,
+        TimeCreditInterventionCsvImporter $interventionImporter,
     ): Response {
         $user = $this->getUser();
         if (!$user instanceof User) {
@@ -38,10 +45,26 @@ final class AccountController extends AbstractController
 
         $passwordForm = $this->createForm(AccountPasswordChangeType::class);
         $preferredClientsForm = null;
+        $bulkInterventionForm = null;
+        $bulkInterventionResult = null;
 
         if ($user->is17bAdmin()) {
             $preferredClientsForm = $this->createForm(AccountPreferredClientsType::class, $user, [
                 'client_entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(),
+            ]);
+            $bulkInterventionForm = $this->createForm(TimeCreditInterventionBulkType::class, [
+                'rows' => [
+                    [
+                        'entreprise' => null,
+                        'timeCredit' => null,
+                        'date' => new \DateTimeImmutable('today'),
+                        'duree' => '',
+                        'descriptif' => '',
+                    ],
+                ],
+            ], [
+                'entreprise_choices' => $entrepriseRepository->findNonAgencyOrdered(includeLegacy: true),
+                'time_credit_choices' => $timeCreditRepository->findNonArchivedWithEntrepriseOrdered(),
             ]);
         }
 
@@ -86,11 +109,65 @@ final class AccountController extends AbstractController
             }
         }
 
+        if ($submittedForm === 'bulk_interventions' && $bulkInterventionForm !== null) {
+            $bulkInterventionForm->handleRequest($request);
+
+            if ($bulkInterventionForm->isSubmitted() && $bulkInterventionForm->isValid()) {
+                $allowOverdraft = (bool) $bulkInterventionForm->get('allowOverdraft')->getData();
+                /** @var list<array{entreprise?: ?Entreprise, timeCredit?: ?TimeCredit, duree?: string, date?: \DateTimeImmutable|null, descriptif?: string}> $formRows */
+                $formRows = $bulkInterventionForm->get('rows')->getData() ?? [];
+
+                $rows = [];
+                foreach ($formRows as $index => $formRow) {
+                    $date = $formRow['date'] ?? null;
+                    $rows[] = [
+                        'line' => $index + 1,
+                        'entreprise' => $formRow['entreprise'] ?? null,
+                        'timeCredit' => $formRow['timeCredit'] ?? null,
+                        'duree' => (string) ($formRow['duree'] ?? ''),
+                        'date' => $date instanceof \DateTimeInterface ? $date : '',
+                        'descriptif' => (string) ($formRow['descriptif'] ?? ''),
+                    ];
+                }
+
+                $bulkInterventionResult = $interventionImporter->importCreditRows(
+                    $rows,
+                    $user,
+                    dryRun: false,
+                    allowOverdraft: $allowOverdraft,
+                );
+
+                if ($bulkInterventionResult['errors'] === [] && $bulkInterventionResult['imported'] > 0) {
+                    $this->addFlash(
+                        'success',
+                        sprintf('%d intervention(s) enregistrée(s).', $bulkInterventionResult['imported']),
+                    );
+
+                    return $this->redirectToRoute('app_account', ['_fragment' => 'interventions-bulk']);
+                }
+
+                if ($bulkInterventionResult['imported'] > 0) {
+                    $this->addFlash(
+                        'success',
+                        sprintf(
+                            '%d enregistrée(s), %d ignorée(s).',
+                            $bulkInterventionResult['imported'],
+                            $bulkInterventionResult['skipped'],
+                        ),
+                    );
+                } elseif ($bulkInterventionResult['errors'] !== []) {
+                    $this->addFlash('error', 'Aucune intervention enregistrée. Voir le détail ci-dessous.');
+                }
+            }
+        }
+
         return $this->render('account/index.html.twig', [
             'user' => $user,
             'display_roles' => $roles,
             'password_form' => $passwordForm,
             'preferred_clients_form' => $preferredClientsForm,
+            'bulk_intervention_form' => $bulkInterventionForm,
+            'bulk_intervention_result' => $bulkInterventionResult,
         ]);
     }
 }

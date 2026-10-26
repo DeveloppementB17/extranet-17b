@@ -108,6 +108,26 @@ class TimeCreditRepository extends ServiceEntityRepository
     }
 
     /**
+     * Crédits non archivés (tous clients), pour saisie groupée d’interventions.
+     *
+     * @return list<TimeCredit>
+     */
+    public function findNonArchivedWithEntrepriseOrdered(): array
+    {
+        return $this->createQueryBuilder('tc')
+            ->leftJoin('tc.category', 'cat')
+            ->addSelect('cat')
+            ->leftJoin('tc.entreprise', 'e')
+            ->addSelect('e')
+            ->andWhere('tc.archived = :archived')
+            ->setParameter('archived', false)
+            ->orderBy('e.name', 'ASC')
+            ->addOrderBy('tc.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return list<TimeCredit>
      */
     public function findByEntrepriseOrdered(Entreprise $entreprise): array

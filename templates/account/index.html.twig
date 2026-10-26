@@ -80,23 +80,8 @@
             </div>
 
             <div class="min-w-0">
-                {% if is_granted('ROLE_17B_ADMIN') %}
-                    <section class="lg:border-l lg:border-slate-200 lg:pl-12{% if preferred_clients_form %} mb-10{% endif %}" aria-labelledby="account-admin-tools-heading">
-                        <h2 id="account-admin-tools-heading" class="text-xl font-bold text-brand">Outils admin</h2>
-                        <p class="mt-2 text-sm text-slate-600">
-                            Actions réservées aux administrateurs 17b.
-                        </p>
-                        <div class="mt-6 flex flex-col gap-3">
-                            <a class="inline-flex w-fit items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="{{ path('account_time_credit_intervention_csv_import') }}">
-                                {{ icons.icon('upload') }}
-                                Import CSV d’interventions
-                            </a>
-                        </div>
-                    </section>
-                {% endif %}
-
                 {% if preferred_clients_form %}
-                    <section class="{% if is_granted('ROLE_17B_ADMIN') %}border-t border-slate-200 pt-8{% else %}lg:border-l lg:border-slate-200 lg:pl-12{% endif %}" aria-labelledby="account-preferred-clients-heading">
+                    <section class="lg:border-l lg:border-slate-200 lg:pl-12" aria-labelledby="account-preferred-clients-heading">
                         <h2 id="account-preferred-clients-heading" class="text-xl font-bold text-brand">Mes clients</h2>
                         <p class="mt-2 text-sm text-slate-600">
                             Rattachez les entreprises que vous suivez au quotidien. Utilisez ensuite
@@ -150,6 +135,113 @@
                 {% endif %}
             </div>
         </div>
+
+        {% if bulk_intervention_form %}
+            <section
+                id="interventions-bulk"
+                class="mt-12 border-t border-slate-200 pt-10"
+                aria-labelledby="account-interventions-heading"
+                data-controller="intervention-bulk-table"
+                data-intervention-bulk-table-index-value="{{ bulk_intervention_form.rows|length }}"
+            >
+                <h2 id="account-interventions-heading" class="text-xl font-bold text-brand">Saisie d’interventions</h2>
+                <p class="mt-2 max-w-3xl text-sm text-slate-600">
+                    Ajoutez des lignes : choisissez le <strong class="font-semibold">client</strong> (recherche),
+                    puis le <strong class="font-semibold">crédit temps</strong> concerné.
+                    Durée : minutes (<code class="text-xs">90</code>) ou heures (<code class="text-xs">1h30</code>).
+                </p>
+
+                {% if bulk_intervention_result %}
+                    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                        {% if bulk_intervention_result.successes is not empty %}
+                            <div class="overflow-hidden ring-1 ring-green-200">
+                                <div class="bg-green-50 px-4 py-3 text-sm font-semibold text-green-900">
+                                    Enregistrées — {{ bulk_intervention_result.imported }}
+                                </div>
+                                <ul class="max-h-48 space-y-1 overflow-y-auto bg-white px-4 py-3 text-xs text-slate-700">
+                                    {% for line in bulk_intervention_result.successes %}
+                                        <li>{{ line }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        {% if bulk_intervention_result.errors is not empty %}
+                            <div class="overflow-hidden ring-1 ring-red-200">
+                                <div class="bg-red-50 px-4 py-3 text-sm font-semibold text-red-900">
+                                    Erreurs — {{ bulk_intervention_result.skipped }}
+                                </div>
+                                <ul class="max-h-48 space-y-1 overflow-y-auto bg-white px-4 py-3 text-xs text-red-800">
+                                    {% for line in bulk_intervention_result.errors %}
+                                        <li>{{ line }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {{ form_start(bulk_intervention_form, { attr: { class: 'mt-6 space-y-5', 'data-turbo': 'false' } }) }}
+                    <input type="hidden" name="_account_form" value="bulk_interventions">
+
+                    <div
+                        class="hidden"
+                        data-intervention-bulk-table-target="prototype"
+                        data-prototype="{{ include('account/_intervention_bulk_row.html.twig', { form: bulk_intervention_form.rows.vars.prototype })|e('html_attr') }}"
+                    ></div>
+
+                    <div class="overflow-x-auto ring-1 ring-slate-200">
+                        <table class="min-w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                <tr>
+                                    <th class="px-2 py-3">Client</th>
+                                    <th class="px-2 py-3">Crédit temps</th>
+                                    <th class="px-2 py-3">Date</th>
+                                    <th class="px-2 py-3">Durée</th>
+                                    <th class="px-2 py-3">Descriptif</th>
+                                    <th class="px-2 py-3 text-right"><span class="sr-only">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody data-intervention-bulk-table-target="tbody">
+                                {% for row in bulk_intervention_form.rows %}
+                                    {% include 'account/_intervention_bulk_row.html.twig' with { form: row } only %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p
+                            class="hidden border-t border-slate-100 bg-white px-4 py-6 text-center text-sm text-slate-500"
+                            data-intervention-bulk-table-target="empty"
+                        >
+                            Aucune ligne. Cliquez sur « Ajouter une ligne ».
+                        </p>
+                    </div>
+                    {{ form_errors(bulk_intervention_form.rows) }}
+
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button
+                            type="button"
+                            class="inline-flex cursor-pointer items-center gap-2 border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                            data-action="intervention-bulk-table#add"
+                        >
+                            {{ icons.icon('plus') }}
+                            Ajouter une ligne
+                        </button>
+
+                        <label class="flex items-start gap-3 text-sm text-slate-800">
+                            {{ form_widget(bulk_intervention_form.allowOverdraft, { attr: { class: 'mt-1 h-4 w-4 rounded border-slate-400 text-brand-primary focus:ring-brand-primary' } }) }}
+                            <span>{{ bulk_intervention_form.allowOverdraft.vars.label }}</span>
+                        </label>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            {{ icons.icon('check') }}
+                            Enregistrer les interventions
+                        </button>
+                    </div>
+                    {{ form_widget(bulk_intervention_form._token) }}
+                {{ form_end(bulk_intervention_form, { render_rest: false }) }}
+            </section>
+        {% endif %}
 
         <p class="mt-10 text-sm">
             <a class="font-medium text-brand underline" href="{{ path('app_home') }}">← Retour à l’accueil</a>

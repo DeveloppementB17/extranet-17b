@@ -1,0 +1,45 @@
+{% import '_icon_macros.html.twig' as icons %}
+<tr data-intervention-bulk-table-target="row" class="align-top border-b border-slate-100">
+    <td class="px-2 py-2">
+        <div class="min-w-[12rem]" data-select2-style="filter">
+            {{ form_widget(form.entreprise, {
+                attr: form.entreprise.vars.attr|merge({
+                    class: 'w-full border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-primary'
+                })
+            }) }}
+        </div>
+        {{ form_errors(form.entreprise) }}
+    </td>
+    <td class="px-2 py-2">
+        {{ form_widget(form.timeCredit, {
+            attr: form.timeCredit.vars.attr|merge({
+                class: 'w-full min-w-[14rem] border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-primary'
+            })
+        }) }}
+        {{ form_errors(form.timeCredit) }}
+    </td>
+    <td class="px-2 py-2">
+        {{ form_widget(form.date, { attr: { class: 'w-full min-w-[9rem] border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-primary' } }) }}
+        {{ form_errors(form.date) }}
+    </td>
+    <td class="px-2 py-2">
+        {{ form_widget(form.duree, { attr: { class: 'w-full min-w-[5.5rem] border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-primary' } }) }}
+        {{ form_errors(form.duree) }}
+    </td>
+    <td class="px-2 py-2">
+        {{ form_widget(form.descriptif, { attr: { class: 'w-full min-w-[12rem] border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-primary' } }) }}
+        {{ form_errors(form.descriptif) }}
+    </td>
+    <td class="px-2 py-2 text-right">
+        <button
+            type="button"
+            class="inline-flex items-center justify-center border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            data-action="intervention-bulk-table#remove"
+            title="Supprimer la ligne"
+            aria-label="Supprimer la ligne"
+        >
+            {{ icons.icon('x') }}
+        </button>
+        {{ form_rest(form) }}
+    </td>
+</tr>
