@@ -53,12 +53,12 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'number' => '2',
                 'title' => 'On voit son espace',
-                'text' => 'Le menu à gauche mène vers l’accueil, les fichiers et les crédits temps. On ne voit que ce qui concerne notre entreprise (ou nos clients, pour l’équipe 17b).',
+                'text' => 'Le menu à gauche mène vers l’accueil, les fichiers, la stratégie et les crédits temps. On ne voit que ce qui concerne notre entreprise (ou nos clients, pour l’équipe 17b).',
             ],
             [
                 'number' => '3',
                 'title' => 'On échange et on suit',
-                'text' => '17b dépose des documents et note le temps passé. Le client consulte, télécharge et suit son solde de minutes.',
+                'text' => '17b dépose des fichiers et documents stratégiques, et note le temps passé. Le client consulte, télécharge et suit son solde de minutes.',
             ],
             [
                 'number' => '4',
@@ -78,29 +78,29 @@ final class AdminExtranetGuideController extends AbstractController
                 'emoji' => '🛠️',
                 'title' => 'Admin 17b',
                 'subtitle' => 'Pilotage complet',
-                'can_do' => ['Tout voir', 'Gérer entreprises & comptes', 'Déposer des fichiers', 'Gérer les crédits temps'],
+                'can_do' => ['Tout voir', 'Gérer entreprises & comptes', 'Déposer fichiers & stratégie', 'Gérer les crédits temps'],
                 'cannot_do' => ['Rien de bloquant — c’est le profil le plus ouvert'],
             ],
             [
                 'emoji' => '👤',
                 'title' => 'Collaborateur 17b',
                 'subtitle' => 'Sur ses clients uniquement',
-                'can_do' => ['Choisir une entreprise active', 'Travailler sur ses clients assignés', 'Déposer des fichiers', 'Saisir du temps'],
-                'cannot_do' => ['Accéder à l’admin globale', 'Voir les clients non assignés'],
+                'can_do' => ['Choisir une entreprise active', 'Travailler sur ses clients assignés', 'Déposer fichiers & stratégie', 'Saisir du temps'],
+                'cannot_do' => ['Accéder à l’admin globale', 'Voir les clients non assignés (hors filtre Mes clients)'],
             ],
             [
                 'emoji' => '⭐',
                 'title' => 'Admin client',
                 'subtitle' => 'Référent chez le client',
-                'can_do' => ['Voir les fichiers de son entreprise', 'Suivre les crédits temps', 'Inviter des collègues'],
-                'cannot_do' => ['Déposer des fichiers', 'Modifier les crédits', 'Accéder à /admin'],
+                'can_do' => ['Voir fichiers et stratégie de son entreprise', 'Suivre les crédits temps', 'Inviter des collègues'],
+                'cannot_do' => ['Déposer des documents', 'Modifier les crédits', 'Accéder à /admin'],
             ],
             [
                 'emoji' => '👁️',
                 'title' => 'Utilisateur client',
                 'subtitle' => 'Consultation',
-                'can_do' => ['Télécharger les fichiers', 'Consulter les crédits temps', 'Gérer son compte'],
-                'cannot_do' => ['Ajouter des fichiers', 'Gérer d’autres utilisateurs', 'Modifier quoi que ce soit côté 17b'],
+                'can_do' => ['Télécharger fichiers & stratégie', 'Consulter les crédits temps', 'Gérer son compte'],
+                'cannot_do' => ['Ajouter des documents', 'Gérer d’autres utilisateurs', 'Modifier quoi que ce soit côté 17b'],
             ],
         ];
     }
@@ -146,8 +146,27 @@ final class AdminExtranetGuideController extends AbstractController
                         'text' => 'Filtrer par entreprise, catégorie, statut (actif / archivé), rechercher par titre ou n° de dossier, trier les colonnes.',
                     ],
                     [
-                        'title' => 'Intervention rapide',
-                        'text' => 'Depuis la liste, formulaire intégré pour saisir une intervention : choix du crédit concerné si plusieurs sont actifs, sans ouvrir chaque fiche.',
+                        'title' => 'Intervention rapide & import CSV',
+                        'text' => 'Formulaire d’intervention depuis la liste ou la fiche. Les admins 17b peuvent aussi importer des interventions en masse (CSV) depuis Mon compte.',
+                    ],
+                ],
+            ],
+            [
+                'emoji' => '🎯',
+                'group' => 'Stratégie',
+                'color' => 'border-emerald-300 bg-emerald-50/60',
+                'items' => [
+                    [
+                        'title' => 'Documents stratégiques',
+                        'text' => 'Espace dédié (hors bibliothèque Fichiers) : feuilles de route, plans, livrables de pilotage par client.',
+                    ],
+                    [
+                        'title' => 'Type, sujet et période',
+                        'text' => 'Chaque document peut être classé par type, sujet et mois/année. Filtres et aperçu (URL, PDF, DOCX) dans la liste.',
+                    ],
+                    [
+                        'title' => 'Dépôt par l’équipe 17b',
+                        'text' => 'Ajout unitaire ou en lot, comme pour les fichiers. Lecture pour les clients de l’entreprise concernée.',
                     ],
                 ],
             ],
@@ -158,7 +177,7 @@ final class AdminExtranetGuideController extends AbstractController
                 'items' => [
                     [
                         'title' => 'Entreprise active (staff 17b)',
-                        'text' => 'Sélecteur en bas du menu : filtre fichiers et crédits sur le client choisi. Badge visible en haut de page.',
+                        'text' => 'Sélecteur en bas du menu (recherche) : filtre fichiers, stratégie et crédits sur le client choisi, ou « Mes clients ».',
                     ],
                     [
                         'title' => 'Périmètre isolé',
@@ -184,6 +203,12 @@ final class AdminExtranetGuideController extends AbstractController
                 'title' => 'Fichiers',
                 'text' => 'Les livrables et documents partagés, rangés dans des dossiers.',
                 'color' => 'bg-sky-50 border-sky-300',
+            ],
+            [
+                'emoji' => '🎯',
+                'title' => 'Stratégie',
+                'text' => 'Les documents de pilotage et de vision : plans, feuilles de route, livrables stratégiques.',
+                'color' => 'bg-emerald-50 border-emerald-300',
             ],
             [
                 'emoji' => '⏱️',
@@ -224,7 +249,7 @@ final class AdminExtranetGuideController extends AbstractController
                 'label' => 'Administrateur 17b',
                 'audience' => 'Équipe 17b — configuration globale',
                 'entreprise' => 'Rattaché à l’agence « 17b »',
-                'resume' => 'Accès à tout : toutes les entreprises clientes, administration, dépôt de documents, gestion des crédits temps et des comptes.',
+                'resume' => 'Accès à tout : toutes les entreprises clientes, administration, dépôt de fichiers et stratégie, gestion des crédits temps et des comptes.',
                 'test_account' => 'admin-test@17b.test',
             ],
             [
@@ -232,7 +257,7 @@ final class AdminExtranetGuideController extends AbstractController
                 'label' => 'Utilisateur 17b',
                 'audience' => 'Équipe 17b — périmètre limité',
                 'entreprise' => 'Agence « 17b » + entreprises clientes cochées',
-                'resume' => 'Travaille uniquement sur les clients qui lui sont attribués. Doit sélectionner une « entreprise active » pour filtrer documents et crédits.',
+                'resume' => 'Travaille uniquement sur les clients qui lui sont attribués. Peut filtrer via l’entreprise active ou « Mes clients » (fichiers, stratégie, crédits).',
                 'test_account' => 'staff-partial@17b.test (Cliente Nord)',
             ],
             [
@@ -240,7 +265,7 @@ final class AdminExtranetGuideController extends AbstractController
                 'label' => 'Administrateur client',
                 'audience' => 'Référent côté client',
                 'entreprise' => 'Une entreprise cliente (ex. Cliente Nord)',
-                'resume' => 'Consulte documents et crédits temps de son organisation, gère les comptes collègues (utilisateurs client). Pas d’accès admin 17b.',
+                'resume' => 'Consulte fichiers, stratégie et crédits temps de son organisation, gère les comptes collègues. Pas d’accès admin 17b.',
                 'test_account' => 'admin-nord@clients.test',
             ],
             [
@@ -248,7 +273,7 @@ final class AdminExtranetGuideController extends AbstractController
                 'label' => 'Utilisateur client',
                 'audience' => 'Collaborateur client',
                 'entreprise' => 'Une entreprise cliente',
-                'resume' => 'Consultation des fichiers et suivi des crédits temps en lecture seule. Pas de gestion d’utilisateurs ni de dépôt de documents.',
+                'resume' => 'Consultation des fichiers, de la stratégie et suivi des crédits temps en lecture seule. Pas de gestion d’utilisateurs ni de dépôt.',
                 'test_account' => 'user-nord@clients.test',
             ],
         ];
@@ -263,7 +288,7 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'title' => 'Tableau de bord',
                 'path' => '/',
-                'description' => 'Vue d’ensemble après connexion : accès rapide aux documents et crédits temps, indicateurs selon le profil. Pour l’équipe 17b sans client sélectionné, des messages guident la sélection d’entreprise.',
+                'description' => 'Vue d’ensemble après connexion : cartes Fichiers, Stratégie et Crédits temps. Pour l’équipe 17b sans client sélectionné, des messages guident la sélection d’entreprise.',
                 'roles' => 'Tous les rôles connectés',
             ],
             [
@@ -273,16 +298,16 @@ final class AdminExtranetGuideController extends AbstractController
                 'roles' => 'Lecture : tous · Gestion : 17b (admin & user autorisé)',
             ],
             [
-                'title' => 'Crédits temps',
-                'path' => '/credits-temps',
-                'description' => 'Plusieurs enveloppes minutes peuvent coexister par client. Liste avec recherche, filtres et tri ; formulaire d’intervention rapide depuis la page. Fiche détail : solde, historique. L’équipe 17b crée et consomme ; les clients consultent uniquement.',
-                'roles' => 'Gestion : 17b · Lecture : clients',
+                'title' => 'Stratégie',
+                'path' => '/strategie',
+                'description' => 'Espace documents stratégiques distinct des Fichiers : type, sujet, mois/année, filtres, aperçu. Dépôt unitaire ou en lot via /strategie/ajouter. Carte dédiée sur le tableau de bord.',
+                'roles' => 'Lecture : tous · Gestion : 17b (admin & user autorisé)',
             ],
             [
-                'title' => 'Stratégie',
-                'path' => '—',
-                'description' => 'Espace réservé à venir (menu grisé dans la navigation).',
-                'roles' => 'Non disponible',
+                'title' => 'Crédits temps',
+                'path' => '/credits-temps',
+                'description' => 'Plusieurs enveloppes minutes par client. Liste avec recherche, filtres (dont Mes clients), tri ; intervention rapide ; fiche détail (solde, graphique, historique). Les clients consultent uniquement.',
+                'roles' => 'Gestion : 17b · Lecture : clients',
             ],
             [
                 'title' => 'Utilisateurs (côté client)',
@@ -293,19 +318,19 @@ final class AdminExtranetGuideController extends AbstractController
             [
                 'title' => 'Mon compte',
                 'path' => '/compte',
-                'description' => 'Informations du compte connecté, lien de déconnexion.',
-                'roles' => 'Tous',
+                'description' => 'Profil connecté. Admins 17b : clients préférés (filtre Mes clients) et import CSV d’interventions crédits temps.',
+                'roles' => 'Tous · options admin 17b supplémentaires',
             ],
             [
                 'title' => 'Administration 17b',
                 'path' => '/admin',
-                'description' => 'Gestion des entreprises (agence + clients), de tous les utilisateurs et des paramètres avancés (types documents, catégories crédits).',
+                'description' => 'Gestion des entreprises (agence + clients), de tous les utilisateurs et des paramètres avancés (types / sujets stratégie, types documents, catégories crédits).',
                 'roles' => 'Administrateur 17b uniquement',
             ],
             [
                 'title' => 'Entreprise active (équipe 17b)',
                 'path' => 'Sidebar',
-                'description' => 'Sélecteur en bas du menu latéral : filtre documents et crédits sur le client choisi. Badge visible en haut de page.',
+                'description' => 'Sélecteur recherchable en bas du menu : tous les clients, Mes clients, ou un client précis. Filtre fichiers, stratégie et crédits. Option « Voir comme le client ».',
                 'roles' => 'Administrateur & utilisateur 17b',
             ],
         ];
@@ -319,9 +344,9 @@ final class AdminExtranetGuideController extends AbstractController
         return [
             [
                 'feature' => 'Tableau de bord',
-                'detail' => 'Accueil, cartes documents et crédits temps.',
+                'detail' => 'Accueil, cartes Fichiers, Stratégie et Crédits temps.',
                 'admin_17b' => 'Oui — toutes les entreprises',
-                'user_17b' => 'Oui — filtré par client actif',
+                'user_17b' => 'Oui — filtré par client actif / Mes clients',
                 'admin_client' => 'Oui — son entreprise',
                 'user_client' => 'Oui — son entreprise',
             ],
@@ -358,10 +383,34 @@ final class AdminExtranetGuideController extends AbstractController
                 'user_client' => 'Non',
             ],
             [
+                'feature' => 'Stratégie — lecture',
+                'detail' => 'Liste /strategie, aperçu et téléchargement.',
+                'admin_17b' => 'Oui — toutes les entreprises',
+                'user_17b' => 'Oui — client actif / Mes clients',
+                'admin_client' => 'Oui — son entreprise',
+                'user_client' => 'Oui — son entreprise',
+            ],
+            [
+                'feature' => 'Stratégie — dépôt & gestion',
+                'detail' => 'Ajout (/strategie/ajouter), édition, suppression.',
+                'admin_17b' => 'Oui',
+                'user_17b' => 'Oui — client actif + périmètre géré',
+                'admin_client' => 'Non',
+                'user_client' => 'Non',
+            ],
+            [
+                'feature' => 'Stratégie — types & sujets',
+                'detail' => 'Référentiels admin (taxonomie stratégie).',
+                'admin_17b' => 'Oui',
+                'user_17b' => 'Non',
+                'admin_client' => 'Non',
+                'user_client' => 'Non',
+            ],
+            [
                 'feature' => 'Crédits temps — consultation',
                 'detail' => 'Liste et fiche détail /credits-temps.',
                 'admin_17b' => 'Oui — toutes les entreprises',
-                'user_17b' => 'Oui — client actif uniquement',
+                'user_17b' => 'Oui — client actif / Mes clients',
                 'admin_client' => 'Lecture seule — son entreprise',
                 'user_client' => 'Lecture seule — son entreprise',
             ],
@@ -380,6 +429,14 @@ final class AdminExtranetGuideController extends AbstractController
                 'user_17b' => 'Oui — client actif',
                 'admin_client' => 'Consultation seule',
                 'user_client' => 'Consultation seule',
+            ],
+            [
+                'feature' => 'Crédits temps — import CSV',
+                'detail' => 'Import d’interventions depuis Mon compte.',
+                'admin_17b' => 'Oui',
+                'user_17b' => 'Non',
+                'admin_client' => 'Non',
+                'user_client' => 'Non',
             ],
             [
                 'feature' => 'Crédits temps — suppression',
@@ -415,7 +472,7 @@ final class AdminExtranetGuideController extends AbstractController
             ],
             [
                 'feature' => 'Sélecteur « entreprise active »',
-                'detail' => 'Select2 dans la barre latérale (équipe 17b).',
+                'detail' => 'Select2 recherchable + Mes clients (équipe 17b).',
                 'admin_17b' => 'Oui',
                 'user_17b' => 'Oui',
                 'admin_client' => 'Non',

@@ -23,10 +23,10 @@
             <p class="mt-4 max-w-3xl text-lg font-semibold leading-snug text-slate-900 md:text-xl">
                 Un site privé où <span class="underline decoration-4 decoration-amber-400">17b</span> et ses
                 <span class="underline decoration-4 decoration-sky-400">clients</span> échangent des fichiers
-                et suivent le temps passé sur leurs projets — en toute sécurité.
+                partagent la stratégie et suivent le temps passé sur leurs projets — en toute sécurité.
             </p>
 
-            <div class="mt-8 grid gap-4 md:grid-cols-3">
+            <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {% for pillar in simple_pillars %}
                     <div class="rounded-xl border-2 {{ pillar.color }} p-5 text-center shadow-sm">
                         <span class="text-4xl" aria-hidden="true">{{ pillar.emoji }}</span>
@@ -38,7 +38,7 @@
 
             <h3 class="mt-10 text-2xl font-extrabold text-black">Fonctionnalités concrètes</h3>
             <p class="mt-2 text-base text-slate-700">Ce que l’extranet sait faire au quotidien — utile pour les démos et la recette.</p>
-            <div class="mt-5 grid gap-5 lg:grid-cols-3">
+            <div class="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 {% for group in key_features %}
                     <article class="rounded-xl border-2 {{ group.color }} p-5">
                         <header class="flex items-center gap-2">
