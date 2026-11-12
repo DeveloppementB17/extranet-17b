@@ -6,6 +6,7 @@ use App\Entity\Entreprise;
 use App\Entity\TimeCredit;
 use App\Entity\User;
 use App\Form\Account\AccountPreferredClientsType;
+use App\Form\Account\AccountProfileType;
 use App\Form\Account\TimeCreditInterventionBulkType;
 use App\Form\AccountPasswordChangeType;
 use App\Repository\EntrepriseRepository;
@@ -44,6 +45,7 @@ final class AccountController extends AbstractController
         });
 
         $passwordForm = $this->createForm(AccountPasswordChangeType::class);
+        $profileForm = $this->createForm(AccountProfileType::class, $user);
         $preferredClientsForm = null;
         $bulkInterventionForm = null;
         $bulkInterventionResult = null;
@@ -69,6 +71,17 @@ final class AccountController extends AbstractController
         }
 
         $submittedForm = (string) $request->request->get('_account_form', '');
+
+        if ($submittedForm === 'profile') {
+            $profileForm->handleRequest($request);
+
+            if ($profileForm->isSubmitted() && $profileForm->isValid()) {
+                $entityManager->flush();
+                $this->addFlash('success', 'Vos informations ont été mises à jour.');
+
+                return $this->redirectToRoute('app_account');
+            }
+        }
 
         if ($submittedForm === 'password') {
             $passwordForm->handleRequest($request);
@@ -164,6 +177,7 @@ final class AccountController extends AbstractController
         return $this->render('account/index.html.twig', [
             'user' => $user,
             'display_roles' => $roles,
+            'profile_form' => $profileForm,
             'password_form' => $passwordForm,
             'preferred_clients_form' => $preferredClientsForm,
             'bulk_intervention_form' => $bulkInterventionForm,

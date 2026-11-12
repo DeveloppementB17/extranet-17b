@@ -22,6 +22,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private string $email = '';
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $lastName = null;
+
     /**
      * @var list<string>
      */
@@ -87,6 +93,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->email = mb_strtolower($email);
 
         return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(?string $firstName): self
+    {
+        $firstName = $firstName !== null ? trim($firstName) : null;
+        $this->firstName = $firstName !== '' ? $firstName : null;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): self
+    {
+        $lastName = $lastName !== null ? trim($lastName) : null;
+        $this->lastName = $lastName !== '' ? $lastName : null;
+
+        return $this;
+    }
+
+    /**
+     * Libellé court pour la navigation : prénom si renseigné, sinon email.
+     */
+    public function getSidebarDisplayName(): string
+    {
+        return $this->firstName ?? $this->email;
+    }
+
+    /**
+     * Initiale affichée dans l’avatar de navigation.
+     */
+    public function getSidebarInitial(): string
+    {
+        $source = $this->firstName ?? $this->email;
+
+        return mb_strtoupper(mb_substr($source, 0, 1));
     }
 
     public function getUserIdentifier(): string

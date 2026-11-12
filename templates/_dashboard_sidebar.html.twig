@@ -55,12 +55,11 @@
 
             <div class="flex items-start gap-3" data-tour="account">
                 <div class="flex h-[51px] w-[51px] shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xl font-medium text-white" aria-hidden="true">
-                    {% set initials = app.user.userIdentifier|slice(0, 1)|upper %}
-                    {{ initials }}
+                    {{ app.user.sidebarInitial }}
                 </div>
                 <div class="min-w-0 flex-1">
                     <p class="font-['Sora',sans-serif] text-sm font-extrabold leading-tight text-black">
-                        {{ app.user.userIdentifier }}
+                        {{ app.user.sidebarDisplayName }}
                     </p>
                     <a href="{{ path('app_account') }}" class="mt-1 inline-flex items-center gap-1.5 font-['Sora',sans-serif] text-sm font-normal text-black hover:underline">
                         Modifier le compte

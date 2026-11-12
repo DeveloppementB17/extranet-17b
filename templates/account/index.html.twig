@@ -50,6 +50,19 @@
                         </div>
                     {% endif %}
                 </dl>
+
+                {{ form_start(profile_form, { attr: { class: 'mt-6 space-y-5 border-t border-slate-200 pt-6' } }) }}
+                    <input type="hidden" name="_account_form" value="profile">
+                    <p class="text-sm text-slate-600">Prénom et nom sont facultatifs. Le prénom s’affiche dans le menu s’il est renseigné.</p>
+                    {{ form_row(profile_form.firstName) }}
+                    {{ form_row(profile_form.lastName) }}
+                    <div class="pt-2">
+                        <button type="submit" class="inline-flex cursor-pointer items-center gap-2 bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover">
+                            {{ icons.icon('check') }}
+                            Enregistrer les informations
+                        </button>
+                    </div>
+                {{ form_end(profile_form) }}
             </section>
 
             <section class="min-w-0 border border-slate-200 bg-slate-50/60 px-6 py-6" aria-labelledby="account-password-heading">
