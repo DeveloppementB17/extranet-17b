@@ -305,14 +305,14 @@
                         {% else %}
                             {% set empty_colspan = (can_bulk_delete ? 7 : 6) + (show_strategy_columns ? 2 : 0) %}
                             <tr>
-                                <td colspan="{{ empty_colspan }}" class="px-4 py-6 text-slate-600">Aucun document ne correspond aux filtres.</td>
+                                <td colspan="{{ empty_colspan }}" class="px-4 py-6 text-slate-600">Aucune donnée</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         {% elseif documents is empty %}
-            <p class="mt-6 font-['Proxima_Nova','Inter',sans-serif] text-base text-neutral-600">Aucun document pour le moment.</p>
+            <p class="mt-6 font-['Proxima_Nova','Inter',sans-serif] text-base text-neutral-600">Aucune donnée</p>
         {% else %}
             <div class="mt-6 document-tree-maquette max-w-none text-black">
                 {% for root in category_roots %}
