@@ -63,6 +63,7 @@ final class TimeCreditController extends AbstractController
         }
 
         $isAdminListView = $actor->is17bStaff() || $actor->isCustomerActor();
+        $showListFilters = $actor->is17bStaff();
         $credits = $timeCreditRepository->findAccessibleForUser($actor, $forcedEntreprise, $forcedEntrepriseIds);
         $availableEntreprises = [];
         $availableCategories = [];
@@ -104,68 +105,74 @@ final class TimeCreditController extends AbstractController
         }
 
         $filterEntrepriseRaw = '';
+        $search = '';
+        $categoryFilter = 0;
+        $statusFilter = 'all';
+        $sort = 'created_at';
+        $direction = 'desc';
         if ($isAdminListView) {
-            $search = trim((string) $request->query->get('q', ''));
-            $filterEntrepriseRaw = trim((string) $request->query->get('entreprise', ''));
-            $mineFilter = $showMineFilter && $filterEntrepriseRaw === ManagedClientContext::SWITCHER_VALUE_MINE;
-            $entrepriseFilter = (!$mineFilter && ctype_digit($filterEntrepriseRaw)) ? (int) $filterEntrepriseRaw : 0;
-            if ($mineFilter) {
-                $filterEntrepriseRaw = ManagedClientContext::SWITCHER_VALUE_MINE;
-            } elseif ($entrepriseFilter > 0) {
-                $filterEntrepriseRaw = (string) $entrepriseFilter;
-            } else {
-                $filterEntrepriseRaw = '';
-            }
-            $categoryFilter = (int) $request->query->get('category', 0);
-            $statusFilter = (string) $request->query->get('status', 'all');
             $sort = (string) $request->query->get('sort', 'created_at');
             $direction = strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-
             $allowedSorts = ['created_at', 'title', 'entreprise', 'category', 'remaining'];
             if (!\in_array($sort, $allowedSorts, true)) {
                 $sort = 'created_at';
             }
 
-            $mineIdMap = $mineFilter ? array_fill_keys($preferredEntrepriseIds, true) : [];
-
-            $credits = array_values(array_filter($credits, static function (TimeCredit $credit) use (
-                $search,
-                $entrepriseFilter,
-                $mineFilter,
-                $mineIdMap,
-                $categoryFilter,
-                $statusFilter,
-            ): bool {
-                $entrepriseId = $credit->getEntreprise()?->getId();
+            if ($showListFilters) {
+                $search = trim((string) $request->query->get('q', ''));
+                $filterEntrepriseRaw = trim((string) $request->query->get('entreprise', ''));
+                $mineFilter = $showMineFilter && $filterEntrepriseRaw === ManagedClientContext::SWITCHER_VALUE_MINE;
+                $entrepriseFilter = (!$mineFilter && ctype_digit($filterEntrepriseRaw)) ? (int) $filterEntrepriseRaw : 0;
                 if ($mineFilter) {
-                    if ($entrepriseId === null || !isset($mineIdMap[$entrepriseId])) {
+                    $filterEntrepriseRaw = ManagedClientContext::SWITCHER_VALUE_MINE;
+                } elseif ($entrepriseFilter > 0) {
+                    $filterEntrepriseRaw = (string) $entrepriseFilter;
+                } else {
+                    $filterEntrepriseRaw = '';
+                }
+                $categoryFilter = (int) $request->query->get('category', 0);
+                $statusFilter = (string) $request->query->get('status', 'all');
+                $mineIdMap = $mineFilter ? array_fill_keys($preferredEntrepriseIds, true) : [];
+
+                $credits = array_values(array_filter($credits, static function (TimeCredit $credit) use (
+                    $search,
+                    $entrepriseFilter,
+                    $mineFilter,
+                    $mineIdMap,
+                    $categoryFilter,
+                    $statusFilter,
+                ): bool {
+                    $entrepriseId = $credit->getEntreprise()?->getId();
+                    if ($mineFilter) {
+                        if ($entrepriseId === null || !isset($mineIdMap[$entrepriseId])) {
+                            return false;
+                        }
+                    } elseif ($entrepriseFilter > 0 && $entrepriseId !== $entrepriseFilter) {
                         return false;
                     }
-                } elseif ($entrepriseFilter > 0 && $entrepriseId !== $entrepriseFilter) {
-                    return false;
-                }
-                if ($categoryFilter > 0 && $credit->getCategory()?->getId() !== $categoryFilter) {
-                    return false;
-                }
-                if ($statusFilter === 'active' && $credit->isArchived()) {
-                    return false;
-                }
-                if ($statusFilter === 'archived' && !$credit->isArchived()) {
-                    return false;
-                }
-                if ($search === '') {
-                    return true;
-                }
+                    if ($categoryFilter > 0 && $credit->getCategory()?->getId() !== $categoryFilter) {
+                        return false;
+                    }
+                    if ($statusFilter === 'active' && $credit->isArchived()) {
+                        return false;
+                    }
+                    if ($statusFilter === 'archived' && !$credit->isArchived()) {
+                        return false;
+                    }
+                    if ($search === '') {
+                        return true;
+                    }
 
-                $haystack = mb_strtolower(implode(' ', array_filter([
-                    $credit->getTitle(),
-                    $credit->getDossierNumber(),
-                    $credit->getEntreprise()?->getName(),
-                    $credit->getCategory()?->getName(),
-                ])));
+                    $haystack = mb_strtolower(implode(' ', array_filter([
+                        $credit->getTitle(),
+                        $credit->getDossierNumber(),
+                        $credit->getEntreprise()?->getName(),
+                        $credit->getCategory()?->getName(),
+                    ])));
 
-                return str_contains($haystack, mb_strtolower($search));
-            }));
+                    return str_contains($haystack, mb_strtolower($search));
+                }));
+            }
 
             usort($credits, static function (TimeCredit $left, TimeCredit $right) use ($sort, $direction): int {
                 $result = match ($sort) {
@@ -183,18 +190,19 @@ final class TimeCreditController extends AbstractController
         return $this->render('time_credit/index.html.twig', [
             'credits' => $credits,
             'is_admin_list_view' => $isAdminListView,
-            'search_query' => $isAdminListView ? trim((string) $request->query->get('q', '')) : '',
-            'filter_entreprise' => $isAdminListView ? $filterEntrepriseRaw : '',
-            'filter_category' => $isAdminListView ? (int) $request->query->get('category', 0) : 0,
-            'filter_status' => $isAdminListView ? (string) $request->query->get('status', 'all') : 'all',
-            'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'created_at') : 'created_at',
-            'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+            'show_list_filters' => $showListFilters,
+            'search_query' => $showListFilters ? $search : '',
+            'filter_entreprise' => $showListFilters ? $filterEntrepriseRaw : '',
+            'filter_category' => $showListFilters ? $categoryFilter : 0,
+            'filter_status' => $showListFilters ? $statusFilter : 'all',
+            'sort_field' => $isAdminListView ? $sort : 'created_at',
+            'sort_direction' => $isAdminListView ? $direction : 'desc',
             'available_entreprises' => $availableEntreprises,
             'preferred_entreprises' => $preferredEntreprises,
             'other_entreprises' => $otherEntreprises,
             'show_mine_filter' => $showMineFilter,
             'available_categories' => $availableCategories,
-            'search_suggestions' => $isAdminListView ? $searchSuggestions : [],
+            'search_suggestions' => $showListFilters ? $searchSuggestions : [],
         ]);
     }
 
