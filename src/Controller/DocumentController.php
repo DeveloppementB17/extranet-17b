@@ -71,10 +71,13 @@ final class DocumentController extends AbstractController
         asort($availableEntreprises, SORT_NATURAL | SORT_FLAG_CASE);
         asort($availableCategories, SORT_NATURAL | SORT_FLAG_CASE);
         $isAdminListView = $user->is17bStaff() || $user->isCustomerActor();
+        $showListFilters = $user->is17bStaff();
+        $search = '';
+        $entrepriseFilter = 0;
+        $categoryFilter = 0;
+        $sort = 'document_date';
+        $direction = 'desc';
         if ($isAdminListView) {
-            $search = trim((string) $request->query->get('q', ''));
-            $entrepriseFilter = (int) $request->query->get('entreprise', 0);
-            $categoryFilter = (int) $request->query->get('category', 0);
             $sort = (string) $request->query->get('sort', 'document_date');
             $direction = strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
@@ -83,30 +86,36 @@ final class DocumentController extends AbstractController
                 $sort = 'document_date';
             }
 
-            $documents = array_values(array_filter($documents, static function (Document $document) use (
-                $search,
-                $entrepriseFilter,
-                $categoryFilter,
-            ): bool {
-                if ($entrepriseFilter > 0 && $document->getEntreprise()?->getId() !== $entrepriseFilter) {
-                    return false;
-                }
-                if ($categoryFilter > 0 && $document->getCategory()?->getId() !== $categoryFilter) {
-                    return false;
-                }
-                if ($search === '') {
-                    return true;
-                }
+            if ($showListFilters) {
+                $search = trim((string) $request->query->get('q', ''));
+                $entrepriseFilter = (int) $request->query->get('entreprise', 0);
+                $categoryFilter = (int) $request->query->get('category', 0);
 
-                $haystack = mb_strtolower(implode(' ', array_filter([
-                    $document->getTitle(),
-                    $document->getOriginalName(),
-                    $document->getEntreprise()?->getName(),
-                    $document->getCategory()?->getName(),
-                ])));
+                $documents = array_values(array_filter($documents, static function (Document $document) use (
+                    $search,
+                    $entrepriseFilter,
+                    $categoryFilter,
+                ): bool {
+                    if ($entrepriseFilter > 0 && $document->getEntreprise()?->getId() !== $entrepriseFilter) {
+                        return false;
+                    }
+                    if ($categoryFilter > 0 && $document->getCategory()?->getId() !== $categoryFilter) {
+                        return false;
+                    }
+                    if ($search === '') {
+                        return true;
+                    }
 
-                return str_contains($haystack, mb_strtolower($search));
-            }));
+                    $haystack = mb_strtolower(implode(' ', array_filter([
+                        $document->getTitle(),
+                        $document->getOriginalName(),
+                        $document->getEntreprise()?->getName(),
+                        $document->getCategory()?->getName(),
+                    ])));
+
+                    return str_contains($haystack, mb_strtolower($search));
+                }));
+            }
 
             usort($documents, static function (Document $left, Document $right) use ($sort, $direction): int {
                 $result = match ($sort) {
@@ -134,14 +143,15 @@ final class DocumentController extends AbstractController
             'documents_by_category' => $documentsByCategory,
             'category_roots' => $categoryRepository->findNonStrategyRoots(),
             'is_admin_list_view' => $isAdminListView,
+            'show_list_filters' => $showListFilters,
             'can_upload' => $this->isGranted('ROLE_17B_ADMIN')
                 || ($this->isGranted('ROLE_17B_USER') && $user->getManagedEntrepriseIds() !== []),
             'show_client_in_tree' => !$this->isGranted('ROLE_CUSTOMER'),
-            'search_query' => $isAdminListView ? trim((string) $request->query->get('q', '')) : '',
-            'filter_entreprise' => $isAdminListView ? (int) $request->query->get('entreprise', 0) : 0,
-            'filter_category' => $isAdminListView ? (int) $request->query->get('category', 0) : 0,
-            'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'document_date') : 'document_date',
-            'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+            'search_query' => $showListFilters ? $search : '',
+            'filter_entreprise' => $showListFilters ? $entrepriseFilter : 0,
+            'filter_category' => $showListFilters ? $categoryFilter : 0,
+            'sort_field' => $isAdminListView ? $sort : 'document_date',
+            'sort_direction' => $isAdminListView ? $direction : 'desc',
             'available_entreprises' => $availableEntreprises,
             'available_categories' => $availableCategories,
             'can_bulk_delete' => $user->is17bAdmin() && $isAdminListView,

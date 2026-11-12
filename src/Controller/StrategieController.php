@@ -98,12 +98,15 @@ final class StrategieController extends AbstractController
             return strcasecmp($left, $right);
         });
         $isAdminListView = $user->is17bStaff() || $user->isCustomerActor();
+        $showListFilters = $user->is17bStaff();
+        $search = '';
+        $entrepriseFilter = 0;
+        $categoryFilter = 0;
+        $yearFilter = 0;
+        $topicFilter = 0;
+        $sort = 'document_date';
+        $direction = 'desc';
         if ($isAdminListView) {
-            $search = trim((string) $request->query->get('q', ''));
-            $entrepriseFilter = (int) $request->query->get('entreprise', 0);
-            $categoryFilter = (int) $request->query->get('category', 0);
-            $yearFilter = (int) $request->query->get('year', 0);
-            $topicFilter = (int) $request->query->get('topic', 0);
             $sort = (string) $request->query->get('sort', 'document_date');
             $direction = strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
@@ -112,41 +115,49 @@ final class StrategieController extends AbstractController
                 $sort = 'document_date';
             }
 
-            $documents = array_values(array_filter($documents, static function (Document $document) use (
-                $search,
-                $entrepriseFilter,
-                $categoryFilter,
-                $yearFilter,
-                $topicFilter,
-            ): bool {
-                if ($entrepriseFilter > 0 && $document->getEntreprise()?->getId() !== $entrepriseFilter) {
-                    return false;
-                }
-                if ($categoryFilter > 0 && $document->getCategory()?->getId() !== $categoryFilter) {
-                    return false;
-                }
-                if ($yearFilter > 0 && $document->getYear() !== $yearFilter) {
-                    return false;
-                }
-                if ($topicFilter > 0 && $document->getTopic()?->getId() !== $topicFilter) {
-                    return false;
-                }
-                if ($search === '') {
-                    return true;
-                }
+            if ($showListFilters) {
+                $search = trim((string) $request->query->get('q', ''));
+                $entrepriseFilter = (int) $request->query->get('entreprise', 0);
+                $categoryFilter = (int) $request->query->get('category', 0);
+                $yearFilter = (int) $request->query->get('year', 0);
+                $topicFilter = (int) $request->query->get('topic', 0);
 
-                $haystack = mb_strtolower(implode(' ', array_filter([
-                    $document->getTitle(),
-                    $document->getOriginalName(),
-                    $document->getEntreprise()?->getName(),
-                    $document->getCategory()?->getName(),
-                    $document->getKind()?->getName(),
-                    $document->getTopic()?->getName(),
-                    $document->getYear() !== null ? (string) $document->getYear() : null,
-                ])));
+                $documents = array_values(array_filter($documents, static function (Document $document) use (
+                    $search,
+                    $entrepriseFilter,
+                    $categoryFilter,
+                    $yearFilter,
+                    $topicFilter,
+                ): bool {
+                    if ($entrepriseFilter > 0 && $document->getEntreprise()?->getId() !== $entrepriseFilter) {
+                        return false;
+                    }
+                    if ($categoryFilter > 0 && $document->getCategory()?->getId() !== $categoryFilter) {
+                        return false;
+                    }
+                    if ($yearFilter > 0 && $document->getYear() !== $yearFilter) {
+                        return false;
+                    }
+                    if ($topicFilter > 0 && $document->getTopic()?->getId() !== $topicFilter) {
+                        return false;
+                    }
+                    if ($search === '') {
+                        return true;
+                    }
 
-                return str_contains($haystack, mb_strtolower($search));
-            }));
+                    $haystack = mb_strtolower(implode(' ', array_filter([
+                        $document->getTitle(),
+                        $document->getOriginalName(),
+                        $document->getEntreprise()?->getName(),
+                        $document->getCategory()?->getName(),
+                        $document->getKind()?->getName(),
+                        $document->getTopic()?->getName(),
+                        $document->getYear() !== null ? (string) $document->getYear() : null,
+                    ])));
+
+                    return str_contains($haystack, mb_strtolower($search));
+                }));
+            }
 
             usort($documents, static function (Document $left, Document $right) use ($sort, $direction): int {
                 $result = match ($sort) {
@@ -180,16 +191,17 @@ final class StrategieController extends AbstractController
             'documents_by_category' => $documentsByCategory,
             'category_roots' => $categoryRoots,
             'is_admin_list_view' => $isAdminListView,
+            'show_list_filters' => $showListFilters,
             'can_upload' => $this->isGranted('ROLE_17B_ADMIN')
                 || ($this->isGranted('ROLE_17B_USER') && $user->getManagedEntrepriseIds() !== []),
             'show_client_in_tree' => !$this->isGranted('ROLE_CUSTOMER'),
-            'search_query' => $isAdminListView ? trim((string) $request->query->get('q', '')) : '',
-            'filter_entreprise' => $isAdminListView ? (int) $request->query->get('entreprise', 0) : 0,
-            'filter_category' => $isAdminListView ? (int) $request->query->get('category', 0) : 0,
-            'filter_year' => $isAdminListView ? (int) $request->query->get('year', 0) : 0,
-            'filter_topic' => $isAdminListView ? (int) $request->query->get('topic', 0) : 0,
-            'sort_field' => $isAdminListView ? (string) $request->query->get('sort', 'document_date') : 'document_date',
-            'sort_direction' => $isAdminListView && strtolower((string) $request->query->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+            'search_query' => $showListFilters ? $search : '',
+            'filter_entreprise' => $showListFilters ? $entrepriseFilter : 0,
+            'filter_category' => $showListFilters ? $categoryFilter : 0,
+            'filter_year' => $showListFilters ? $yearFilter : 0,
+            'filter_topic' => $showListFilters ? $topicFilter : 0,
+            'sort_field' => $isAdminListView ? $sort : 'document_date',
+            'sort_direction' => $isAdminListView ? $direction : 'desc',
             'available_entreprises' => $availableEntreprises,
             'available_categories' => $availableCategories,
             'available_years' => $availableYears,
