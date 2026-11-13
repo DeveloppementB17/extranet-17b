@@ -28,12 +28,11 @@
     {% set minimalAuthRoutes = ['app_login', 'auth_forgot_password', 'auth_reset_password', 'auth_code', 'auth_code_verify_form'] %}
     {% set showDashboardShell = app.user and routeName not in minimalAuthRoutes %}
     <body class="min-h-screen {% if showDashboardShell %}bg-[#f8f8f8]{% else %}bg-brand{% endif %} text-slate-900 antialiased"{% if routeName in minimalAuthRoutes %} data-turbo="false"{% endif %}>
-        {# peekAll : laisse les templates enfants afficher aussi les flashes dans le contenu. #}
-        {% set global_flashes = app.session.flashbag.peekAll %}
+        {# Affichage unique des flashes (bannière). Consommés ici pour éviter le doublon avec les pages. #}
         <div class="pointer-events-none fixed inset-x-0 top-0 z-[9999] w-full" aria-live="polite">
-            {% for label, messages in global_flashes %}
+            {% for label, messages in app.flashes %}
                 {% for message in messages %}
-                    {% set flashId = 'flash-' ~ label ~ '-' ~ loop.index %}
+                    {% set flashId = 'flash-' ~ label ~ '-' ~ loop.parent.index ~ '-' ~ loop.index %}
                     {% set isError = label == 'error' %}
                     <div
                         id="{{ flashId }}"
@@ -199,9 +198,6 @@
                 </main>
             {% endif %}
         {% endblock %}
-
-        {# Consomme les flashes après affichage bannière + contenu, pour ne pas les rejouer. #}
-        {% for _label, _messages in app.flashes %}{% endfor %}
 
         {% block footer %}
             {% if not showDashboardShell %}
